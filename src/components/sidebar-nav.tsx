@@ -29,7 +29,6 @@ import {
   LogOut,
   FileSignature,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const userNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -59,7 +58,7 @@ export function SidebarNav() {
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.href}>
-          <Link href={item.href} legacyBehavior passHref>
+          <Link href={item.href} passHref>
             <SidebarMenuButton asChild isActive={pathname === item.href}>
               <a>
                 <item.icon />
@@ -99,14 +98,14 @@ export function SidebarNav() {
       <SidebarFooter>
         <SidebarMenu>
             <SidebarMenuItem>
-                <Link href="#" legacyBehavior passHref>
-                    <SidebarMenuButton asChild>
-                        <a><HelpCircle /><span>Help & Feedback</span></a>
-                    </SidebarMenuButton>
-                </Link>
+              <Link href="#" passHref>
+                <SidebarMenuButton asChild>
+                  <a><HelpCircle /><span>Help & Feedback</span></a>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <Link href="/" legacyBehavior passHref>
+                <Link href="/" passHref>
                     <SidebarMenuButton asChild>
                         <a><LogOut /><span>Logout</span></a>
                     </SidebarMenuButton>
