@@ -9,11 +9,11 @@ import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 
 const forms = [
+  { href: "/personal-tax-filing", title: { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" }, icon: FileSignature },
   { id: 'income-tax-return', title: { en: 'Income Tax Return', ur: 'انکم ٹیکس ریٹرن' }, icon: FileText },
   { id: 'sales-tax-return', title: { en: 'Sales Tax Return', ur: 'سیلز ٹیکس ریٹرن' }, icon: FileText },
   { id: 'wealth-statement', title: { en: 'Wealth Statement', ur: 'دولت کا بیان' }, icon: FileText },
   { id: 'withholding-tax-statement', title: { en: 'Withholding Tax', ur: 'ودہولڈنگ ٹیکس' }, icon: FileText },
-  { href: "/filing", title: { en: "Tax Filing", ur: "ٹیکس فائلنگ" }, icon: FileSignature },
   { href: "/documents", title: { en: "Documents", ur: "دستاویزات" }, icon: FileUp },
   { href: "/profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
   { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" }, icon: CreditCard },
@@ -190,5 +190,3 @@ export default function DashboardPage() {
     </AppLayout>
   )
 }
-
-    
