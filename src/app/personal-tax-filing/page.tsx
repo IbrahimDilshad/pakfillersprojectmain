@@ -1,8 +1,13 @@
+
 'use client';
 import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { PersonalInfoStep } from '@/components/personal-tax-filing/personal-info-step';
 import { IncomeSourcesStep } from '@/components/personal-tax-filing/income-sources-step';
+import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step';
+import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
+import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
+import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { PersonalTaxSidebar } from '@/components/personal-tax-filing/sidebar';
 import { useLanguage } from '@/context/language-context';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,7 +44,14 @@ export default function PersonalTaxFilingPage() {
         return <PersonalInfoStep />;
       case 'income-sources':
         return <IncomeSourcesStep />;
-      // Add other steps here as they are built
+      case 'deductions':
+        return <DeductionsStep />;
+      case 'wealth-statement':
+        return <WealthStatementStep />;
+      case 'documents':
+        return <DocumentsStep />;
+      case 'review':
+        return <ReviewSubmitStep />;
       default:
         return (
           <div className="text-center">
@@ -70,7 +82,7 @@ export default function PersonalTaxFilingPage() {
               </Button>
             ) : (
               <Button>
-                {t({ en: 'Submit', ur: 'جمع کرائیں' })}
+                {t({ en: 'Submit for Review', ur: 'جائزہ کے لیے جمع کرائیں' })}
               </Button>
             )}
           </div>
