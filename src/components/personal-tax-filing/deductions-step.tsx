@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
+import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
+import { useEffect } from 'react';
 
 const deductionsSchema = z.object({
   zakat: z.coerce.number().optional(),
@@ -21,12 +23,18 @@ type DeductionsFormData = z.infer<typeof deductionsSchema>;
 
 export function DeductionsStep() {
   const { t } = useLanguage();
+  const { formData, setFormData } = usePersonalTaxFiling();
   const form = useForm<DeductionsFormData>({
     resolver: zodResolver(deductionsSchema),
-    defaultValues: {
-      hasTaxCredits: false,
-    },
+    defaultValues: formData.deductions,
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setFormData(prev => ({...prev, deductions: value as DeductionsFormData}));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, setFormData]);
 
   return (
     <div>

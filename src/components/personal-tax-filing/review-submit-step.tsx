@@ -4,9 +4,10 @@
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
 import { Separator } from '../ui/separator';
-import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
+import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
+import { useMemo } from 'react';
 
 const SummaryItem = ({ label, value, urLabel }: { label: string; value: string | number; urLabel: string; }) => {
     const { t } = useLanguage();
@@ -21,6 +22,28 @@ const SummaryItem = ({ label, value, urLabel }: { label: string; value: string |
 
 export function ReviewSubmitStep() {
     const { t } = useLanguage();
+    const { formData } = usePersonalTaxFiling();
+
+    const formatCurrency = (amount?: number) => {
+        if (amount === undefined || amount === null) return 'PKR 0';
+        return `PKR ${amount.toLocaleString()}`;
+    }
+
+    const totalIncome = useMemo(() => {
+        return (formData.incomes?.salary?.annualSalary || 0);
+    }, [formData.incomes]);
+
+    const totalAssets = useMemo(() => {
+        const { properties = 0, bankAccounts = 0, vehicles = 0, cash = 0, otherAssets = 0 } = formData.wealthStatement || {};
+        return properties + bankAccounts + vehicles + cash + otherAssets;
+    }, [formData.wealthStatement]);
+
+    const totalLiabilities = useMemo(() => {
+        return formData.wealthStatement?.liabilities || 0;
+    }, [formData.wealthStatement]);
+
+    const netWealth = totalAssets - totalLiabilities;
+
 
   return (
     <div>
@@ -33,27 +56,27 @@ export function ReviewSubmitStep() {
             <div>
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Personal Information', ur: 'ذاتی معلومات' })}</h3>
                 <div className="rounded-md border p-4 space-y-2">
-                    <SummaryItem label="Full Name" urLabel="پورا نام" value="John Doe" />
-                    <SummaryItem label="Email" urLabel="ای میل" value="john.doe@example.com" />
-                    <SummaryItem label="CNIC" urLabel="شناختی کارڈ نمبر" value="12345-1234567-1" />
+                    <SummaryItem label="Full Name" urLabel="پورا نام" value={formData.personalInfo.fullName || '-'} />
+                    <SummaryItem label="Email" urLabel="ای میل" value={formData.personalInfo.email || '-'} />
+                    <SummaryItem label="CNIC" urLabel="شناختی کارڈ نمبر" value={formData.personalInfo.cnic || '-'} />
                 </div>
             </div>
 
             <div>
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Income Summary', ur: 'آمدنی کا خلاصہ' })}</h3>
                 <div className="rounded-md border p-4 space-y-2">
-                    <SummaryItem label="Total Income" urLabel="کل آمدنی" value="PKR 1,250,000" />
-                    <SummaryItem label="Tax Deducted at Source" urLabel="ماخذ پر کٹوتی ٹیکس" value="PKR 25,000" />
+                    <SummaryItem label="Total Income" urLabel="کل آمدنی" value={formatCurrency(totalIncome)} />
+                    <SummaryItem label="Tax Deducted at Source" urLabel="ماخذ پر کٹوتی ٹیکس" value={formatCurrency(formData.incomes?.salary?.taxDeducted)} />
                 </div>
             </div>
 
             <div>
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Wealth Statement Summary', ur: 'دولت کے بیان کا خلاصہ' })}</h3>
                 <div className="rounded-md border p-4 space-y-2">
-                    <SummaryItem label="Total Assets" urLabel="کل اثاثے" value="PKR 5,000,000" />
-                    <SummaryItem label="Total Liabilities" urLabel="کل واجبات" value="PKR 500,000" />
+                    <SummaryItem label="Total Assets" urLabel="کل اثاثے" value={formatCurrency(totalAssets)} />
+                    <SummaryItem label="Total Liabilities" urLabel="کل واجبات" value={formatCurrency(totalLiabilities)} />
                     <Separator />
-                    <SummaryItem label="Net Wealth" urLabel="کل دولت" value="PKR 4,500,000" />
+                    <SummaryItem label="Net Wealth" urLabel="کل دولت" value={formatCurrency(netWealth)} />
                 </div>
             </div>
 

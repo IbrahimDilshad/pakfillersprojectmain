@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
+import { useEffect } from 'react';
 
 const wealthStatementSchema = z.object({
   properties: z.coerce.number().optional(),
@@ -22,9 +24,18 @@ type WealthStatementFormData = z.infer<typeof wealthStatementSchema>;
 
 export function WealthStatementStep() {
   const { t } = useLanguage();
+  const { formData, setFormData } = usePersonalTaxFiling();
   const form = useForm<WealthStatementFormData>({
     resolver: zodResolver(wealthStatementSchema),
+    defaultValues: formData.wealthStatement,
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+        setFormData(prev => ({...prev, wealthStatement: value as WealthStatementFormData}));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, setFormData]);
 
   return (
     <div>
@@ -34,7 +45,7 @@ export function WealthStatementStep() {
       </div>
       <Form {...form}>
         <form className="space-y-4">
-          <Accordion type="multiple" className="w-full">
+          <Accordion type="multiple" defaultValue={['assets']} className="w-full">
             <AccordionItem value="assets">
               <AccordionTrigger className="text-lg font-medium">{t({ en: 'Assets', ur: 'اثاثے' })}</AccordionTrigger>
               <AccordionContent>

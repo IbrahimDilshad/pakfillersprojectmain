@@ -1,12 +1,15 @@
+
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFormContext } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/context/language-context';
 import { CardDescription, CardTitle } from '../ui/card';
+import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
+import { useEffect } from 'react';
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -19,15 +22,19 @@ type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;
 
 export function PersonalInfoStep() {
     const { t } = useLanguage();
+    const { formData, setFormData } = usePersonalTaxFiling();
+    
     const form = useForm<PersonalInfoFormData>({
         resolver: zodResolver(personalInfoSchema),
-        defaultValues: {
-            fullName: '',
-            email: '',
-            cnic: '',
-            phoneNumber: '',
-        },
+        defaultValues: formData.personalInfo,
     });
+
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            setFormData(prev => ({...prev, personalInfo: value as PersonalInfoFormData}));
+        });
+        return () => subscription.unsubscribe();
+    }, [form, setFormData]);
     
   return (
     <div>

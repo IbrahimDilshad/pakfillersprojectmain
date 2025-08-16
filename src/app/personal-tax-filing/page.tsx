@@ -12,6 +12,8 @@ import { PersonalTaxSidebar } from '@/components/personal-tax-filing/sidebar';
 import { useLanguage } from '@/context/language-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PersonalTaxFilingProvider } from '@/context/personal-tax-filing-context';
+import { useToast } from '@/hooks/use-toast';
 
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
@@ -22,9 +24,10 @@ const steps = [
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
 
-export default function PersonalTaxFilingPage() {
+function PersonalTaxFilingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useLanguage();
+  const { toast } = useToast();
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -37,6 +40,13 @@ export default function PersonalTaxFilingPage() {
       setCurrentStep(currentStep - 1);
     }
   };
+  
+  const handleSubmit = () => {
+    toast({
+        title: "Form Submitted!",
+        description: "Your tax form has been successfully submitted for review.",
+    });
+  }
 
   const renderStep = () => {
     switch (steps[currentStep].id) {
@@ -63,31 +73,41 @@ export default function PersonalTaxFilingPage() {
   };
 
   return (
-    <AppLayout pageTitle={t({ en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" })}>
-      <div className="flex flex-col md:flex-row gap-8">
-        <PersonalTaxSidebar steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
-        <div className="flex-1">
-          <Card>
-            <CardContent className="p-6">
-              {renderStep()}
-            </CardContent>
-          </Card>
-          <div className="flex justify-between mt-6">
-            <Button onClick={handleBack} disabled={currentStep === 0} variant="outline">
-              {t({ en: 'Back', ur: 'پیچھے' })}
+    <div className="flex flex-col md:flex-row gap-8">
+      <PersonalTaxSidebar steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      <div className="flex-1">
+        <Card>
+          <CardContent className="p-6">
+            {renderStep()}
+          </CardContent>
+        </Card>
+        <div className="flex justify-between mt-6">
+          <Button onClick={handleBack} disabled={currentStep === 0} variant="outline">
+            {t({ en: 'Back', ur: 'پیچھے' })}
+          </Button>
+          {currentStep < steps.length - 1 ? (
+            <Button onClick={handleNext}>
+              {t({ en: 'Next', ur: 'اگلا' })}
             </Button>
-            {currentStep < steps.length - 1 ? (
-              <Button onClick={handleNext}>
-                {t({ en: 'Next', ur: 'اگلا' })}
-              </Button>
-            ) : (
-              <Button>
-                {t({ en: 'Submit for Review', ur: 'جائزہ کے لیے جمع کرائیں' })}
-              </Button>
-            )}
-          </div>
+          ) : (
+            <Button onClick={handleSubmit}>
+              {t({ en: 'Submit for Review', ur: 'جائزہ کے لیے جمع کرائیں' })}
+            </Button>
+          )}
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
+}
+
+
+export default function PersonalTaxFilingPage() {
+    const { t } = useLanguage();
+    return (
+        <AppLayout pageTitle={t({ en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" })}>
+            <PersonalTaxFilingProvider>
+                <PersonalTaxFilingWizard />
+            </PersonalTaxFilingProvider>
+        </AppLayout>
+    )
 }
