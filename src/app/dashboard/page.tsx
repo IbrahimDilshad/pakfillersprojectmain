@@ -4,20 +4,23 @@ import Link from "next/link"
 import { AppLayout } from "@/components/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, ArrowRight, LayoutDashboard, FileSignature, FileUp, User, CreditCard, PlayCircle, BookOpen } from "lucide-react"
+import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss } from "lucide-react"
 import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 
-const forms = [
-  { href: "/personal-tax-filing", title: { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" }, icon: FileSignature },
-  { id: 'income-tax-return', title: { en: 'Income Tax Return', ur: 'انکم ٹیکس ریٹرن' }, icon: FileText },
-  { id: 'sales-tax-return', title: { en: 'Sales Tax Return', ur: 'سیلز ٹیکس ریٹرن' }, icon: FileText },
-  { id: 'wealth-statement', title: { en: 'Wealth Statement', ur: 'دولت کا بیان' }, icon: FileText },
-  { id: 'withholding-tax-statement', title: { en: 'Withholding Tax', ur: 'ودہولڈنگ ٹیکس' }, icon: FileText },
-  { href: "/documents", title: { en: "Documents", ur: "دستاویزات" }, icon: FileUp },
-  { href: "/profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
+const services = [
+  { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
+  { href: "/family-tax-filing", title: { en: "Family Tax Filing", ur: "فیملی ٹیکس فائلنگ" }, icon: Users },
+  { href: "/ntn-registration", title: { en: "NTN Registration", ur: "این ٹی این رجسٹریشن" }, icon: FileUp },
+  { href: "/iris-profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
+  { href: "/business-incorporation", title: { en: "Business Incorporation", ur: "کاروبار کی شمولیت" }, icon: Building },
   { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" }, icon: CreditCard },
+  { href: "/salary-tax-calculator", title: { en: "Salary Tax Calculator", ur: "تنخواہ ٹیکس کیلکولیٹر" }, icon: Calculator },
+  { href: "/faqs", title: { en: "FAQs", ur: "اکثر پوچھے گئے سوالات" }, icon: FileQuestion },
+  { href: "/blog", title: { en: "Blog & Updates", ur: "بلاگ اور اپڈیٹس" }, icon: Rss },
+  { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ];
+
 
 const videos = [
   {
@@ -102,14 +105,14 @@ export default function DashboardPage() {
   return (
     <AppLayout pageTitle={t({ en: "Dashboard", ur: "ڈیش بورڈ" })}>
       <div className="space-y-12">
-        <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {forms.map((form) => (
-                <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
+        <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 text-center">
+            {services.map((service) => (
+                <Link href={service.href} key={service.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
-                        <form.icon className="h-8 w-8" />
+                        <service.icon className="h-8 w-8" />
                     </div>
-                    <span className="text-sm font-medium text-foreground text-center">{t(form.title)}</span>
+                    <span className="text-sm font-medium text-foreground text-center">{t(service.title)}</span>
                 </Link>
             ))}
             </div>
@@ -190,3 +193,5 @@ export default function DashboardPage() {
     </AppLayout>
   )
 }
+
+    

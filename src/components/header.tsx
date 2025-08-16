@@ -1,7 +1,7 @@
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileText, Home, Bell, LayoutGrid, FileSignature, FileUp, User, CreditCard } from "lucide-react"
+import { FileText, Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User } from "lucide-react"
 import Link from "next/link"
 import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
@@ -11,14 +11,16 @@ interface HeaderProps {
 }
 
 const pages = [
-  { href: "/filing", title: { en: "Tax Filing", ur: "ٹیکس فائلنگ" }, icon: FileSignature },
-  { href: "/documents", title: { en: "Documents", ur: "دستاویزات" }, icon: FileUp },
-  { href: "/profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
+  { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
+  { href: "/family-tax-filing", title: { en: "Family Tax Filing", ur: "فیملی ٹیکس فائلنگ" }, icon: Users },
+  { href: "/ntn-registration", title: { en: "NTN Registration", ur: "این ٹی این رجسٹریشن" }, icon: FileUp },
+  { href: "/iris-profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
+  { href: "/business-incorporation", title: { en: "Business Incorporation", ur: "کاروبار کی شمولیت" }, icon: Building },
   { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" }, icon: CreditCard },
-  { href: "/forms/income-tax-return", title: { en: 'Income Tax Return', ur: 'انکم ٹیکس ریٹرن' }, icon: FileText },
-  { href: "/forms/sales-tax-return", title: { en: 'Sales Tax Return', ur: 'سیلز ٹیکس ریٹرن' }, icon: FileText },
-  { href: "/forms/wealth-statement", title: { en: 'Wealth Statement', ur: 'دولت کا بیان' }, icon: FileText },
-  { href: "/forms/withholding-tax-statement", title: { en: 'Withholding Tax', ur: 'ودہولڈنگ ٹیکس' }, icon: FileText },
+  { href: "/salary-tax-calculator", title: { en: "Salary Tax Calculator", ur: "تنخواہ ٹیکس کیلکولیٹر" }, icon: Calculator },
+  { href: "/faqs", title: { en: "FAQs", ur: "اکثر پوچھے گئے سوالات" }, icon: FileQuestion },
+  { href: "/blog", title: { en: "Blog & Updates", ur: "بلاگ اور اپڈیٹس" }, icon: Rss },
+  { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ]
 
 export function Header({ title }: HeaderProps) {
@@ -70,3 +72,5 @@ export function Header({ title }: HeaderProps) {
     </header>
   )
 }
+
+    
