@@ -2,6 +2,7 @@ import { TopNav } from "@/components/top-nav"
 import { UserNav } from "@/components/user-nav"
 import { FileText } from "lucide-react"
 import Link from "next/link"
+import { LanguageSwitcher } from "./language-switcher"
 
 interface HeaderProps {
   title: string;
@@ -18,6 +19,7 @@ export function Header({ title }: HeaderProps) {
         </Link>
       <TopNav />
       <div className="ml-auto flex items-center gap-4">
+        <LanguageSwitcher />
         <UserNav />
       </div>
     </header>
