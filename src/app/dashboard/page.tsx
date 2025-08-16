@@ -19,6 +19,24 @@ const forms = [
   { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" }, icon: CreditCard },
 ];
 
+const videos = [
+  {
+    title: { en: "How to File Your Income Tax Return", ur: "انکم ٹیکس ریٹرن فائل کرنے کا طریقہ" },
+    description: { en: "A step-by-step guide to filing your income tax return online through PakFiler.", ur: "پاک فائلر کے ذریعے اپنا انکم ٹیکس ریٹرن آن لائن فائل کرنے کے لیے مرحلہ وار گائیڈ۔" },
+    src: "https://www.youtube.com/embed/example1",
+  },
+  {
+    title: { en: "Understanding Sales Tax in Pakistan", ur: "پاکستان میں سیلز ٹیکس کو سمجھنا" },
+    description: { en: "An overview of the sales tax system and how it applies to your business.", ur: "سیلز ٹیکس کے نظام کا ایک جائزہ اور یہ آپ کے کاروبار پر کیسے لاگو ہوتا ہے۔" },
+    src: "https://www.youtube.com/embed/example2",
+  },
+  {
+    title: { en: "Wealth Statement Explained", ur: "دولت کے بیان کی وضاحت" },
+    description: { en: "Learn why the wealth statement is important and how to fill it out correctly.", ur: "جانیں کہ دولت کا بیان کیوں ضروری ہے اور اسے صحیح طریقے سے کیسے پُر کیا جائے۔" },
+    src: "https://www.youtube.com/embed/example3",
+  },
+];
+
 const blogPosts = [
   {
     title: { en: "Understanding Income Tax in Pakistan", ur: "پاکستان میں انکم ٹیکس کو سمجھنا" },
@@ -64,58 +82,54 @@ export default function DashboardPage() {
         </div>
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
-            <PlayCircle className="h-7 w-7 text-primary" />
-            {t({ en: "Featured Videos", ur: "نمایاں ویڈیوز" })}
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <PlayCircle className="h-7 w-7 text-primary" />
+              {t({ en: "Featured Videos", ur: "نمایاں ویڈیوز" })}
+            </h2>
+            <Link href="/videos">
+                <Button variant="outline">
+                  {t({ en: "View More", ur: "مزید دیکھیں" })}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {videos.map((video, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video">
                   <iframe 
-                    className="w-full h-full rounded-md" 
-                    src="https://www.youtube.com/embed/example1" 
-                    title="YouTube video player" 
+                    className="w-full h-full rounded-t-md" 
+                    src={video.src} 
+                    title={t(video.title)} 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowFullScreen>
                   </iframe>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-2">
-                <div className="aspect-video">
-                  <iframe 
-                    className="w-full h-full rounded-md" 
-                    src="https://www.youtube.com/embed/example2" 
-                    title="YouTube video player" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen>
-                  </iframe>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-2">
-                <div className="aspect-video">
-                  <iframe 
-                    className="w-full h-full rounded-md" 
-                    src="https://www.youtube.com/embed/example3" 
-                    title="YouTube video player" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen>
-                  </iframe>
-                </div>
-              </CardContent>
-            </Card>
+                <CardHeader>
+                  <CardTitle>{t(video.title)}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="line-clamp-2">{t(video.description)}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
-            <BookOpen className="h-7 w-7 text-primary" />
-            {t({ en: "Latest From Our Blog", ur: "ہمارے بلاگ سے تازہ ترین" })}
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <BookOpen className="h-7 w-7 text-primary" />
+              {t({ en: "Latest From Our Blog", ur: "ہمارے بلاگ سے تازہ ترین" })}
+            </h2>
+             <Link href="/blog">
+                <Button variant="outline">
+                  {t({ en: "View More", ur: "مزید دیکھیں" })}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </Link>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogPosts.map((post, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
