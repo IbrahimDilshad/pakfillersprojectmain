@@ -1,5 +1,4 @@
 'use client';
-import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,8 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Printer, HelpCircle } from 'lucide-react';
-import { AIAssistant } from '@/components/ai-assistant';
+import { Printer } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
@@ -29,12 +27,6 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-interface AssistantState {
-  open: boolean;
-  fieldName: string;
-  fieldLabel: string;
-}
 
 const formDetails = {
     'income-tax-return': { name: "Income Tax Return" },
@@ -56,16 +48,6 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
   });
 
   const { toast } = useToast()
-
-  const [assistantState, setAssistantState] = useState<AssistantState>({
-    open: false,
-    fieldName: '',
-    fieldLabel: '',
-  });
-
-  const openAssistant = (fieldName: string, fieldLabel: string) => {
-    setAssistantState({ open: true, fieldName, fieldLabel });
-  };
   
   const currentFormDetails = formDetails[params.formId as keyof typeof formDetails] || { name: "Tax Form" };
 
@@ -86,13 +68,6 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
 
   return (
     <AppLayout pageTitle={currentFormDetails.name}>
-      <AIAssistant
-        open={assistantState.open}
-        onOpenChange={(open) => setAssistantState((prev) => ({ ...prev, open }))}
-        formName={currentFormDetails.name}
-        fieldName={assistantState.fieldName}
-        fieldLabel={assistantState.fieldLabel}
-      />
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -115,13 +90,7 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
                   name="taxYear"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center">
-                        Tax Year
-                        <HelpCircle
-                          className="ml-2 h-4 w-4 text-muted-foreground cursor-pointer"
-                          onClick={() => openAssistant('taxYear', 'Tax Year')}
-                        />
-                      </FormLabel>
+                      <FormLabel>Tax Year</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -143,13 +112,7 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center">
-                        City
-                        <HelpCircle
-                          className="ml-2 h-4 w-4 text-muted-foreground cursor-pointer"
-                          onClick={() => openAssistant('city', 'City')}
-                        />
-                      </FormLabel>
+                      <FormLabel>City</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Karachi" {...field} />
                       </FormControl>
@@ -162,12 +125,8 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
                   name="employmentIncome"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center">
+                      <FormLabel>
                         Income from Employment (PKR)
-                        <HelpCircle
-                          className="ml-2 h-4 w-4 text-muted-foreground cursor-pointer"
-                          onClick={() => openAssistant('employmentIncome', 'Income from Employment')}
-                        />
                       </FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="e.g., 1200000" {...field} />
@@ -181,12 +140,8 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
                   name="otherIncome"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center">
+                      <FormLabel>
                         Other Income (Optional, PKR)
-                        <HelpCircle
-                          className="ml-2 h-4 w-4 text-muted-foreground cursor-pointer"
-                          onClick={() => openAssistant('otherIncome', 'Other Income')}
-                        />
                       </FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="e.g., 50000" {...field} />
@@ -200,12 +155,8 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
                   name="taxDeducted"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center">
+                      <FormLabel>
                         Total Tax Deducted at Source (PKR)
-                        <HelpCircle
-                          className="ml-2 h-4 w-4 text-muted-foreground cursor-pointer"
-                          onClick={() => openAssistant('taxDeducted', 'Total Tax Deducted')}
-                        />
                       </FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="e.g., 25000" {...field} />
