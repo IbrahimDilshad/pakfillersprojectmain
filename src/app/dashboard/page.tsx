@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button"
 import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, CreditCard, User } from "lucide-react"
 import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
+import { useVideos } from "@/hooks/useVideos";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const services = [
   { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
@@ -21,51 +24,11 @@ const services = [
   { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ];
 
-
-const videos = [
-  {
-    title: { en: "How to File Your Income Tax Return", ur: "انکم ٹیکس ریٹرن فائل کرنے کا طریقہ" },
-    description: { en: "A step-by-step guide to filing your income tax return online through PakFiler.", ur: "پاک فائلر کے ذریعے اپنا انکم ٹیکس ریٹرن آن لائن فائل کرنے کے لیے مرحلہ وار گائیڈ۔" },
-    src: "https://www.youtube.com/embed/gD8jQd6I1gQ",
-  },
-  {
-    title: { en: "Understanding Sales Tax in Pakistan", ur: "پاکستان میں سیلز ٹیکس کو سمجھنا" },
-    description: { en: "An overview of the sales tax system and how it applies to your business.", ur: "سیلز ٹیکس کے نظام کا ایک جائزہ اور یہ آپ کے کاروبار پر کیسے لاگو ہوتا ہے۔" },
-    src: "https://www.youtube.com/embed/RAu3c0Gj9pA",
-  },
-  {
-    title: { en: "Wealth Statement Explained", ur: "دولت کے بیان کی وضاحت" },
-    description: { en: "Learn why the wealth statement is important and how to fill it out correctly.", ur: "جانیں کہ دولت کا بیان کیوں ضروری ہے اور اسے صحیح طریقے سے کیسے پُر کیا جائے۔" },
-    src: "https://www.youtube.com/embed/5Uu7Y_mJz-8",
-  },
-];
-
-const blogPosts = [
-  {
-    title: { en: "Understanding Income Tax in Pakistan", ur: "پاکستان میں انکم ٹیکس کو سمجھنا" },
-    description: { en: "A comprehensive guide to the income tax system for individuals and businesses.", ur: "افراد اور کاروبار کے لیے انکم ٹیکس کے نظام کے لیے ایک جامع گائیڈ۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "tax guide",
-    href: "#"
-  },
-  {
-    title: { en: "How to File Your Sales Tax Return Online", ur: "اپنا سیلز ٹیکس ریٹرن آن لائن کیسے فائل کریں۔" },
-    description: { en: "A step-by-step walkthrough of the online filing process for sales tax.", ur: "سیلز ٹیکس کے لیے آن لائن فائلنگ کے عمل کا مرحلہ وار واک تھرو۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "online filing",
-    href: "#"
-  },
-  {
-    title: { en: "Maximizing Your Tax Deductions", ur: "اپنی ٹیکس کٹوتیوں کو زیادہ سے زیادہ کرنا" },
-    description: { en: "Learn about the various deductions you can claim to reduce your tax liability.", ur: "اپنی ٹیکس کی ذمہ داری کو کم کرنے کے لیے آپ مختلف کٹوتیوں کے بارے میں جانیں۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "tax deductions",
-    href: "#"
-  },
-];
-
 export default function DashboardPage() {
   const { t } = useLanguage();
+  const { videos, loading: videosLoading } = useVideos();
+  const { posts, loading: postsLoading } = useBlogPosts();
+
   return (
     <AppLayout pageTitle={t({ en: "Dashboard", ur: "ڈیش بورڈ" })}>
       <div className="space-y-12">
@@ -96,8 +59,22 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.slice(0, 3).map((video, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {videosLoading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index}>
+                  <Skeleton className="w-full aspect-video rounded-t-md" />
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6 mt-2" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              videos.slice(0, 3).map((video) => (
+              <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video">
                   <iframe 
                     className="w-full h-full rounded-t-md" 
@@ -114,7 +91,7 @@ export default function DashboardPage() {
                   <CardDescription className="line-clamp-2">{t(video.description)}</CardDescription>
                 </CardContent>
               </Card>
-            ))}
+            )))}
           </div>
         </section>
 
@@ -132,9 +109,23 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.slice(0, 3).map((post, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <Link href={post.href}>
+            {postsLoading ? (
+               Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index}>
+                  <Skeleton className="w-full h-48" />
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6 mt-2" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              posts.slice(0, 3).map((post) => (
+              <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Link href={post.href || '#'}>
                   <Image src={post.image} alt={t(post.title)} width={600} height={400} className="w-full h-48 object-cover" data-ai-hint={post.hint} />
                   <CardHeader>
                     <CardTitle>{t(post.title)}</CardTitle>
@@ -150,7 +141,8 @@ export default function DashboardPage() {
                   </div>
                 </Link>
               </Card>
-            ))}
+            ))
+            )}
           </div>
         </section>
       </div>

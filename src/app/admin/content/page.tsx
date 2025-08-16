@@ -9,19 +9,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function AdminContentPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
 
   const [blogTitle, setBlogTitle] = useState('');
   const [blogDescription, setBlogDescription] = useState('');
   const [blogImage, setBlogImage] = useState('');
+  const [blogHint, setBlogHint] = useState('');
 
   const [videoTitle, setVideoTitle] = useState('');
   const [videoDescription, setVideoDescription] = useState('');
@@ -44,32 +45,60 @@ export default function AdminContentPage() {
     );
   }
   
-  const handleBlogSubmit = (e: React.FormEvent) => {
+  const handleBlogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd save this to a database.
-    // For now, we'll just show a toast.
-    toast({
-      title: "Blog Post Created",
-      description: "The new blog post has been added.",
-    });
-    console.log({ blogTitle, blogDescription, blogImage });
-    // Clear form
-    setBlogTitle('');
-    setBlogDescription('');
-    setBlogImage('');
+    if (!blogTitle || !blogDescription || !blogImage || !blogHint) {
+        toast({ variant: 'destructive', title: 'All fields are required.' });
+        return;
+    }
+    try {
+      await addDoc(collection(db, 'blogPosts'), {
+        title: { en: blogTitle, ur: blogTitle },
+        description: { en: blogDescription, ur: blogDescription },
+        image: blogImage,
+        hint: blogHint,
+        href: '#', // Placeholder href
+        createdAt: serverTimestamp()
+      });
+      toast({
+        title: "Blog Post Created",
+        description: "The new blog post has been added.",
+      });
+      setBlogTitle('');
+      setBlogDescription('');
+      setBlogImage('');
+      setBlogHint('');
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error creating post', description: (error as Error).message });
+    }
   };
 
-  const handleVideoSubmit = (e: React.FormEvent) => {
+  const handleVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Video Added",
-      description: "The new video has been added.",
-    });
-    console.log({ videoTitle, videoDescription, videoUrl });
-    // Clear form
-    setVideoTitle('');
-    setVideoDescription('');
-    setVideoUrl('');
+    if (!videoTitle || !videoDescription || !videoUrl) {
+      toast({ variant: 'destructive', title: 'All fields are required.' });
+      return;
+    }
+    try {
+        const videoId = videoUrl.split('v=')[1]?.split('&')[0] || videoUrl.split('/').pop();
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
+        await addDoc(collection(db, 'videos'), {
+            title: { en: videoTitle, ur: videoTitle },
+            description: { en: videoDescription, ur: videoDescription },
+            src: embedUrl,
+            createdAt: serverTimestamp()
+        });
+        toast({
+            title: "Video Added",
+            description: "The new video has been added.",
+        });
+        setVideoTitle('');
+        setVideoDescription('');
+        setVideoUrl('');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Error adding video', description: (error as Error).message });
+    }
   };
 
 
@@ -99,6 +128,10 @@ export default function AdminContentPage() {
                 <div className="space-y-2">
                   <Label htmlFor="blog-image">{t({ en: "Image URL", ur: "تصویر کا یو آر ایل" })}</Label>
                   <Input id="blog-image" value={blogImage} onChange={(e) => setBlogImage(e.target.value)} placeholder="https://placehold.co/600x400.png" required />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="blog-hint">{t({ en: "Image AI Hint", ur: "تصویر کا اشارہ" })}</Label>
+                  <Input id="blog-hint" value={blogHint} onChange={(e) => setBlogHint(e.target.value)} placeholder={t({ en: "e.g., 'tax guide'", ur: "مثلاً 'ٹیکس گائیڈ'" })} required />
                 </div>
                 <Button type="submit">{t({ en: "Add Blog Post", ur: "بلاگ پوسٹ شامل کریں" })}</Button>
               </form>
