@@ -36,6 +36,7 @@ export function TopNav() {
 
   const adminNavItems = [
     { href: "/admin/users", title: {en: "User Management", ur: "صارف کا انتظام"}, description: {en: "Admin dashboard for managing users.", ur: "صارفین کے انتظام کے لیے ایڈمن ڈیش بورڈ۔"} },
+    { href: "/admin/chat", title: {en: "Chat", ur: "چیٹ"}, description: {en: "Chat with users in real-time.", ur: "صارفین کے ساتھ حقیقی وقت میں چیٹ کریں۔"} },
     { href: "/admin/config", title: {en: "System Configuration", ur: "سسٹم کنفیگریشن"}, description: {en: "Tools for system-wide configuration.", ur: "سسٹم وسیع کنفیگریشن کے لیے ٹولز۔"} },
     { href: "/admin/reports", title: {en: "Reports Generation", ur: "رپورٹس جنریشن"}, description: {en: "Generate system-level reports.", ur: "سسٹم سطح کی رپورٹس بنائیں۔"} },
     { href: "/admin/content", title: {en: "Content Management", ur: "مواد کا انتظام"}, description: {en: "Manage site content like FAQs.", ur: "سائٹ کے مواد جیسے اکثر پوچھے گئے سوالات کا نظم کریں۔"} },

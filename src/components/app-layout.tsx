@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { ChatWidget } from './chat-widget';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ export function AppLayout({ children, pageTitle }: AppLayoutProps) {
         {children}
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
