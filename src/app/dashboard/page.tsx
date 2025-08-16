@@ -1,39 +1,34 @@
 import Link from "next/link"
 import { AppLayout } from "@/components/app-layout"
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileText, ArrowRight } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { FileText, ArrowRight, LayoutDashboard, FileSignature, FileUp, User, CreditCard } from "lucide-react"
 
 const forms = [
-  { id: 'income-tax-return', title: 'Income Tax Return', description: 'For salaried individuals and sole proprietors.' },
-  { id: 'sales-tax-return', title: 'Sales Tax Return', description: 'Monthly return for registered businesses.' },
-  { id: 'wealth-statement', title: 'Wealth Statement', description: 'Statement of assets and liabilities.' },
-  { id: 'withholding-tax-statement', title: 'Withholding Tax', description: 'Quarterly statement for withholding agents.' },
+  { id: 'income-tax-return', title: 'Income Tax Return', icon: FileText },
+  { id: 'sales-tax-return', title: 'Sales Tax Return', icon: FileText },
+  { id: 'wealth-statement', title: 'Wealth Statement', icon: FileText },
+  { id: 'withholding-tax-statement', title: 'Withholding Tax', icon: FileText },
+  { href: "/filing", title: "Tax Filing", icon: FileSignature },
+  { href: "/documents", title: "Documents", icon: FileUp },
+  { href: "/profile", title: "IRIS Profile", icon: User },
+  { href: "/services", title: "Service Charges", icon: CreditCard },
 ];
 
 export default function DashboardPage() {
   return (
-    <AppLayout pageTitle="Form Library">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <AppLayout pageTitle="Dashboard">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 text-center">
         {forms.map((form) => (
-          <Card key={form.id}>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <div className="bg-accent/50 text-accent-foreground p-3 rounded-md">
-                    <FileText className="h-6 w-6" />
+          <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href}>
+            <Card className="hover:bg-accent/50 hover:shadow-lg transition-all cursor-pointer h-full">
+              <CardContent className="p-4 flex flex-col items-center justify-center h-full">
+                <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
+                    <form.icon className="h-8 w-8" />
                 </div>
-                <CardTitle>{form.title}</CardTitle>
-              </div>
-              <CardDescription className="pt-2">{form.description}</CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Link href={`/forms/${form.id}`} className="w-full" passHref>
-                <Button className="w-full">
-                  Open Form <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+                <span className="text-sm font-medium text-foreground">{form.title}</span>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </AppLayout>
