@@ -1,7 +1,8 @@
+
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileText, Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User } from "lucide-react"
+import { FileText, Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
@@ -72,5 +73,3 @@ export function Header({ title }: HeaderProps) {
     </header>
   )
 }
-
-    
