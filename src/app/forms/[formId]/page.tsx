@@ -1,3 +1,4 @@
+
 'use client';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Printer } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
+import { useParams } from 'next/navigation';
 
 const formSchema = z.object({
   taxYear: z.string().min(1, 'Tax year is required'),
@@ -35,7 +37,10 @@ const formDetails = {
     'withholding-tax-statement': { name: "Withholding Tax Statement" },
 }
 
-export default function InteractiveFormPage({ params }: { params: { formId: string } }) {
+export default function InteractiveFormPage() {
+  const params = useParams();
+  const formId = params.formId as string;
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,7 +54,7 @@ export default function InteractiveFormPage({ params }: { params: { formId: stri
 
   const { toast } = useToast()
   
-  const currentFormDetails = formDetails[params.formId as keyof typeof formDetails] || { name: "Tax Form" };
+  const currentFormDetails = formDetails[formId as keyof typeof formDetails] || { name: "Tax Form" };
 
   function onSubmit(data: FormData) {
     console.log(data);
