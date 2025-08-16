@@ -35,6 +35,21 @@ const videos = [
     description: { en: "Learn why the wealth statement is important and how to fill it out correctly.", ur: "جانیں کہ دولت کا بیان کیوں ضروری ہے اور اسے صحیح طریقے سے کیسے پُر کیا جائے۔" },
     src: "https://www.youtube.com/embed/example3",
   },
+  {
+    title: { en: "Navigating the IRIS Portal", ur: "IRIS پورٹل پر تشریف لے جائیں۔" },
+    description: { en: "A complete walkthrough of the FBR's IRIS portal for all your tax needs.", ur: "آپ کی تمام ٹیکس ضروریات کے لیے FBR کے IRIS پورٹل کا مکمل واک تھرو۔" },
+    src: "https://www.youtube.com/embed/example4",
+  },
+  {
+    title: { en: "Understanding Your Tax Challan", ur: "اپنے ٹیکس چالان کو سمجھنا" },
+    description: { en: "A guide to reading and understanding your tax payment challan.", ur: "اپنے ٹیکس ادائیگی کے چالان کو پڑھنے اور سمجھنے کے لیے ایک گائیڈ۔" },
+    src: "https://www.youtube.com/embed/example5",
+  },
+  {
+    title: { en: "How to Respond to an FBR Notice", ur: "FBR نوٹس کا جواب کیسے دیں۔" },
+    description: { en: "Learn the correct procedure for responding to a notice from the FBR.", ur: "FBR سے نوٹس کا جواب دینے کا صحیح طریقہ کار جانیں۔" },
+    src: "https://www.youtube.com/embed/example6",
+  },
 ];
 
 const blogPosts = [
@@ -58,6 +73,27 @@ const blogPosts = [
     image: "https://placehold.co/600x400.png",
     hint: "tax deductions",
     href: "#"
+  },
+   {
+    title: { en: "The Difference Between Active and Inactive Taxpayer Status", ur: "فعال اور غیر فعال ٹیکس دہندہ کی حیثیت کے درمیان فرق" },
+    description: { en: "Understand the implications of your taxpayer status and how to check it.", ur: "اپنے ٹیکس دہندہ کی حیثیت کے مضمرات کو سمجھیں اور اسے کیسے چیک کریں۔" },
+    image: "https://placehold.co/600x400.png",
+    hint: "taxpayer status",
+    href: "#"
+  },
+  {
+    title: { en: "A Guide to Withholding Tax in Pakistan", ur: "پاکستان میں ودہولڈنگ ٹیکس کے لیے ایک گائیڈ" },
+    description: { en: "Everything you need to know about withholding tax, its rates, and how to manage it.", ur: "ودہولڈنگ ٹیکس، اس کی شرحوں، اور اسے منظم کرنے کے طریقے کے بارے میں آپ کو جاننے کی ضرورت ہے۔" },
+    image: "https://placehold.co/600x400.png",
+    hint: "withholding tax",
+    href: "#"
+  },
+  {
+    title: { en: "Understanding NTN and How to Register", ur: "NTN کو سمجھنا اور رجسٹر کرنے کا طریقہ" },
+    description: { en: "A detailed explanation of the National Tax Number (NTN) and the registration process.", ur: "قومی ٹیکس نمبر (NTN) اور رجسٹریشن کے عمل کی تفصیلی وضاحت۔" },
+    image: "https://placehold.co/600x400.png",
+    hint: "ntn registration",
+    href: "#"
   }
 ];
 
@@ -66,15 +102,17 @@ export default function DashboardPage() {
   return (
     <AppLayout pageTitle={t({ en: "Dashboard", ur: "ڈیش بورڈ" })}>
       <div className="space-y-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 text-center">
-          {forms.map((form) => (
-            <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
-                    <form.icon className="h-8 w-8" />
-                </div>
-                <span className="text-sm font-medium text-foreground text-center">{t(form.title)}</span>
-            </Link>
-          ))}
+        <div className="max-w-3xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {forms.map((form) => (
+                <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
+                    <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
+                        <form.icon className="h-8 w-8" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground text-center">{t(form.title)}</span>
+                </Link>
+            ))}
+            </div>
         </div>
 
         <section>
@@ -91,7 +129,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.map((video, index) => (
+            {videos.slice(0, 3).map((video, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video">
                   <iframe 
@@ -127,7 +165,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post, index) => (
+            {blogPosts.slice(0, 3).map((post, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <Link href={post.href}>
                   <Image src={post.image} alt={t(post.title)} width={600} height={400} className="w-full h-48 object-cover" data-ai-hint={post.hint} />
@@ -152,3 +190,5 @@ export default function DashboardPage() {
     </AppLayout>
   )
 }
+
+    
