@@ -15,25 +15,28 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { CreditCard, LogOut, Settings, User } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
+import { useAuth } from "@/context/auth-context"
 
 export function UserNav() {
   const { t } = useLanguage();
+  const { user, logout } = useAuth();
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage src="https://placehold.co/40x40.png" alt="@user" data-ai-hint="user avatar" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">User Name</p>
+            <p className="text-sm font-medium leading-none">{user?.displayName || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              user@example.com
+              {user?.email || 'user@example.com'}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -57,11 +60,9 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-            <Link href="/" className="flex items-center w-full">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>{t({ en: "Log out", ur: "لاگ آوٹ" })}</span>
-            </Link>
+        <DropdownMenuItem onClick={logout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>{t({ en: "Log out", ur: "لاگ آوٹ" })}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

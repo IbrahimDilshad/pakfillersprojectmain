@@ -1,15 +1,38 @@
 
 'use client';
+import { useState } from "react";
 import Link from "next/link"
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FileText } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const { t } = useLanguage();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="mx-auto w-full max-w-sm">
@@ -33,6 +56,8 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -45,13 +70,17 @@ export default function LoginPage() {
                   {t({ en: "Forgot your password?", ur: "اپنا پاس ورڈ بھول گئے؟" })}
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            <Link href="/dashboard">
-              <Button className="w-full">
-                {t({ en: "Login", ur: "لاگ ان کریں" })}
-              </Button>
-            </Link>
+            <Button onClick={handleLogin} className="w-full">
+              {t({ en: "Login", ur: "لاگ ان کریں" })}
+            </Button>
           </div>
           <div className="mt-4 text-center text-sm">
             {t({ en: "Don't have an account?", ur: "اکاؤنٹ نہیں ہے؟" })}{" "}

@@ -1,11 +1,13 @@
 
+'use client';
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileText, Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User, CreditCard } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { FileText, Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User, CreditCard, Shield } from "lucide-react"
 import Link from "next/link"
 import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
+import { useAuth } from "@/context/auth-context";
 
 interface HeaderProps {
   title: string;
@@ -24,8 +26,24 @@ const pages = [
   { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ]
 
+const adminPages = [
+    { href: "/admin/users", title: { en: "User Management", ur: "صارف کا انتظام" } },
+    { href: "/admin/reports", title: { en: "Reports Generation", ur: "رپورٹس جنریشن" } },
+    { href: "/admin/content", title: { en: "Content Management", ur: "مواد کا انتظام" } },
+    { href: "/admin/config", title: { en: "System Configuration", ur: "سسٹم کنفیگریشن" } },
+    { href: "/admin/chat", title: { en: "Support Chat", ur: "سپورٹ چیٹ" } },
+]
+
+const accountantPages = [
+  { href: "/accountant/review", title: { en: "Review Documents", ur: "دستاویزات کا جائزہ لیں" } },
+  { href: "/accountant/process", title: { en: "Process Filings", ur: "فائلنگ پر کارروائی کریں" } },
+  { href: "/accountant/reports", title: { en: "Generate Reports", ur: "رپورٹیں بنائیں" } },
+]
+
 export function Header({ title }: HeaderProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
        <Link href="/dashboard" className="flex items-center gap-2 mr-auto">
@@ -66,6 +84,26 @@ export function Header({ title }: HeaderProps) {
                 </div>
             </DropdownMenuContent>
         </DropdownMenu>
+
+        {user?.role === 'admin' && (
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Shield className="h-5 w-5" />
+                        <span className="sr-only">Admin</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{t({ en: 'Admin Panel', ur: 'ایڈمن پینل' })}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {adminPages.map((page) => (
+                        <DropdownMenuItem key={page.href} asChild>
+                           <Link href={page.href}>{t(page.title)}</Link>
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        )}
 
         <LanguageSwitcher />
         <UserNav />
