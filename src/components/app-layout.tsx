@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -13,6 +14,7 @@ export function AppLayout({ children, pageTitle }: AppLayoutProps) {
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
