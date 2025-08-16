@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from "next/link";
@@ -45,7 +44,7 @@ export function TopNav() {
         {userNavItems.map((item) => (
           <NavigationMenuItem key={item.href}>
             <Link href={item.href} legacyBehavior passHref>
-              <NavigationMenuLink active={pathname === item.href} className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink active={pathname.startsWith(item.href)} className={navigationMenuTriggerStyle()}>
                 {item.title}
               </NavigationMenuLink>
             </Link>
