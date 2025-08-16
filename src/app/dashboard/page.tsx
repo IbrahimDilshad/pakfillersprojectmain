@@ -68,15 +68,11 @@ export default function DashboardPage() {
       <div className="space-y-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 text-center">
           {forms.map((form) => (
-            <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href} className="block hover:bg-accent/50 hover:shadow-lg transition-all rounded-lg">
-              <Card className="cursor-pointer h-full">
-                <CardContent className="p-4 flex flex-col items-center justify-center h-full">
-                  <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
-                      <form.icon className="h-8 w-8" />
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{t(form.title)}</span>
-                </CardContent>
-              </Card>
+            <Link href={form.id ? `/forms/${form.id}` : form.href!} key={form.id || form.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
+                <div className="bg-primary/10 text-primary p-4 rounded-full mb-2">
+                    <form.icon className="h-8 w-8" />
+                </div>
+                <span className="text-sm font-medium text-foreground text-center">{t(form.title)}</span>
             </Link>
           ))}
         </div>
