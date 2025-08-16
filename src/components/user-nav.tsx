@@ -36,14 +36,14 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/profile">
+          <DropdownMenuItem>
+            <Link href="/profile" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/services">
+          <DropdownMenuItem>
+            <Link href="/services" className="flex items-center w-full">
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Billing</span>
             </Link>
@@ -54,8 +54,8 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-            <Link href="/">
+        <DropdownMenuItem>
+            <Link href="/" className="flex items-center w-full">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </Link>
