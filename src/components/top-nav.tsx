@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from "next/link";
@@ -44,7 +43,7 @@ export function TopNav() {
       <NavigationMenuList>
         {userNavItems.map((item) => (
           <NavigationMenuItem key={item.href}>
-            <Link href={item.href} passHref legacyBehavior={false}>
+            <Link href={item.href} legacyBehavior passHref>
               <NavigationMenuLink active={pathname.startsWith(item.href)} className={navigationMenuTriggerStyle()}>
                 {item.title}
               </NavigationMenuLink>
@@ -95,9 +94,9 @@ const ListItem = React.forwardRef<
   return (
     <li>
       <NavigationMenuLink asChild>
-        <a
+        <Link
+          href={href!}
           ref={ref}
-          href={href}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
@@ -108,7 +107,7 @@ const ListItem = React.forwardRef<
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
-        </a>
+        </Link>
       </NavigationMenuLink>
     </li>
   )
