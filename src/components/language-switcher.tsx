@@ -11,9 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useLanguage } from "@/context/language-context"
 
 export function LanguageSwitcher() {
-  const [language, setLanguage] = React.useState("en")
+  const { setLanguage } = useLanguage();
 
   return (
     <DropdownMenu>

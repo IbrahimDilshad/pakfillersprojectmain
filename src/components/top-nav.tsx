@@ -14,30 +14,33 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import React from "react";
-
-const userNavItems = [
-  { href: "/dashboard", title: "Dashboard" },
-  { href: "/filing", title: "Tax Filing" },
-  { href: "/documents", title: "Documents" },
-  { href: "/profile", title: "IRIS Profile" },
-  { href: "/services", title: "Service Charges" },
-];
-
-const accountantNavItems = [
-  { href: "/accountant/review", title: "Review Documents", description: "Review and approve user-submitted documents." },
-  { href: "/accountant/process", title: "Process Filings", description: "Process client tax filings." },
-  { href: "/accountant/reports", title: "Generate Reports", description: "Provide powerful report generation tools." },
-];
-
-const adminNavItems = [
-  { href: "/admin/users", title: "User Management", description: "Admin dashboard for managing users." },
-  { href: "/admin/config", title: "System Configuration", description: "Tools for system-wide configuration." },
-  { href: "/admin/reports", title: "Reports Generation", description: "Generate system-level reports." },
-  { href: "/admin/content", title: "Content Management", description: "Manage site content like FAQs." },
-];
+import { useLanguage } from "@/context/language-context";
 
 export function TopNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const userNavItems = [
+    { href: "/dashboard", title: { en: "Dashboard", ur: "ڈیش بورڈ" } },
+    { href: "/filing", title: { en: "Tax Filing", ur: "ٹیکس فائلنگ" } },
+    { href: "/documents", title: { en: "Documents", ur: "دستاویزات" } },
+    { href: "/profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" } },
+    { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" } },
+  ];
+
+  const accountantNavItems = [
+    { href: "/accountant/review", title: {en: "Review Documents", ur: "دستاویزات کا جائزہ لیں"}, description: {en: "Review and approve user-submitted documents.", ur: "صارف کی جمع کردہ دستاویزات کا جائزہ لیں اور منظور کریں۔"} },
+    { href: "/accountant/process", title: {en: "Process Filings", ur: "فائلنگ پر کارروائی کریں"}, description: {en: "Process client tax filings.", ur: "کلائنٹ ٹیکس فائلنگ پر کارروائی کریں۔"} },
+    { href: "/accountant/reports", title: {en: "Generate Reports", ur: "رپورٹس بنائیں"}, description: {en: "Provide powerful report generation tools.", ur: "طاقتور رپورٹ جنریشن ٹولز فراہم کریں۔"} },
+  ];
+
+  const adminNavItems = [
+    { href: "/admin/users", title: {en: "User Management", ur: "صارف کا انتظام"}, description: {en: "Admin dashboard for managing users.", ur: "صارفین کے انتظام کے لیے ایڈمن ڈیش بورڈ۔"} },
+    { href: "/admin/config", title: {en: "System Configuration", ur: "سسٹم کنفیگریشن"}, description: {en: "Tools for system-wide configuration.", ur: "سسٹم وسیع کنفیگریشن کے لیے ٹولز۔"} },
+    { href: "/admin/reports", title: {en: "Reports Generation", ur: "رپورٹس جنریشن"}, description: {en: "Generate system-level reports.", ur: "سسٹم سطح کی رپورٹس بنائیں۔"} },
+    { href: "/admin/content", title: {en: "Content Management", ur: "مواد کا انتظام"}, description: {en: "Manage site content like FAQs.", ur: "سائٹ کے مواد جیسے اکثر پوچھے گئے سوالات کا نظم کریں۔"} },
+  ];
+
 
   return (
     <NavigationMenu>
@@ -46,38 +49,38 @@ export function TopNav() {
           <NavigationMenuItem key={item.href}>
             <Link href={item.href} legacyBehavior passHref>
               <NavigationMenuLink active={pathname.startsWith(item.href)} className={navigationMenuTriggerStyle()}>
-                {item.title}
+                {t(item.title)}
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
         ))}
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Accountant</NavigationMenuTrigger>
+          <NavigationMenuTrigger>{t({en: "Accountant", ur: "اکاؤنٹنٹ"})}</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
               {accountantNavItems.map((component) => (
                 <ListItem
-                  key={component.title}
-                  title={component.title}
+                  key={t(component.title)}
+                  title={t(component.title)}
                   href={component.href}
                 >
-                  {component.description}
+                  {t(component.description)}
                 </ListItem>
               ))}
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Admin</NavigationMenuTrigger>
+          <NavigationMenuTrigger>{t({en: "Admin", ur: "ایڈمن"})}</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
               {adminNavItems.map((component) => (
                 <ListItem
-                  key={component.title}
-                  title={component.title}
+                  key={t(component.title)}
+                  title={t(component.title)}
                   href={component.href}
                 >
-                  {component.description}
+                  {t(component.description)}
                 </ListItem>
               ))}
             </ul>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -13,8 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { CreditCard, LogOut, Settings, User } from "lucide-react"
+import { useLanguage } from "@/context/language-context"
 
 export function UserNav() {
+  const { t } = useLanguage();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,25 +42,25 @@ export function UserNav() {
           <DropdownMenuItem>
             <Link href="/profile" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>{t({ en: "Profile", ur: "پروفائل" })}</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Link href="/services" className="flex items-center w-full">
                 <CreditCard className="mr-2 h-4 w-4" />
-                <span>Billing</span>
+                <span>{t({ en: "Billing", ur: "بلنگ" })}</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>{t({ en: "Settings", ur: "ترتیبات" })}</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
             <Link href="/" className="flex items-center w-full">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>{t({ en: "Log out", ur: "لاگ آوٹ" })}</span>
             </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
