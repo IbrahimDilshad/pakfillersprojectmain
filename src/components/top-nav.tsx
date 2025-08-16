@@ -43,7 +43,7 @@ export function TopNav() {
       <NavigationMenuList>
         {userNavItems.map((item) => (
           <NavigationMenuItem key={item.href}>
-            <Link href={item.href} passHref legacyBehavior>
+            <Link href={item.href} legacyBehavior={false} passHref>
               <NavigationMenuLink active={pathname.startsWith(item.href)} className={navigationMenuTriggerStyle()}>
                 {item.title}
               </NavigationMenuLink>
