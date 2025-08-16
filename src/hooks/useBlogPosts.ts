@@ -21,6 +21,7 @@ export function useBlogPosts() {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setLoading(true);
       try {
         const postsCollection = collection(db, 'blogPosts');
         const q = query(postsCollection, orderBy('createdAt', 'desc'));
@@ -40,5 +41,5 @@ export function useBlogPosts() {
     fetchPosts();
   }, []);
 
-  return { posts, loading };
+  return { posts, loading, setPosts };
 }

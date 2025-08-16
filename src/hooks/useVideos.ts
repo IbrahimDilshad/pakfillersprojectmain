@@ -19,6 +19,7 @@ export function useVideos() {
 
   useEffect(() => {
     const fetchVideos = async () => {
+      setLoading(true);
       try {
         const videosCollection = collection(db, 'videos');
         const q = query(videosCollection, orderBy('createdAt', 'desc'));
@@ -38,5 +39,5 @@ export function useVideos() {
     fetchVideos();
   }, []);
 
-  return { videos, loading };
+  return { videos, loading, setVideos };
 }
