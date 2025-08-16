@@ -58,7 +58,7 @@ export function SidebarNav() {
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.href}>
-          <Link href={item.href} passHref>
+          <Link href={item.href}>
             <SidebarMenuButton asChild isActive={pathname === item.href}>
               <a>
                 <item.icon />
@@ -105,7 +105,7 @@ export function SidebarNav() {
               </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <Link href="/" passHref>
+                <Link href="/">
                     <SidebarMenuButton asChild>
                         <a><LogOut /><span>Logout</span></a>
                     </SidebarMenuButton>
