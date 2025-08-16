@@ -9,7 +9,6 @@ import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 
 const services = [
-  { href: "/personal-tax-filing", title: { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" }, icon: FileText },
   { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
   { href: "/family-tax-filing", title: { en: "Family Tax Filing", ur: "فیملی ٹیکس فائلنگ" }, icon: Users },
   { href: "/ntn-registration", title: { en: "NTN Registration", ur: "این ٹی این رجسٹریشن" }, icon: FileUp },
@@ -27,32 +26,17 @@ const videos = [
   {
     title: { en: "How to File Your Income Tax Return", ur: "انکم ٹیکس ریٹرن فائل کرنے کا طریقہ" },
     description: { en: "A step-by-step guide to filing your income tax return online through PakFiler.", ur: "پاک فائلر کے ذریعے اپنا انکم ٹیکس ریٹرن آن لائن فائل کرنے کے لیے مرحلہ وار گائیڈ۔" },
-    src: "https://www.youtube.com/embed/example1",
+    src: "https://www.youtube.com/embed/gD8jQd6I1gQ",
   },
   {
     title: { en: "Understanding Sales Tax in Pakistan", ur: "پاکستان میں سیلز ٹیکس کو سمجھنا" },
     description: { en: "An overview of the sales tax system and how it applies to your business.", ur: "سیلز ٹیکس کے نظام کا ایک جائزہ اور یہ آپ کے کاروبار پر کیسے لاگو ہوتا ہے۔" },
-    src: "https://www.youtube.com/embed/example2",
+    src: "https://www.youtube.com/embed/RAu3c0Gj9pA",
   },
   {
     title: { en: "Wealth Statement Explained", ur: "دولت کے بیان کی وضاحت" },
     description: { en: "Learn why the wealth statement is important and how to fill it out correctly.", ur: "جانیں کہ دولت کا بیان کیوں ضروری ہے اور اسے صحیح طریقے سے کیسے پُر کیا جائے۔" },
-    src: "https://www.youtube.com/embed/example3",
-  },
-  {
-    title: { en: "Navigating the IRIS Portal", ur: "IRIS پورٹل پر تشریف لے جائیں۔" },
-    description: { en: "A complete walkthrough of the FBR's IRIS portal for all your tax needs.", ur: "آپ کی تمام ٹیکس ضروریات کے لیے FBR کے IRIS پورٹل کا مکمل واک تھرو۔" },
-    src: "https://www.youtube.com/embed/example4",
-  },
-  {
-    title: { en: "Understanding Your Tax Challan", ur: "اپنے ٹیکس چالان کو سمجھنا" },
-    description: { en: "A guide to reading and understanding your tax payment challan.", ur: "اپنے ٹیکس ادائیگی کے چالان کو پڑھنے اور سمجھنے کے لیے ایک گائیڈ۔" },
-    src: "https://www.youtube.com/embed/example5",
-  },
-  {
-    title: { en: "How to Respond to an FBR Notice", ur: "FBR نوٹس کا جواب کیسے دیں۔" },
-    description: { en: "Learn the correct procedure for responding to a notice from the FBR.", ur: "FBR سے نوٹس کا جواب دینے کا صحیح طریقہ کار جانیں۔" },
-    src: "https://www.youtube.com/embed/example6",
+    src: "https://www.youtube.com/embed/5Uu7Y_mJz-8",
   },
 ];
 
@@ -78,27 +62,6 @@ const blogPosts = [
     hint: "tax deductions",
     href: "#"
   },
-   {
-    title: { en: "The Difference Between Active and Inactive Taxpayer Status", ur: "فعال اور غیر فعال ٹیکس دہندہ کی حیثیت کے درمیان فرق" },
-    description: { en: "Understand the implications of your taxpayer status and how to check it.", ur: "اپنے ٹیکس دہندہ کی حیثیت کے مضمرات کو سمجھیں اور اسے کیسے چیک کریں۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "taxpayer status",
-    href: "#"
-  },
-  {
-    title: { en: "A Guide to Withholding Tax in Pakistan", ur: "پاکستان میں ودہولڈنگ ٹیکس کے لیے ایک گائیڈ" },
-    description: { en: "Everything you need to know about withholding tax, its rates, and how to manage it.", ur: "ودہولڈنگ ٹیکس، اس کی شرحوں، اور اسے منظم کرنے کے طریقے کے بارے میں آپ کو جاننے کی ضرورت ہے۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "withholding tax",
-    href: "#"
-  },
-  {
-    title: { en: "Understanding NTN and How to Register", ur: "NTN کو سمجھنا اور رجسٹر کرنے کا طریقہ" },
-    description: { en: "A detailed explanation of the National Tax Number (NTN) and the registration process.", ur: "قومی ٹیکس نمبر (NTN) اور رجسٹریشن کے عمل کی تفصیلی وضاحت۔" },
-    image: "https://placehold.co/600x400.png",
-    hint: "ntn registration",
-    href: "#"
-  }
 ];
 
 export default function DashboardPage() {
@@ -107,7 +70,7 @@ export default function DashboardPage() {
     <AppLayout pageTitle={t({ en: "Dashboard", ur: "ڈیش بورڈ" })}>
       <div className="space-y-12">
         <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 text-center">
             {services.map((service) => (
                 <Link href={service.href} key={service.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="text-primary p-4 rounded-full mb-2">

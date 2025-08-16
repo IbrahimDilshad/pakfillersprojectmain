@@ -9,32 +9,32 @@ const videos = [
   {
     title: { en: "How to File Your Income Tax Return", ur: "انکم ٹیکس ریٹرن فائل کرنے کا طریقہ" },
     description: { en: "A step-by-step guide to filing your income tax return online through PakFiler.", ur: "پاک فائلر کے ذریعے اپنا انکم ٹیکس ریٹرن آن لائن فائل کرنے کے لیے مرحلہ وار گائیڈ۔" },
-    src: "https://www.youtube.com/embed/example1",
+    src: "https://www.youtube.com/embed/gD8jQd6I1gQ",
   },
   {
     title: { en: "Understanding Sales Tax in Pakistan", ur: "پاکستان میں سیلز ٹیکس کو سمجھنا" },
     description: { en: "An overview of the sales tax system and how it applies to your business.", ur: "سیلز ٹیکس کے نظام کا ایک جائزہ اور یہ آپ کے کاروبار پر کیسے لاگو ہوتا ہے۔" },
-    src: "https://www.youtube.com/embed/example2",
+    src: "https://www.youtube.com/embed/RAu3c0Gj9pA",
   },
   {
     title: { en: "Wealth Statement Explained", ur: "دولت کے بیان کی وضاحت" },
     description: { en: "Learn why the wealth statement is important and how to fill it out correctly.", ur: "جانیں کہ دولت کا بیان کیوں ضروری ہے اور اسے صحیح طریقے سے کیسے پُر کیا جائے۔" },
-    src: "https://www.youtube.com/embed/example3",
+    src: "https://www.youtube.com/embed/5Uu7Y_mJz-8",
   },
   {
     title: { en: "Navigating the IRIS Portal", ur: "IRIS پورٹل پر تشریف لے جائیں۔" },
     description: { en: "A complete walkthrough of the FBR's IRIS portal for all your tax needs.", ur: "آپ کی تمام ٹیکس ضروریات کے لیے FBR کے IRIS پورٹل کا مکمل واک تھرو۔" },
-    src: "https://www.youtube.com/embed/example4",
+    src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
   },
   {
     title: { en: "Understanding Your Tax Challan", ur: "اپنے ٹیکس چالان کو سمجھنا" },
     description: { en: "A guide to reading and understanding your tax payment challan.", ur: "اپنے ٹیکس ادائیگی کے چالان کو پڑھنے اور سمجھنے کے لیے ایک گائیڈ۔" },
-    src: "https://www.youtube.com/embed/example5",
+    src: "https://www.youtube.com/embed/S_x65G5A_p8",
   },
   {
     title: { en: "How to Respond to an FBR Notice", ur: "FBR نوٹس کا جواب کیسے دیں۔" },
     description: { en: "Learn the correct procedure for responding to a notice from the FBR.", ur: "FBR سے نوٹس کا جواب دینے کا صحیح طریقہ کار جانیں۔" },
-    src: "https://www.youtube.com/embed/example6",
+    src: "https://www.youtube.com/embed/L3o_q2j_q6A",
   },
 ];
 
