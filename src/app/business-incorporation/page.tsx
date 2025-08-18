@@ -2,10 +2,9 @@
 'use client';
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { User, Users, PlusCircle, MinusCircle, ArrowRight } from "lucide-react";
+import { User, Users, PlusCircle, MinusCircle } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 const options = [
   {
@@ -44,28 +43,18 @@ export default function BusinessIncorporationPage() {
           <CardDescription>{t({ en: "Choose the type of registration you need.", ur: "اپنی ضرورت کے مطابق رجسٹریشن کی قسم کا انتخاب کریں۔" })}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            {options.map((option) => (
-              <Card key={t(option.title)} className="hover:shadow-md transition-shadow">
-                <Link href={option.href}>
-                  <div className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-primary/10 text-primary p-3 rounded-full">
-                        <option.icon className="h-8 w-8" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold">{t(option.title)}</h3>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground mt-2">{t(option.description)}</p>
-                    <Button variant="link" className="p-0 mt-4">
-                        {t({ en: "Proceed", ur: "آگے بڑھیں" })} <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </Link>
-              </Card>
-            ))}
-          </div>
+           <div className="max-w-lg mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                {options.map((option) => (
+                    <Link href={option.href} key={t(option.title)} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
+                        <div className="text-primary p-4 rounded-full mb-2">
+                            <option.icon className="h-10 w-10" />
+                        </div>
+                        <span className="text-sm font-medium text-foreground text-center">{t(option.title)}</span>
+                    </Link>
+                ))}
+              </div>
+           </div>
         </CardContent>
       </Card>
     </AppLayout>
