@@ -23,7 +23,7 @@ const options = [
     icon: PlusCircle,
     title: { en: "Add Business to NTN", ur: "این ٹی این میں کاروبار شامل کریں" },
     description: { en: "Link a new business to your existing NTN.", ur: "اپنے موجودہ این ٹی این سے نیا کاروبار منسلک کریں۔" },
-    href: "#",
+    href: "/business-incorporation/add-business-to-ntn",
   },
     {
     icon: MinusCircle,
