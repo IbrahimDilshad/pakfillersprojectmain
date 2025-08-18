@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
 
-export default function SoleProprietorPage() {
+export default function EmployerInfoPage() {
   const { t } = useLanguage();
   const router = useRouter();
 
   const handleNext = () => {
-    router.push('/business-incorporation/sole-proprietor/employer-info');
+    router.push('/business-incorporation/sole-proprietor/documents');
   };
 
   const handleBack = () => {
@@ -22,31 +22,23 @@ export default function SoleProprietorPage() {
   };
 
   return (
-    <AppLayout pageTitle={t({ en: 'Sole Proprietor Registration', ur: 'واحد ملکیت کی رجسٹریشن' })}>
+    <AppLayout pageTitle={t({ en: 'Employer Information', ur: 'آجر کی معلومات' })}>
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>{t({ en: 'Business Details', ur: 'کاروبار کی تفصیلات' })}</CardTitle>
+            <CardTitle>{t({ en: 'Employer Information', ur: 'آجر کی معلومات' })}</CardTitle>
             <CardDescription>
               {t({
-                en: 'Please provide the required information for your business.',
-                ur: 'براہ کرم اپنے کاروبار کے لیے مطلوبہ معلومات فراہم کریں۔',
+                en: 'Please provide your employer\'s name.',
+                ur: 'براہ کرم اپنے آجر کا نام فراہم کریں۔',
               })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="businessName">{t({ en: 'Business Name', ur: 'کاروبار کا نام' })}</Label>
-                <Input id="businessName" placeholder={t({ en: 'e.g., Acme Enterprises', ur: 'مثلاً، ایکمی انٹرپرائزز' })} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t({ en: 'Email', ur: 'ای میل' })}</Label>
-                <Input id="email" type="email" placeholder="m@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">{t({ en: 'Phone Number', ur: 'فون نمبر' })}</Label>
-                <Input id="phoneNumber" type="tel" placeholder="+92 300 1234567" />
+                <Label htmlFor="employerName">{t({ en: 'Employer Name', ur: 'آجر کا نام' })}</Label>
+                <Input id="employerName" placeholder={t({ en: 'e.g., PakFiler Corp', ur: 'مثلاً، پاک فائلر کارپوریشن' })} />
               </div>
             </form>
           </CardContent>
