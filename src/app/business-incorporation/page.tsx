@@ -29,7 +29,7 @@ const options = [
     icon: MinusCircle,
     title: { en: "Remove Business from NTN", ur: "این ٹی این سے کاروبار ہٹائیں" },
     description: { en: "De-register or close a business from your NTN.", ur: "اپنے این ٹی این سے کاروبار کو ڈی رجسٹر یا بند کریں۔" },
-    href: "#",
+    href: "/business-incorporation/remove-business-from-ntn",
   },
 ];
 
