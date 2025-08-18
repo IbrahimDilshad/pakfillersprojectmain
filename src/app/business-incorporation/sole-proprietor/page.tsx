@@ -14,8 +14,7 @@ export default function SoleProprietorPage() {
   const router = useRouter();
 
   const handleNext = () => {
-    // TODO: Implement next step logic
-    console.log('Next button clicked');
+    router.push('/business-incorporation/sole-proprietor/documents');
   };
 
   const handleBack = () => {
