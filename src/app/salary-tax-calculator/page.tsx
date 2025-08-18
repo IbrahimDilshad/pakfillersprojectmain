@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLanguage } from "@/context/language-context";
 import { Calculator, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 // Based on FBR tax slabs for salaried individuals for respective years.
 const taxSlabs = {
@@ -200,27 +201,32 @@ export default function SalaryTaxCalculatorPage() {
             <CardContent>
                 {result ? (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                            <div className="font-medium text-muted-foreground">{t({en: "Monthly Salary", ur: "ماہانہ تنخواہ"})}</div>
-                            <div className="text-right font-semibold">{formatCurrency(result.monthlySalary)}</div>
-                            
-                            <div className="font-medium text-muted-foreground">{t({en: "Yearly Income", ur: "سالانہ آمدنی"})}</div>
-                            <div className="text-right font-semibold">{formatCurrency(result.yearlyIncome)}</div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm pt-4 border-t">
-                            <div className="font-medium text-muted-foreground">{t({en: "Monthly Tax Deduction", ur: "ماہانہ ٹیکس کٹوتی"})}</div>
-                            <div className="text-right font-semibold text-destructive">{formatCurrency(result.monthlyTax)}</div>
-
-                            <div className="font-medium text-muted-foreground">{t({en: "Yearly Tax Deduction", ur: "سالانہ ٹیکس کٹوتی"})}</div>
-                            <div className="text-right font-semibold text-destructive">{formatCurrency(result.yearlyTax)}</div>
-                        </div>
-                         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm pt-4 border-t">
-                            <div className="font-medium text-muted-foreground">{t({en: "Salary after Monthly Tax", ur: "ماہانہ ٹیکس کے بعد تنخواہ"})}</div>
-                            <div className="text-right font-semibold text-primary">{formatCurrency(result.netMonthlySalary)}</div>
-
-                            <div className="font-medium text-muted-foreground">{t({en: "Salary after Yearly Tax", ur: "سالانہ ٹیکس کے بعد تنخواہ"})}</div>
-                            <div className="text-right font-semibold text-primary">{formatCurrency(result.netYearlySalary)}</div>
-                        </div>
+                       <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{t({en: "Description", ur: "تفصیل"})}</TableHead>
+                                <TableHead className="text-right">{t({en: "Monthly", ur: "ماہانہ"})}</TableHead>
+                                <TableHead className="text-right">{t({en: "Yearly", ur: "سالانہ"})}</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>{t({en: "Gross Salary", ur: "مجموعی تنخواہ"})}</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(result.monthlySalary)}</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(result.yearlyIncome)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell className="text-destructive">{t({en: "Tax Deduction", ur: "ٹیکس کٹوتی"})}</TableCell>
+                                <TableCell className="text-right font-medium text-destructive">{formatCurrency(result.monthlyTax)}</TableCell>
+                                <TableCell className="text-right font-medium text-destructive">{formatCurrency(result.yearlyTax)}</TableCell>
+                            </TableRow>
+                             <TableRow className="bg-muted/50">
+                                <TableCell className="font-semibold text-primary">{t({en: "Net Salary (Take Home)", ur: "خالص تنخواہ (گھر لے جانے والی)"})}</TableCell>
+                                <TableCell className="text-right font-semibold text-primary">{formatCurrency(result.netMonthlySalary)}</TableCell>
+                                <TableCell className="text-right font-semibold text-primary">{formatCurrency(result.netYearlySalary)}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                       </Table>
 
                          <Alert variant="destructive" className="mt-6">
                             <AlertTriangle className="h-4 w-4" />
