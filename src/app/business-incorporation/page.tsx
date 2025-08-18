@@ -11,7 +11,7 @@ const options = [
     icon: User,
     title: { en: "Sole Proprietor", ur: "واحد ملکیت" },
     description: { en: "Register a business owned by a single individual.", ur: "ایک فرد کی ملکیت والے کاروبار کو رجسٹر کریں۔" },
-    href: "#",
+    href: "/business-incorporation/sole-proprietor",
   },
   {
     icon: Users,
