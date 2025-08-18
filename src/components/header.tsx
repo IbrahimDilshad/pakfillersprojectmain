@@ -27,20 +27,6 @@ const pages = [
   { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ]
 
-const adminPages = [
-    { href: "/admin/users", title: { en: "User Management", ur: "صارف کا انتظام" } },
-    { href: "/admin/reports", title: { en: "Reports Generation", ur: "رپورٹس جنریشن" } },
-    { href: "/admin/content", title: { en: "Content Management", ur: "مواد کا انتظام" } },
-    { href: "/admin/config", title: { en: "System Configuration", ur: "سسٹم کنفیگریشن" } },
-    { href: "/admin/chat", title: { en: "Support Chat", ur: "سپورٹ چیٹ" } },
-]
-
-const accountantPages = [
-  { href: "/accountant/review", title: { en: "Review Documents", ur: "دستاویزات کا جائزہ لیں" } },
-  { href: "/accountant/process", title: { en: "Process Filings", ur: "فائلنگ پر کارروائی کریں" } },
-  { href: "/accountant/reports", title: { en: "Generate Reports", ur: "رپورٹیں بنائیں" } },
-]
-
 export function Header({ title }: HeaderProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -87,23 +73,12 @@ export function Header({ title }: HeaderProps) {
         </DropdownMenu>
 
         {user?.role === 'admin' && (
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Shield className="h-5 w-5" />
-                        <span className="sr-only">Admin</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{t({ en: 'Admin Panel', ur: 'ایڈمن پینل' })}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {adminPages.map((page) => (
-                        <DropdownMenuItem key={page.href} asChild>
-                           <Link href={page.href}>{t(page.title)}</Link>
-                        </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
+             <Link href="/admin">
+                <Button variant="ghost" size="icon">
+                    <Shield className="h-5 w-5" />
+                    <span className="sr-only">Admin</span>
+                </Button>
+             </Link>
         )}
 
         <Link href="/cart">

@@ -1,7 +1,7 @@
 
+
 'use client';
 import { useState } from 'react';
-import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
   };
 
   return (
-    <Card className="flex flex-col h-[calc(70vh)]">
+    <Card className="flex flex-col h-[calc(80vh)]">
         <CardHeader className="flex flex-row items-center justify-between border-b">
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
@@ -119,17 +119,6 @@ export default function AdminChatPage() {
     }
   };
 
-  if (user?.role !== 'admin') {
-     return (
-      <AppLayout pageTitle={t({ en: "Access Denied", ur: "رسائی مسترد" })}>
-        <Card className="m-auto mt-12 max-w-lg text-center">
-          <CardHeader><CardTitle>{t({ en: "Access Denied", ur: "رسائی مسترد" })}</CardTitle></CardHeader>
-          <CardContent><p>{t({ en: "You don't have permission to view this page.", ur: "آپ کو یہ صفحہ دیکھنے کی اجازت نہیں ہے۔" })}</p></CardContent>
-        </Card>
-      </AppLayout>
-    );
-  }
-
   const ChatList = () => (
     <Card>
       <CardHeader>
@@ -137,7 +126,7 @@ export default function AdminChatPage() {
         <CardDescription>{t({ en: "Select a chat to view and respond.", ur: "دیکھنے اور جواب دینے کے لیے ایک چیٹ منتخب کریں۔" })}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[60vh]">
+        <ScrollArea className="h-[70vh]">
             {loading && <p className="p-4">{t({ en: "Loading chats...", ur: "چیٹس لوڈ ہو رہی ہیں..." })}</p>}
             {!loading && sessions.length === 0 && <p className="p-4 text-muted-foreground">{t({ en: "No active chats.", ur: "کوئی فعال چیٹس نہیں ہیں۔" })}</p>}
             {sessions.map(session => (
@@ -160,8 +149,7 @@ export default function AdminChatPage() {
   );
 
   return (
-    <AppLayout pageTitle={t({ en: "Admin Chat", ur: "ایڈمن چیٹ" })}>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-6">
             <div className={selectedSession ? "hidden md:block" : ""}>
                 <ChatList />
             </div>
@@ -175,7 +163,7 @@ export default function AdminChatPage() {
                         onBack={() => setSelectedSession(null)}
                     />
                  ) : (
-                    <Card className="flex items-center justify-center h-[calc(70vh)]">
+                    <Card className="flex items-center justify-center h-[calc(80vh)]">
                         <div className="text-center text-muted-foreground">
                             <p>{t({ en: "Select a chat to start messaging", ur: "پیغام رسانی شروع کرنے کے لیے ایک چیٹ منتخب کریں۔" })}</p>
                         </div>
@@ -183,6 +171,5 @@ export default function AdminChatPage() {
                  )}
             </div>
         </div>
-    </AppLayout>
   );
 }

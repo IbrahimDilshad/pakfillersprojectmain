@@ -1,8 +1,8 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,27 +125,9 @@ export default function AdminContentPage() {
     }
   };
 
-
-  if (user?.role !== 'admin') {
-    return (
-      <AppLayout pageTitle={t({ en: "Access Denied", ur: "رسائی مسترد" })}>
-        <Card className="m-auto mt-12 max-w-lg text-center">
-          <CardHeader>
-            <CardTitle>{t({ en: "Access Denied", ur: "رسائی مسترد" })}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {t({ en: "You do not have permission to view this page.", ur: "آپ کو یہ صفحہ دیکھنے کی اجازت نہیں ہے۔" })}
-            </p>
-          </CardContent>
-        </Card>
-      </AppLayout>
-    );
-  }
-
   return (
-    <AppLayout pageTitle={t({ en: "Content Management", ur: "مواد کا انتظام" })}>
-      <Tabs defaultValue="blog" className="max-w-5xl mx-auto">
+    <>
+      <Tabs defaultValue="blog">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="blog">{t({ en: "Blog Posts", ur: "بلاگ پوسٹس" })}</TabsTrigger>
           <TabsTrigger value="video">{t({ en: "Videos", ur: "ویڈیوز" })}</TabsTrigger>
@@ -382,7 +364,7 @@ export default function AdminContentPage() {
         onSave={(updatedServices) => setServices(updatedServices)}
         allServices={services}
       />
-    </AppLayout>
+    </>
   );
 }
 
@@ -780,5 +762,3 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
         </Dialog>
     );
 }
-
-    

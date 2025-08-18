@@ -1,5 +1,5 @@
+
 'use client';
-import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
@@ -7,7 +7,6 @@ import { useLanguage } from "@/context/language-context";
 export default function AdminConfigPage() {
   const { t } = useLanguage();
   return (
-    <AppLayout pageTitle={t({ en: "System Configuration", ur: "سسٹم کنفیگریشن" })}>
       <Card className="m-auto mt-12 max-w-lg text-center">
         <CardHeader>
           <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
@@ -21,6 +20,5 @@ export default function AdminConfigPage() {
           </p>
         </CardContent>
       </Card>
-    </AppLayout>
   );
 }
