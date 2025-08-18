@@ -87,18 +87,23 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
         <div className="flex min-h-screen">
             <AdminSidebar />
-            <main className="flex-1 flex flex-col">
-                <header className="flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6">
-                    <SidebarTrigger />
+            <div className="flex-1 flex flex-col">
+                 <header className="flex h-16 items-center justify-end gap-4 border-b bg-background/80 backdrop-blur-sm px-6">
+                    <div className="md:hidden">
+                        <SidebarTrigger />
+                    </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <LanguageSwitcher />
                         <UserNav />
                     </div>
                 </header>
-                <div className="flex-1 p-6 bg-muted/20">
+                 <main className="flex-1 p-6 bg-muted/20">
+                     <div className="hidden md:block mb-4">
+                        <SidebarTrigger />
+                    </div>
                     {children}
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     </SidebarProvider>
   );
