@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { UserNav } from '@/components/user-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 
 
 const adminNavItems = [
@@ -85,25 +85,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-        <div className="flex min-h-screen">
-            <AdminSidebar />
-            <div className="flex-1 flex flex-col">
-                 <header className="flex h-16 items-center justify-end gap-4 border-b bg-background/80 backdrop-blur-sm px-6">
-                    <div className="md:hidden">
-                        <SidebarTrigger />
-                    </div>
-                    <div className="flex items-center gap-2 ml-auto">
-                        <LanguageSwitcher />
-                        <UserNav />
-                    </div>
-                </header>
-                 <main className="flex-1 p-6 bg-muted/20">
-                     <div className="hidden md:block mb-4">
-                        <SidebarTrigger />
-                    </div>
-                    {children}
-                </main>
-            </div>
+        <AdminSidebar />
+        <div className="flex flex-1 flex-col">
+            <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b bg-background/80 px-6 backdrop-blur-sm">
+                <SidebarTrigger className="mr-auto" />
+                <LanguageSwitcher />
+                <UserNav />
+            </header>
+            <main className="flex-1 p-6 bg-muted/20">
+                {children}
+            </main>
         </div>
     </SidebarProvider>
   );
