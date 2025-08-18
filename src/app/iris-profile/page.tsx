@@ -20,7 +20,6 @@ interface BankAccount {
 
 export default function IrisProfilePage() {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const router = useRouter();
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([{ id: 1, bankName: '', iban: '' }]);
 
@@ -38,13 +37,10 @@ export default function IrisProfilePage() {
     ));
   };
 
-  const handleSubmit = () => {
-    // In a real app, you would collect all form data and process it.
-    toast({
-      title: "Service Added to Cart",
-      description: "IRIS Profile update service has been added to your cart.",
-    });
-    router.push('/cart');
+  const handleNext = () => {
+    // In a real app, you would save this form data to a global state (like context)
+    // before navigating to the next step.
+    router.push('/iris-profile/employer-info');
   };
 
   return (
@@ -134,7 +130,7 @@ export default function IrisProfilePage() {
             </div>
 
             <div className="flex justify-end pt-4">
-                <Button size="lg" onClick={handleSubmit}>{t({en: "Save Profile & Add to Cart", ur: "پروفائل محفوظ کریں اور کارٹ میں شامل کریں"})}</Button>
+                <Button size="lg" onClick={handleNext}>{t({en: "Next", ur: "اگلا"})}</Button>
             </div>
           </CardContent>
         </Card>
