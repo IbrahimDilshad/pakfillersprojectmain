@@ -97,7 +97,7 @@ export default function RemoveBusinessFromNtnPage() {
                         <Label htmlFor="irisPassword">{t({ en: 'IRIS Password', ur: 'آئرس پاس ورڈ' })}</Label>
                          <div className="flex items-center gap-2">
                             <Input id="irisPassword" type="password" placeholder="••••••••" className="flex-1" />
-                            <Link href="#" className="text-sm text-primary underline whitespace-nowrap">
+                            <Link href="/business-incorporation/forgot-password" className="text-sm text-primary underline whitespace-nowrap">
                                 {t({ en: 'Forgot?', ur: 'بھول گئے؟' })}
                             </Link>
                          </div>
