@@ -1,35 +1,43 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
+import { useAuth } from '@/context/auth-context';
+import { useChat } from '@/hooks/useChat';
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { from: 'support', text: { en: 'Hello! How can I help you today?', ur: 'ہیلو! میں آج آپ کی کیسے مدد کر سکتا ہوں؟' } },
-  ]);
   const [inputValue, setInputValue] = useState('');
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { messages, sendMessage } = useChat(user?.uid, user?.role);
+  const chatMessages = user ? messages[user.uid] || [] : [];
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [chatMessages, isOpen]);
+
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
   const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      setMessages([...messages, { from: 'user', text: { en: inputValue, ur: inputValue } }]);
+    if (inputValue.trim() && user) {
+      sendMessage(user.uid, inputValue, user.uid, 'user', user.displayName || 'Anonymous', user.email || 'no-email');
       setInputValue('');
-      // Simulate support reply
-      setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'support', text: { en: 'Our support agent will be with you shortly.', ur: 'ہمارا سپورٹ ایجنٹ جلد ہی آپ کے ساتھ ہو گا۔' } }]);
-      }, 1500);
     }
   };
+
+  if (!user) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -45,15 +53,20 @@ export function ChatWidget() {
               <X className="h-5 w-5" />
             </Button>
           </CardHeader>
-          <CardContent className="flex-1 p-4 overflow-y-auto">
+          <CardContent ref={scrollAreaRef} className="flex-1 p-4 overflow-y-auto">
             <div className="space-y-4">
-              {messages.map((msg, index) => (
-                <div key={index} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {chatMessages.length === 0 && (
+                <div className="text-center text-sm text-muted-foreground p-4">
+                  {t({ en: 'Hello! How can I help you today?', ur: 'ہیلو! میں آج آپ کی کیسے مدد کر سکتا ہوں؟' })}
+                </div>
+              )}
+              {chatMessages.map((msg) => (
+                <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.from === 'support' && (
                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">P</div>
                   )}
                   <div className={`max-w-[75%] p-3 rounded-lg ${msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    <p className="text-sm">{t(msg.text)}</p>
+                    <p className="text-sm">{msg.text}</p>
                   </div>
                 </div>
               ))}
