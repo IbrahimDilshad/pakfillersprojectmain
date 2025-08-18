@@ -63,7 +63,7 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={onDelete}>Continue</AlertDialogAction>
                     </AlertDialogFooter>
-                </AlertDialog>
+                </AlertDialogContent>
             </AlertDialog>
         </CardHeader>
         <CardContent className="flex-1 p-4 overflow-y-auto">
