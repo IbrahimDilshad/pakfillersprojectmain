@@ -4,7 +4,7 @@ import Link from "next/link"
 import { AppLayout } from "@/components/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, CreditCard, User } from "lucide-react"
+import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, CreditCard, User, FileSignature } from "lucide-react"
 import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 import { useVideos } from "@/hooks/useVideos";
@@ -12,6 +12,7 @@ import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const services = [
+  { href: "/personal-tax-filing", title: { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" }, icon: FileSignature },
   { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
   { href: "/family-tax-filing", title: { en: "Family Tax Filing", ur: "فیملی ٹیکس فائلنگ" }, icon: Users },
   { href: "/ntn-registration", title: { en: "NTN Registration", ur: "این ٹی این رجسٹریشن" }, icon: FileUp },
@@ -32,8 +33,8 @@ export default function DashboardPage() {
   return (
     <AppLayout pageTitle={t({ en: "Dashboard", ur: "ڈیش بورڈ" })}>
       <div className="space-y-12">
-        <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 text-center">
+        <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 text-center">
             {services.map((service) => (
                 <Link href={service.href} key={service.href} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="text-primary p-4 rounded-full mb-2">
