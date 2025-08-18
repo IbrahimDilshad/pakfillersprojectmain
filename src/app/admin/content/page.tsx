@@ -17,11 +17,12 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from '
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import { useVideos, Video } from '@/hooks/useVideos';
 import { useFaqs, Faq } from '@/hooks/useFaqs';
+import { useServices, Service } from '@/hooks/useServices';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Pencil, PlusCircle } from 'lucide-react';
+import { Trash2, Pencil, PlusCircle, CreditCard } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 
 export default function AdminContentPage() {
@@ -31,6 +32,7 @@ export default function AdminContentPage() {
   const { posts, loading: postsLoading, setPosts } = useBlogPosts();
   const { videos, loading: videosLoading, setVideos } = useVideos();
   const { faqs, loading: faqsLoading, setFaqs } = useFaqs();
+  const { services, loading: servicesLoading, setServices } = useServices();
 
   const [isBlogDialogOpen, setBlogDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Partial<BlogPost> | null>(null);
@@ -40,6 +42,9 @@ export default function AdminContentPage() {
   
   const [isFaqDialogOpen, setFaqDialogOpen] = useState(false);
   const [currentFaq, setCurrentFaq] = useState<Partial<Faq> | null>(null);
+
+  const [isServiceDialogOpen, setServiceDialogOpen] = useState(false);
+  const [currentService, setCurrentService] = useState<Partial<Service> | null>(null);
 
   const handleEditPost = (post: BlogPost) => {
     setCurrentPost(post);
@@ -101,6 +106,26 @@ export default function AdminContentPage() {
     }
   };
 
+  const handleEditService = (service: Service) => {
+    setCurrentService(service);
+    setServiceDialogOpen(true);
+  };
+
+  const handleAddNewService = () => {
+    setCurrentService(null);
+    setServiceDialogOpen(true);
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      await deleteDoc(doc(db, 'services', serviceId));
+      setServices(services.filter(s => s.id !== serviceId));
+      // toast({ title: 'Success', description: 'Service deleted successfully.' });
+    } catch (error) {
+      // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete service.' });
+    }
+  };
+
 
   if (user?.role !== 'admin') {
     return (
@@ -121,11 +146,12 @@ export default function AdminContentPage() {
 
   return (
     <AppLayout pageTitle={t({ en: "Content Management", ur: "مواد کا انتظام" })}>
-      <Tabs defaultValue="blog" className="max-w-4xl mx-auto">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="blog" className="max-w-5xl mx-auto">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="blog">{t({ en: "Blog Posts", ur: "بلاگ پوسٹس" })}</TabsTrigger>
           <TabsTrigger value="video">{t({ en: "Videos", ur: "ویڈیوز" })}</TabsTrigger>
           <TabsTrigger value="faq">{t({ en: "FAQs", ur: "اکثر پوچھے گئے سوالات" })}</TabsTrigger>
+          <TabsTrigger value="services">{t({ en: "Services", ur: "خدمات" })}</TabsTrigger>
         </TabsList>
         <TabsContent value="blog">
           <Card>
@@ -276,6 +302,58 @@ export default function AdminContentPage() {
             </CardContent>
           </Card>
         </TabsContent>
+         <TabsContent value="services">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>{t({ en: "Manage Services", ur: "خدمات کا نظم کریں" })}</CardTitle>
+                    <CardDescription>{t({ en: "Add, edit, or delete service offerings.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
+                </div>
+                <Button onClick={handleAddNewService}><PlusCircle className="mr-2" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               {servicesLoading ? (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+              ) : (
+                services.map(service => (
+                  <Card key={service.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                            <h3 className="font-semibold">{t(service.title)}</h3>
+                             <div className="text-sm text-muted-foreground mt-1 flex items-center gap-4">
+                                <Badge variant="secondary">PKR {service.price.toLocaleString()}</Badge>
+                                <span>{t(service.completionTime)}</span>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                            <Button variant="outline" size="icon" onClick={() => handleEditService(service)}><Pencil className="h-4 w-4" /></Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete this service.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteService(service.id)}>Continue</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       <BlogEditDialog 
         isOpen={isBlogDialogOpen} 
@@ -297,6 +375,13 @@ export default function AdminContentPage() {
         faq={currentFaq}
         onSave={(updatedFaqs) => setFaqs(updatedFaqs)}
         allFaqs={faqs}
+      />
+       <ServiceEditDialog
+        isOpen={isServiceDialogOpen}
+        setIsOpen={setServiceDialogOpen}
+        service={currentService}
+        onSave={(updatedServices) => setServices(updatedServices)}
+        allServices={services}
       />
     </AppLayout>
   );
@@ -580,6 +665,117 @@ function FaqEditDialog({ isOpen, setIsOpen, faq, onSave, allFaqs }: FaqEditDialo
                             <Button type="button" variant="secondary">Cancel</Button>
                        </DialogClose>
                         <Button type="submit">{faq?.id ? t({en: "Save Changes", ur: "تبدیلیاں محفوظ کریں"}) : t({en: "Add FAQ", ur: "سوال شامل کریں"})}</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
+// Service Dialog Component
+interface ServiceEditDialogProps {
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
+    service: Partial<Service> | null;
+    onSave: (services: Service[]) => void;
+    allServices: Service[];
+}
+
+function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: ServiceEditDialogProps) {
+    const { t, language } = useLanguage();
+    const { toast } = useToast();
+    const [title, setTitle] = useState('');
+    const [price, setPrice] = useState<number | string>('');
+    const [completionTime, setCompletionTime] = useState('');
+    const [details, setDetails] = useState('');
+    const [whatsappNumber, setWhatsappNumber] = useState('');
+    
+    useEffect(() => {
+        if (service) {
+            setTitle(t(service.title || {en: '', ur: ''}));
+            setPrice(service.price || '');
+            setCompletionTime(t(service.completionTime || {en: '', ur: ''}));
+            setDetails(t(service.details || {en: '', ur: ''}));
+            setWhatsappNumber(service.whatsappNumber || '');
+        } else {
+            setTitle('');
+            setPrice('');
+            setCompletionTime('');
+            setDetails('');
+            setWhatsappNumber('');
+        }
+    }, [service, isOpen, t]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!title || !price || !completionTime || !details || !whatsappNumber) {
+            toast({ variant: 'destructive', title: 'All fields are required.' });
+            return;
+        }
+        try {
+            const serviceData = {
+                title: { en: title, ur: title },
+                price: Number(price),
+                completionTime: { en: completionTime, ur: completionTime },
+                details: { en: details, ur: details },
+                whatsappNumber: whatsappNumber.replace(/\D/g, ''),
+            };
+
+            if (service?.id) { // Editing
+                const serviceRef = doc(db, 'services', service.id);
+                await updateDoc(serviceRef, serviceData);
+                onSave(allServices.map(s => s.id === service.id ? { ...s, ...serviceData, createdAt: s.createdAt } : s));
+                toast({ title: "Success", description: "Service updated." });
+            } else { // Adding
+                const docRef = await addDoc(collection(db, 'services'), {
+                    ...serviceData,
+                    createdAt: serverTimestamp()
+                });
+                onSave([{ id: docRef.id, ...serviceData, createdAt: new Date() }, ...allServices]);
+                toast({ title: "Success", description: "Service added." });
+            }
+            setIsOpen(false);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{service?.id ? t({en: "Edit Service", ur: "سروس میں ترمیم کریں"}) : t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="service-title">{t({ en: "Title", ur: "عنوان" })}</Label>
+                            <Input id="service-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="service-price">{t({ en: "Price (PKR)", ur: "قیمت (PKR)" })}</Label>
+                            <Input id="service-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="service-completion">{t({ en: "Completion Time", ur: "تکمیل کا وقت" })}</Label>
+                            <Input id="service-completion" value={completionTime} onChange={(e) => setCompletionTime(e.target.value)} placeholder="e.g., 1-2 weeks" required />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="service-whatsapp">{t({ en: "WhatsApp Number", ur: "واٹس ایپ نمبر" })}</Label>
+                            <Input id="service-whatsapp" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="e.g., 923001234567" required />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="service-details">{t({ en: "Details", ur: "تفصیلات" })}</Label>
+                        <Textarea id="service-details" value={details} onChange={(e) => setDetails(e.target.value)} rows={5} required placeholder="Use <b> and <i> for bold/italics. Use <ul> and <li> for lists."/>
+                        <p className="text-xs text-muted-foreground">For formatting, use HTML tags like `&lt;b&gt;bold&lt;/b&gt;`, `&lt;i&gt;italic&lt;/i&gt;`, and `&lt;ul&gt;&lt;li&gt;item&lt;/li&gt;&lt;/ul&gt;`.</p>
+                    </div>
+                    <DialogFooter>
+                         <DialogClose asChild>
+                            <Button type="button" variant="secondary">Cancel</Button>
+                       </DialogClose>
+                        <Button type="submit">{service?.id ? t({en: "Save Changes", ur: "تبدیلیاں محفوظ کریں"}) : t({en: "Add Service", ur: "سروس شامل کریں"})}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

@@ -25,6 +25,14 @@ export function ChatWidget() {
     }
   }, [chatMessages, isOpen]);
 
+  // Expose a global function to open the chat
+  useEffect(() => {
+    (window as any).openChatWidget = () => setIsOpen(true);
+    return () => {
+      delete (window as any).openChatWidget;
+    };
+  }, []);
+
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -42,11 +50,11 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {!isOpen ? (
-        <Button onClick={toggleChat} className="rounded-full w-16 h-16 shadow-lg">
+        <Button onClick={toggleChat} className="rounded-full w-16 h-16 shadow-lg" data-chat-widget-button>
           <MessageSquare className="h-8 w-8" />
         </Button>
       ) : (
-        <Card className="w-80 h-[450px] flex flex-col shadow-lg">
+        <Card className="w-80 h-[450px] flex flex-col shadow-lg" data-chat-widget-window>
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
             <CardTitle className="text-lg">{t({ en: 'Support Chat', ur: 'سپورٹ چیٹ' })}</CardTitle>
             <Button variant="ghost" size="icon" onClick={toggleChat}>
