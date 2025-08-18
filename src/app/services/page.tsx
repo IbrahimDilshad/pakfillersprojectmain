@@ -1,13 +1,15 @@
 
 'use client';
+import { useState } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, MessageSquare, PlusCircle } from "lucide-react";
+import { CreditCard, MessageSquare, Search } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useServices } from "@/hooks/useServices";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 // A simple component to render the WhatsApp icon
 const WhatsAppIcon = () => (
@@ -33,18 +35,24 @@ const WhatsAppIcon = () => (
 export default function ServicesPage() {
   const { t, language } = useLanguage();
   const { services, loading } = useServices();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleChatClick = () => {
-    // This is a bit of a hack to click the chat widget button if it exists
     const chatButton = document.querySelector('[data-chat-widget-button]') as HTMLElement | null;
     if (chatButton) {
-        // If the chat window isn't open, click the button to open it
         const chatWindow = document.querySelector('[data-chat-widget-window]');
         if (!chatWindow) {
              chatButton.click();
         }
     }
   };
+
+  const filteredServices = services.filter(service => {
+    const query = searchQuery.toLowerCase();
+    const title = t(service.title).toLowerCase();
+    const details = t(service.details).toLowerCase();
+    return title.includes(query) || details.includes(query);
+  });
 
   return (
     <AppLayout pageTitle={t({ en: "Service Charges", ur: "سروس چارجز" })}>
@@ -55,6 +63,19 @@ export default function ServicesPage() {
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight">{t({en: "Our Services", ur: "ہماری خدمات"})}</h1>
                 <p className="mt-2 text-lg text-muted-foreground">{t({en: "Transparent pricing for all your tax and business needs.", ur: "آپ کی تمام ٹیکس اور کاروباری ضروریات کے لیے شفاف قیمتیں۔"})}</p>
+            </div>
+            
+            <div className="max-w-xl mx-auto">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        type="search"
+                        placeholder={t({ en: "Search for a service...", ur: "کسی خدمت کو تلاش کریں..."})}
+                        className="w-full pl-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -75,7 +96,7 @@ export default function ServicesPage() {
                         </Card>
                     ))
                 ) : (
-                    services.map(service => (
+                    filteredServices.map(service => (
                         <Card key={service.id} className="flex flex-col hover:shadow-lg transition-shadow">
                             <CardHeader>
                                 <CardTitle className="text-2xl">{t(service.title)}</CardTitle>
@@ -106,9 +127,9 @@ export default function ServicesPage() {
                     ))
                 )}
             </div>
-             {!loading && services.length === 0 && (
+             {!loading && filteredServices.length === 0 && (
                 <div className="text-center text-muted-foreground py-16">
-                    <p>{t({en: "No services have been added yet.", ur: "ابھی تک کوئی خدمات شامل نہیں کی گئی ہیں۔"})}</p>
+                    <p>{searchQuery ? t({en: "No services found for your search.", ur: "آپ کی تلاش کے لیے کوئی خدمات نہیں ملیں۔"}) : t({en: "No services have been added yet.", ur: "ابھی تک کوئی خدمات شامل نہیں کی گئی ہیں۔"})}</p>
                 </div>
             )}
        </div>
