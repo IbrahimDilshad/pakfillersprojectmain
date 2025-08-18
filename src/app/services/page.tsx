@@ -86,10 +86,9 @@ export default function ServicesPage() {
                                     {t({en: "PKR", ur: "روپے"})}{" "}
                                     {service.price.toLocaleString(language === 'en' ? 'en-US' : 'ur-PK')}
                                 </Badge>
-                                <div 
-                                    className="prose prose-sm text-muted-foreground"
-                                    dangerouslySetInnerHTML={{ __html: t(service.details) }}
-                                />
+                                <p className="text-sm text-muted-foreground">
+                                    {t(service.details)}
+                                </p>
                             </CardContent>
                             <CardFooter className="grid grid-cols-2 gap-2 mt-4">
                                 <a href={`https://wa.me/${service.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="w-full">

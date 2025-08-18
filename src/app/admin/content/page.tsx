@@ -23,10 +23,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Pencil, PlusCircle, CreditCard } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import dynamic from 'next/dynamic';
-import 'quill/dist/quill.snow.css';
-
-const ReactQuill = dynamic(() => import('react-quilljs'), { ssr: false });
 
 export default function AdminContentPage() {
   const { t } = useLanguage();
@@ -743,16 +739,6 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
             toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
         }
     };
-    
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
-          ['link'],
-          ['clean']
-        ],
-    };
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -781,13 +767,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="service-details">{t({ en: "Details", ur: "تفصیلات" })}</Label>
-                        <ReactQuill 
-                            theme="snow" 
-                            value={details} 
-                            onChange={setDetails}
-                            modules={modules}
-                            className="bg-background"
-                        />
+                        <Textarea id="service-details" value={details} onChange={(e) => setDetails(e.target.value)} required />
                     </div>
                     <DialogFooter className="pt-8">
                          <DialogClose asChild>
