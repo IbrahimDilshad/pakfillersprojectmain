@@ -682,7 +682,7 @@ interface ServiceEditDialogProps {
 }
 
 function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: ServiceEditDialogProps) {
-    const { t, language } = useLanguage();
+    const { t } = useLanguage();
     const { toast } = useToast();
     const [title, setTitle] = useState('');
     const [price, setPrice] = useState<number | string>('');
