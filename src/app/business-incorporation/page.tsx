@@ -17,7 +17,7 @@ const options = [
     icon: Users,
     title: { en: "AOP/Partnership", ur: "اے او پی/شراکت داری" },
     description: { en: "For businesses owned by two or more persons.", ur: "دو یا زیادہ افراد کی ملکیت والے کاروباروں کے لیے۔" },
-    href: "#",
+    href: "/business-incorporation/aop-partnership",
   },
   {
     icon: PlusCircle,
