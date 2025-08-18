@@ -31,7 +31,7 @@ const WhatsAppIcon = () => (
 
 
 export default function ServicesPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { services, loading } = useServices();
 
   const handleChatClick = () => {
