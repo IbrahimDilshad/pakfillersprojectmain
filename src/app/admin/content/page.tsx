@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(() => import('react-quilljs'), { ssr: false });
 
 export default function AdminContentPage() {
   const { t } = useLanguage();
