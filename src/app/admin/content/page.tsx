@@ -16,25 +16,30 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import { useVideos, Video } from '@/hooks/useVideos';
+import { useFaqs, Faq } from '@/hooks/useFaqs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Pencil, PlusCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 export default function AdminContentPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { toast } = useToast();
   
   const { posts, loading: postsLoading, setPosts } = useBlogPosts();
   const { videos, loading: videosLoading, setVideos } = useVideos();
+  const { faqs, loading: faqsLoading, setFaqs } = useFaqs();
 
   const [isBlogDialogOpen, setBlogDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Partial<BlogPost> | null>(null);
 
   const [isVideoDialogOpen, setVideoDialogOpen] = useState(false);
   const [currentVideo, setCurrentVideo] = useState<Partial<Video> | null>(null);
+  
+  const [isFaqDialogOpen, setFaqDialogOpen] = useState(false);
+  const [currentFaq, setCurrentFaq] = useState<Partial<Faq> | null>(null);
 
   const handleEditPost = (post: BlogPost) => {
     setCurrentPost(post);
@@ -50,9 +55,9 @@ export default function AdminContentPage() {
     try {
       await deleteDoc(doc(db, 'blogPosts', postId));
       setPosts(posts.filter(p => p.id !== postId));
-      toast({ title: 'Success', description: 'Blog post deleted successfully.' });
+      // toast({ title: 'Success', description: 'Blog post deleted successfully.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete blog post.' });
+      // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete blog post.' });
     }
   };
 
@@ -70,9 +75,29 @@ export default function AdminContentPage() {
      try {
       await deleteDoc(doc(db, 'videos', videoId));
       setVideos(videos.filter(v => v.id !== videoId));
-      toast({ title: 'Success', description: 'Video deleted successfully.' });
+      // toast({ title: 'Success', description: 'Video deleted successfully.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete video.' });
+      // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete video.' });
+    }
+  };
+
+  const handleEditFaq = (faq: Faq) => {
+    setCurrentFaq(faq);
+    setFaqDialogOpen(true);
+  };
+
+  const handleAddNewFaq = () => {
+    setCurrentFaq(null);
+    setFaqDialogOpen(true);
+  };
+
+  const handleDeleteFaq = async (faqId: string) => {
+    try {
+      await deleteDoc(doc(db, 'faqs', faqId));
+      setFaqs(faqs.filter(f => f.id !== faqId));
+      // toast({ title: 'Success', description: 'FAQ deleted successfully.' });
+    } catch (error) {
+      // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete FAQ.' });
     }
   };
 
@@ -97,9 +122,10 @@ export default function AdminContentPage() {
   return (
     <AppLayout pageTitle={t({ en: "Content Management", ur: "مواد کا انتظام" })}>
       <Tabs defaultValue="blog" className="max-w-4xl mx-auto">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="blog">{t({ en: "Blog Posts", ur: "بلاگ پوسٹس" })}</TabsTrigger>
           <TabsTrigger value="video">{t({ en: "Videos", ur: "ویڈیوز" })}</TabsTrigger>
+          <TabsTrigger value="faq">{t({ en: "FAQs", ur: "اکثر پوچھے گئے سوالات" })}</TabsTrigger>
         </TabsList>
         <TabsContent value="blog">
           <Card>
@@ -201,6 +227,55 @@ export default function AdminContentPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="faq">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>{t({ en: "Manage FAQs", ur: "اکثر پوچھے گئے سوالات کا نظم کریں" })}</CardTitle>
+                    <CardDescription>{t({ en: "Add, edit, or delete frequently asked questions.", ur: "اکثر پوچھے گئے سوالات شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
+                </div>
+                <Button onClick={handleAddNewFaq}><PlusCircle className="mr-2" />{t({en: "Add New FAQ", ur: "نیا سوال شامل کریں"})}</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               {faqsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+              ) : (
+                faqs.map(faq => (
+                  <Card key={faq.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                            <h3 className="font-semibold">{t(faq.question)}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{t(faq.answer)}</p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                            <Button variant="outline" size="icon" onClick={() => handleEditFaq(faq)}><Pencil className="h-4 w-4" /></Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete this FAQ.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteFaq(faq.id)}>Continue</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       <BlogEditDialog 
         isOpen={isBlogDialogOpen} 
@@ -215,6 +290,13 @@ export default function AdminContentPage() {
         video={currentVideo}
         onSave={(updatedVideos) => setVideos(updatedVideos)}
         allVideos={videos}
+      />
+      <FaqEditDialog
+        isOpen={isFaqDialogOpen}
+        setIsOpen={setFaqDialogOpen}
+        faq={currentFaq}
+        onSave={(updatedFaqs) => setFaqs(updatedFaqs)}
+        allFaqs={faqs}
       />
     </AppLayout>
   );
@@ -259,26 +341,25 @@ function BlogEditDialog({ isOpen, setIsOpen, post, onSave, allPosts }: BlogEditD
             return;
         }
         try {
+            const blogData = {
+                title: { en: title, ur: title },
+                description: { en: description, ur: description },
+                image: image,
+                hint: hint,
+            };
+
             if (post?.id) { // Editing existing post
                 const postRef = doc(db, 'blogPosts', post.id);
-                await updateDoc(postRef, {
-                    title: { en: title, ur: title },
-                    description: { en: description, ur: description },
-                    image: image,
-                    hint: hint,
-                });
-                 onSave(allPosts.map(p => p.id === post.id ? { ...p, title: { en: title, ur: title }, description: { en: description, ur: description }, image, hint } : p));
+                await updateDoc(postRef, blogData);
+                 onSave(allPosts.map(p => p.id === post.id ? { ...p, ...blogData, createdAt: p.createdAt } : p));
                 toast({ title: "Success", description: "Blog post updated." });
             } else { // Adding new post
                 const docRef = await addDoc(collection(db, 'blogPosts'), {
-                    title: { en: title, ur: title },
-                    description: { en: description, ur: description },
-                    image: image,
-                    hint: hint,
+                    ...blogData,
                     href: '#',
                     createdAt: serverTimestamp()
                 });
-                onSave([{ id: docRef.id, title: { en: title, ur: title }, description: { en: description, ur: description }, image, hint, createdAt: new Date() }, ...allPosts]);
+                onSave([{ id: docRef.id, ...blogData, createdAt: new Date() }, ...allPosts]);
                 toast({ title: "Success", description: "Blog post created." });
             }
             setIsOpen(false);
@@ -367,23 +448,23 @@ function VideoEditDialog({ isOpen, setIsOpen, video, onSave, allVideos }: VideoE
             }
             const embedUrl = `https://www.youtube.com/embed/${videoId}`;
             
+            const videoData = {
+                title: { en: title, ur: title },
+                description: { en: description, ur: description },
+                src: embedUrl,
+            };
+
             if (video?.id) { // Editing
                 const videoRef = doc(db, 'videos', video.id);
-                await updateDoc(videoRef, {
-                    title: { en: title, ur: title },
-                    description: { en: description, ur: description },
-                    src: embedUrl,
-                });
-                onSave(allVideos.map(v => v.id === video.id ? { ...v, title: { en: title, ur: title }, description: { en: description, ur: description }, src: embedUrl } : v));
+                await updateDoc(videoRef, videoData);
+                onSave(allVideos.map(v => v.id === video.id ? { ...v, ...videoData, createdAt: v.createdAt } : v));
                 toast({ title: "Success", description: "Video updated." });
             } else { // Adding
                 const docRef = await addDoc(collection(db, 'videos'), {
-                    title: { en: title, ur: title },
-                    description: { en: description, ur: description },
-                    src: embedUrl,
+                    ...videoData,
                     createdAt: serverTimestamp()
                 });
-                onSave([{ id: docRef.id, title: { en: title, ur: title }, description: { en: description, ur: description }, src: embedUrl, createdAt: new Date() }, ...allVideos]);
+                onSave([{ id: docRef.id, ...videoData, createdAt: new Date() }, ...allVideos]);
                 toast({ title: "Success", description: "Video added." });
             }
             setIsOpen(false);
@@ -422,3 +503,87 @@ function VideoEditDialog({ isOpen, setIsOpen, video, onSave, allVideos }: VideoE
         </Dialog>
     );
 }
+
+// FAQ Dialog Component
+interface FaqEditDialogProps {
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
+    faq: Partial<Faq> | null;
+    onSave: (faqs: Faq[]) => void;
+    allFaqs: Faq[];
+}
+
+function FaqEditDialog({ isOpen, setIsOpen, faq, onSave, allFaqs }: FaqEditDialogProps) {
+    const { t } = useLanguage();
+    const { toast } = useToast();
+    const [question, setQuestion] = useState('');
+    const [answer, setAnswer] = useState('');
+
+    useEffect(() => {
+        if (faq) {
+            setQuestion(t(faq.question || {en: '', ur: ''}));
+            setAnswer(t(faq.answer || {en: '', ur: ''}));
+        } else {
+            setQuestion('');
+            setAnswer('');
+        }
+    }, [faq, isOpen, t]);
+
+    const handleFaqSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!question || !answer) {
+            toast({ variant: 'destructive', title: 'All fields are required.' });
+            return;
+        }
+        try {
+            const faqData = {
+                question: { en: question, ur: question },
+                answer: { en: answer, ur: answer },
+            };
+
+            if (faq?.id) { // Editing
+                const faqRef = doc(db, 'faqs', faq.id);
+                await updateDoc(faqRef, faqData);
+                onSave(allFaqs.map(f => f.id === faq.id ? { ...f, ...faqData, createdAt: f.createdAt } : f));
+                toast({ title: "Success", description: "FAQ updated." });
+            } else { // Adding
+                const docRef = await addDoc(collection(db, 'faqs'), {
+                    ...faqData,
+                    createdAt: serverTimestamp()
+                });
+                onSave([{ id: docRef.id, ...faqData, createdAt: new Date() }, ...allFaqs]);
+                toast({ title: "Success", description: "FAQ added." });
+            }
+            setIsOpen(false);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{faq?.id ? t({en: "Edit FAQ", ur: "سوال میں ترمیم کریں"}) : t({en: "Add New FAQ", ur: "نیا سوال شامل کریں"})}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleFaqSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="faq-question">{t({ en: "Question", ur: "سوال" })}</Label>
+                        <Input id="faq-question" value={question} onChange={(e) => setQuestion(e.target.value)} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="faq-answer">{t({ en: "Answer", ur: "جواب" })}</Label>
+                        <Textarea id="faq-answer" value={answer} onChange={(e) => setAnswer(e.target.value)} required />
+                    </div>
+                    <DialogFooter>
+                         <DialogClose asChild>
+                            <Button type="button" variant="secondary">Cancel</Button>
+                       </DialogClose>
+                        <Button type="submit">{faq?.id ? t({en: "Save Changes", ur: "تبدیلیاں محفوظ کریں"}) : t({en: "Add FAQ", ur: "سوال شامل کریں"})}</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
