@@ -3,7 +3,7 @@
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User, CreditCard, Shield } from "lucide-react"
+import { Home, Bell, LayoutGrid, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, User, CreditCard, Shield, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
@@ -105,6 +105,13 @@ export function Header({ title }: HeaderProps) {
                 </DropdownMenuContent>
             </DropdownMenu>
         )}
+
+        <Link href="/cart">
+          <Button variant="ghost" size="icon">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="sr-only">Cart</span>
+          </Button>
+        </Link>
 
         <LanguageSwitcher />
         <UserNav />
