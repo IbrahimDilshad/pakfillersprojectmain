@@ -23,6 +23,7 @@ const requiredDocs = [
   { id: 'authority', title: { en: 'Authority Letter', ur: 'اتھارٹی لیٹر' } },
   { id: 'cnic', title: { en: "Partners' CNIC Copies", ur: 'شراکت داروں کے شناختی کارڈ کی کاپیاں' } },
   { id: 'ownership', title: { en: 'Rent/Ownership Documents', ur: 'کرایہ/ملکیت کے دستاویزات' } },
+  { id: 'bill', title: { en: 'Latest Paid Electricity Bill', ur: 'بجلی کا تازہ ترین ادا شدہ بل'}},
   { id: 'letterhead', title: { en: 'Firm Letterhead', ur: 'فرم کا لیٹر ہیڈ' } },
 ];
 
