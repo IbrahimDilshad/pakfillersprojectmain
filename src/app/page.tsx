@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FileText } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -39,7 +39,7 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex justify-center mb-4">
             <div className="bg-primary text-primary-foreground rounded-full p-3">
-              <FileText className="h-8 w-8" />
+              <Logo className="h-8 w-8" />
             </div>
           </div>
           <CardTitle className="text-2xl text-center font-bold text-primary">PakFiler</CardTitle>
