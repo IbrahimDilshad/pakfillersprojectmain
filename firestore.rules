@@ -4,58 +4,58 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role
+    // Helper function to check if the requester is an authenticated admin.
     function isAdmin() {
-      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Publicly readable content, writable only by admins
-    match /blogPosts/{postId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // Helper function to check if the requester is the owner of the document.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
     }
-    match /videos/{videoId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /faqs/{faqId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /services/{serviceId} {
+
+    // Public content collections (blogPosts, videos, faqs, services)
+    // Anyone can read this content, but only admins can create, update, or delete it.
+    match /{collection}/{docId}
+      where collection in ['blogPosts', 'videos', 'faqs', 'services'] {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Chat sessions and messages
-    match /chats/{sessionId} {
-      // Admins can list all chat sessions. Users can get their own.
-      allow list: if isAdmin();
-      allow get: if request.auth.uid == sessionId || isAdmin();
-
-      // Users can create/update their own session document. Admins can update any.
-      allow create: if request.auth.uid == sessionId;
-      allow update: if request.auth.uid == sessionId || isAdmin();
-      allow delete: if isAdmin();
-
-      // Messages can be read by the session owner or an admin.
-      // Messages can be created by the session owner or an admin.
-      match /messages/{messageId} {
-        allow read, write: if request.auth.uid == sessionId || isAdmin();
-        allow update, delete: if false; // Disallow updates/deletes to preserve chat history.
-      }
-    }
-    
-    // User data can only be read by the user themselves or an admin.
-    // Users can only create their own user document and cannot assign a role.
-    // Users can update their own document, but cannot change their role.
+    // User profiles
     match /users/{userId} {
-      allow get: if request.auth.uid == userId || isAdmin();
+      // Admins can view any user's profile. Users can only view their own.
+      allow get: if isOwner(userId) || isAdmin();
+      // Only admins can list all users.
       allow list: if isAdmin();
-      allow create: if request.auth.uid == userId && !("role" in request.resource.data);
-      allow update: if request.auth.uid == userId && request.resource.data.role == resource.data.role;
+      // Users can create their own profile upon signup, but cannot assign a role.
+      allow create: if isOwner(userId) && !("role" in request.resource.data);
+      // Users can update their own profile, but cannot change their role.
+      // Admins should manage role changes through a secure backend process.
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      // Only admins can delete users.
       allow delete: if isAdmin();
+    }
+
+    // Chat sessions and their subcollections
+    match /chats/{sessionId} {
+      // Admins can list all chat sessions to see who needs support.
+      allow list: if isAdmin();
+      // A user can get their own chat session. An admin can get any session.
+      allow get: if isOwner(sessionId) || isAdmin();
+      // A user can create or update their own session document (e.g., when sending the first message).
+      // An admin can also update a session (e.g., to mark it as read).
+      allow create, update: if isOwner(sessionId) || isAdmin();
+      // Only admins can delete entire chat histories.
+      allow delete: if isAdmin();
+
+      // Messages within a chat session
+      match /messages/{messageId} {
+        // The session owner and admins can read and write messages.
+        allow read, write: if isOwner(sessionId) || isAdmin();
+        // Disallow updating or deleting messages to maintain chat integrity.
+        allow update, delete: if false;
+      }
     }
   }
 }
