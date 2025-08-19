@@ -15,17 +15,16 @@ service cloud.firestore {
     }
     
     // Chat sessions and messages
-    // A user can only access their own chat session, which is keyed by their UID.
-    // Admins can access any chat session.
     match /chats/{sessionId} {
-      allow read, create, update: if request.auth.uid == sessionId || isAdmin();
+      // User can interact with their own chat session. Admin can interact with any.
+      allow read, write, create: if request.auth.uid == sessionId || isAdmin();
       
       match /messages/{messageId} {
-        allow read, create: if request.auth.uid == sessionId || isAdmin();
+        allow read, write, create: if request.auth.uid == sessionId || isAdmin();
       }
     }
 
-    // Public content that anyone can read, but only admins can write
+    // Public content that anyone can read
     match /blogPosts/{postId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
