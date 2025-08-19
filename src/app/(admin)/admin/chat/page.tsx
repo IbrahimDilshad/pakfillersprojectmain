@@ -84,7 +84,7 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
             </AlertDialog>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-y-auto">
-             <ScrollArea className="h-full" ref={scrollAreaRef}>
+             <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
                 <div className="space-y-4 p-4">
                     {messages?.map((msg: Message) => {
                        const isSentByAdmin = msg.from === 'support';

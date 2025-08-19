@@ -83,7 +83,7 @@ export function ChatWidget() {
             </Button>
           </CardHeader>
           <CardContent className="flex-1 p-0 overflow-y-auto">
-            <ScrollArea className="h-full" ref={scrollAreaRef}>
+            <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
                 <div className="p-4 space-y-4">
                   {chatMessages.length === 0 && (
                     <div className="text-center text-sm text-muted-foreground p-4">
