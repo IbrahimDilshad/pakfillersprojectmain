@@ -19,8 +19,10 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  const { messages, sendMessage } = useChat(user?.uid, user?.role);
-  const chatMessages: Message[] = user ? messages[user.uid] || [] : [];
+  // Use the user's UID as the session ID for both users and admins in this context.
+  const sessionId = user?.uid;
+  const { messages, sendMessage } = useChat(sessionId, user?.role);
+  const chatMessages: Message[] = sessionId ? messages[sessionId] || [] : [];
   
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   
@@ -40,9 +42,9 @@ export function ChatWidget() {
   };
 
   const handleSendMessage = () => {
-    if (inputValue.trim() && user) {
+    if (inputValue.trim() && user && sessionId) {
       sendMessage({
-        sessionId: user.uid, // User's own UID is their session ID
+        sessionId: sessionId,
         text: inputValue, 
         senderId: user.uid, 
         from: user.role === 'admin' ? 'support' : 'user', 
@@ -53,6 +55,7 @@ export function ChatWidget() {
     }
   };
   
+  // Only render the widget if a user is logged in.
   if (!user) {
     return null;
   }
