@@ -13,28 +13,29 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Public content collections can be read by anyone, but only written by admins.
-    match /blogPosts/{postId} {
+    // --- Public Content Rules ---
+    // Anyone can read, only admins can write.
+    match /blogPosts/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    match /videos/{videoId} {
+    match /videos/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    match /faqs/{faqId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    match /services/{serviceId} {
+    match /faqs/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // User profiles
+    match /services/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- User Profile Rules ---
     match /users/{userId} {
       // Admins can view any user's profile. Users can only view their own.
       allow get: if isOwner(userId) || isAdmin();
@@ -48,25 +49,30 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Chat sessions and their subcollections
+    // --- Chat Rules ---
     match /chats/{sessionId} {
       // Admins can list all chat sessions to see who needs support.
       allow list: if isAdmin();
       // A user can get their own chat session. An admin can get any session.
       allow get: if isOwner(sessionId) || isAdmin();
-      // A user can create or update their own session document.
-      // An admin can also update a session.
+      // A user can create/update their session. An admin can also update any session.
       allow create, update: if isOwner(sessionId) || isAdmin();
       // Only admins can delete entire chat histories.
       allow delete: if isAdmin();
 
       // Messages within a chat session
       match /messages/{messageId} {
-        // The session owner and admins can read and write messages.
-        allow read, write: if isOwner(sessionId) || isAdmin();
+        // The session owner and admins can write messages. Reading is handled below.
+        allow write: if isOwner(sessionId) || isAdmin();
         // Disallow updating or deleting messages to maintain chat integrity.
         allow update, delete: if false;
       }
+    }
+    
+    // This rule gives admins recursive read access to all documents (including all messages subcollections)
+    // under any chat session, which is required for the admin support panel.
+    match /chats/{sessionId}/{document=**} {
+      allow read: if isAdmin();
     }
   }
 }
