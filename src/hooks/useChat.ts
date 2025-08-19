@@ -17,6 +17,7 @@ import {
   updateDoc,
   setDoc,
   Timestamp,
+  getDoc,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -52,7 +53,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [loading, setLoading] = useState(true);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Effect for admins to listen to the list of all chat sessions
   useEffect(() => {
     if (userRole !== 'admin') {
       setLoading(false);
@@ -77,19 +77,17 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     return () => unsubscribe();
   }, [userRole]);
 
-  // Effect to listen for messages for the relevant session
   useEffect(() => {
     let listenerId: string | null = null;
     
-    // For an admin, the listenerId is the session they've clicked on.
     if (userRole === 'admin') {
       listenerId = currentSessionId;
-    } 
-    // For a regular user, the listenerId is always their own UID.
-    else if (userId) {
+    } else if (userRole === 'user' && userId) {
       listenerId = userId;
+    } else if (userId) { // Fallback for when role is not yet defined but userId is
+       listenerId = userId;
     }
-
+    
     if (!listenerId) {
       return;
     }
@@ -109,19 +107,15 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       console.error(`Error fetching messages for session ${listenerId}:`, error);
     });
 
-    // Cleanup the listener when the component unmounts or the dependencies change
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [userId, userRole, currentSessionId]);
 
   const sendMessage = useCallback(async (payload: SendMessagePayload) => {
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
     if (!text.trim() || !senderId) return;
 
-     // Optimistic UI update
     const optimisticMessage: Message = {
-      id: new Date().toISOString(), // Temporary ID
+      id: new Date().toISOString(),
       text,
       timestamp: Timestamp.now(),
       senderId,
@@ -136,7 +130,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     try {
       const sessionRef = doc(db, 'chats', sessionId);
       const messagesColRef = collection(sessionRef, 'messages');
-      
       const batch = writeBatch(db);
 
       const newMessageRef = doc(messagesColRef);
@@ -150,14 +143,13 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       const sessionUpdateData: any = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
+        isReadByAdmin: from === 'support',
       };
       
-      if (from === 'user') {
-        sessionUpdateData.isReadByAdmin = false;
-        if (userName) sessionUpdateData.userName = userName;
-        if (userEmail) sessionUpdateData.userEmail = userEmail;
-      } else { 
-        sessionUpdateData.isReadByAdmin = true;
+      const docSnap = await getDoc(sessionRef);
+      if (!docSnap.exists()) {
+        sessionUpdateData.userName = userName;
+        sessionUpdateData.userEmail = userEmail;
       }
       
       batch.set(sessionRef, sessionUpdateData, { merge: true });
@@ -166,7 +158,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
 
     } catch (error) {
       console.error("Error sending message:", error);
-       // Revert optimistic update on failure
        setMessages(prev => ({
            ...prev,
            [sessionId]: (prev[sessionId] || []).filter(msg => msg.id !== optimisticMessage.id)

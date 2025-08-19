@@ -26,14 +26,15 @@ interface ChatViewProps {
 
 function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatViewProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
-  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaViewportRef.current) {
+    if (scrollAreaRef.current) {
         setTimeout(() => {
-            if(scrollAreaViewportRef.current) {
-                scrollAreaViewportRef.current.scrollTop = scrollAreaViewportRef.current.scrollHeight;
+            if(scrollAreaRef.current) {
+                scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
             }
         }, 100);
     }
@@ -80,25 +81,28 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
             </AlertDialog>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-y-auto">
-             <ScrollArea className="h-full" viewportRef={scrollAreaViewportRef}>
+             <ScrollArea className="h-full" ref={scrollAreaRef}>
                 <div className="space-y-4 p-4">
-                    {messages?.map((msg: Message) => (
-                        <div key={msg.id} className={cn('flex items-end gap-2', msg.from === 'support' ? 'justify-end' : 'justify-start')}>
-                            {msg.from !== 'support' && (
+                    {messages?.map((msg: Message) => {
+                       const isSentByAdmin = msg.from === 'support';
+                       return (
+                            <div key={msg.id} className={cn('flex items-end gap-2', isSentByAdmin ? 'justify-end' : 'justify-start')}>
+                                {!isSentByAdmin && (
+                                    <Avatar className="w-8 h-8">
+                                        <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                )}
+                                <div className={cn('max-w-[75%] p-3 rounded-lg', isSentByAdmin ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                    <p className="text-sm">{msg.text}</p>
+                                </div>
+                                {isSentByAdmin && (
                                 <Avatar className="w-8 h-8">
-                                    <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                                </Avatar>
-                            )}
-                            <div className={cn('max-w-[75%] p-3 rounded-lg', msg.from === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                <p className="text-sm">{msg.text}</p>
+                                        <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
+                                    </Avatar>
+                                )}
                             </div>
-                             {msg.from === 'support' && (
-                               <Avatar className="w-8 h-8">
-                                    <AvatarFallback>A</AvatarFallback>
-                                </Avatar>
-                            )}
-                        </div>
-                    ))}
+                       );
+                    })}
                  </div>
              </ScrollArea>
         </CardContent>
@@ -140,7 +144,9 @@ export default function AdminChatPage() {
             sessionId: selectedSession.id, 
             text, 
             senderId: user.uid, 
-            from: 'support'
+            from: 'support',
+            userName: user.displayName || 'Admin',
+            userEmail: user.email || 'admin@example.com'
         });
     }
   };

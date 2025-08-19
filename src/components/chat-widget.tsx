@@ -19,27 +19,24 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  // Use the user's UID as the session ID for both users and admins in this context.
   const sessionId = user?.uid;
   const { messages, sendMessage, setCurrentSessionId } = useChat(user?.uid, user?.role);
   
-  // The widget should listen to its own session, which is the user's UID.
   const chatMessages: Message[] = sessionId ? messages[sessionId] || [] : [];
   
-  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // If the user is not an admin, we set their session ID so the hook starts listening
-    if (user?.role !== 'admin' && user?.uid) {
+    if (user?.uid) {
         setCurrentSessionId(user.uid);
     }
   }, [user, setCurrentSessionId]);
   
   useEffect(() => {
-    if (isOpen && scrollAreaViewportRef.current) {
+    if (isOpen && scrollAreaRef.current) {
         setTimeout(() => {
-            if (scrollAreaViewportRef.current) {
-                scrollAreaViewportRef.current.scrollTop = scrollAreaViewportRef.current.scrollHeight;
+            if (scrollAreaRef.current) {
+                scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
             }
         }, 100);
     }
@@ -56,7 +53,6 @@ export function ChatWidget() {
         sessionId: sessionId,
         text: inputValue, 
         senderId: user.uid, 
-        // A user's message is always from 'user', admin message always from 'support'
         from: user.role === 'admin' ? 'support' : 'user', 
         userName: user.displayName || 'Anonymous User', 
         userEmail: user.email || 'no-email@example.com'
@@ -65,7 +61,6 @@ export function ChatWidget() {
     }
   };
   
-  // Only render the widget if a user is logged in.
   if (!user) {
     return null;
   }
@@ -85,30 +80,33 @@ export function ChatWidget() {
             </Button>
           </CardHeader>
           <CardContent className="flex-1 p-0 overflow-y-auto">
-            <ScrollArea className="h-full" viewportRef={scrollAreaViewportRef}>
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
                 <div className="p-4 space-y-4">
                   {chatMessages.length === 0 && (
                     <div className="text-center text-sm text-muted-foreground p-4">
                       {t({ en: 'Hello! How can we help you today?', ur: 'ہیلو! ہم آج آپ کی کیسے مدد کر سکتے ہیں؟' })}
                     </div>
                   )}
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={cn('flex items-end gap-2', msg.from === 'user' ? 'justify-end' : 'justify-start')}>
-                      {msg.from === 'support' && (
-                         <Avatar className="w-8 h-8">
-                            <AvatarFallback>A</AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div className={cn('max-w-[75%] p-3 rounded-lg', msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                        <p className="text-sm">{msg.text}</p>
-                      </div>
-                      {msg.from === 'user' && user?.role === 'admin' && (
-                         <Avatar className="w-8 h-8">
-                            <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                      )}
-                    </div>
-                  ))}
+                  {chatMessages.map((msg) => {
+                      const isSentByMe = msg.senderId === user.uid;
+                      return (
+                         <div key={msg.id} className={cn('flex items-end gap-2', isSentByMe ? 'justify-end' : 'justify-start')}>
+                            {!isSentByMe && (
+                                <Avatar className="w-8 h-8">
+                                    <AvatarFallback>A</AvatarFallback>
+                                </Avatar>
+                            )}
+                            <div className={cn('max-w-[75%] p-3 rounded-lg', isSentByMe ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                <p className="text-sm">{msg.text}</p>
+                            </div>
+                            {isSentByMe && (
+                                <Avatar className="w-8 h-8">
+                                    <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                </Avatar>
+                            )}
+                        </div>
+                      )
+                  })}
                 </div>
             </ScrollArea>
           </CardContent>
