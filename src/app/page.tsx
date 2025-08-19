@@ -45,6 +45,15 @@ export default function LandingPage() {
     const { t } = useLanguage();
     const { videos, loading: videosLoading } = useVideos();
     const { posts, loading: postsLoading } = useBlogPosts();
+    const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+    const nextTestimonial = () => {
+        setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    };
+
+    const prevTestimonial = () => {
+        setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    };
 
     return (
         <div className="bg-background text-foreground">
@@ -175,17 +184,15 @@ export default function LandingPage() {
                             <h2 className="text-3xl md:text-4xl font-bold">
                                 What Our Clients Say
                             </h2>
-                            <div className="relative space-y-4">
-                                 {testimonials.map((testimonial, index) => (
-                                    <Card key={index} className="p-6 bg-background">
-                                        <p className="text-muted-foreground mb-4">"{testimonial.text}"</p>
-                                        <div className="font-semibold">{testimonial.name}</div>
-                                        <div className="text-sm text-primary">{testimonial.company}</div>
-                                    </Card>
-                                 ))}
+                            <div className="relative">
+                                <Card className="p-6 bg-background min-h-[180px]">
+                                    <p className="text-muted-foreground mb-4">"{testimonials[currentTestimonial].text}"</p>
+                                    <div className="font-semibold">{testimonials[currentTestimonial].name}</div>
+                                    <div className="text-sm text-primary">{testimonials[currentTestimonial].company}</div>
+                                </Card>
                                  <div className="absolute top-0 right-0 -mt-8 flex gap-2">
-                                    <Button variant="outline" size="icon"><ArrowUp /></Button>
-                                    <Button variant="outline" size="icon"><ArrowDown /></Button>
+                                    <Button variant="outline" size="icon" onClick={prevTestimonial}><ArrowUp /></Button>
+                                    <Button variant="outline" size="icon" onClick={nextTestimonial}><ArrowDown /></Button>
                                  </div>
                             </div>
                         </div>
@@ -241,7 +248,7 @@ export default function LandingPage() {
                                             </Card>
                                         ))
                                     ) : (
-                                    videos.slice(0, 8).map((video) => {
+                                    videos.slice(0, 4).map((video) => {
                                         const videoId = video.src.split('embed/')[1];
                                         const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
                                         return (
@@ -285,7 +292,7 @@ export default function LandingPage() {
                                         </Card>
                                     ))
                                     ) : (
-                                    posts.slice(0, 8).map((post) => (
+                                    posts.slice(0, 4).map((post) => (
                                     <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow text-sm">
                                         <Link href={post.href || '#'}>
                                             <Image src={post.image} alt={t(post.title)} width={300} height={200} className="w-full h-32 object-cover" data-ai-hint={post.hint} />
