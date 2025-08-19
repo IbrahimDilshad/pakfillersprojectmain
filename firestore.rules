@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -33,7 +32,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // There is no longer a 'users' collection managed by the app for roles.
+    // NOTE: There are no rules for a 'users' collection as it is no longer used for permissions.
 
     // --- Chat Rules ---
     // This section governs the chat sessions and the messages within them.
@@ -51,6 +50,8 @@ service cloud.firestore {
       match /messages/{messageId} {
         // The session owner (the user) and any admin can read and write messages.
         allow read, write: if isOwner(sessionId) || isAdmin();
+        // Prevent accidental message edits or deletion to preserve chat history.
+        allow update, delete: if false;
       }
     }
   }
