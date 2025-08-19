@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 export function PersonalInfoTab() {
     const { t } = useLanguage();
@@ -22,6 +23,8 @@ export function PersonalInfoTab() {
     const [email, setEmail] = useState(user?.email || '');
     const [cnic, setCnic] = useState(user?.cnic || '');
     const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || '');
+    const [relation, setRelation] = useState(user?.relation || '');
+    const [legalStructure, setLegalStructure] = useState(user?.legalStructure || '');
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -30,6 +33,8 @@ export function PersonalInfoTab() {
             setEmail(user.email || '');
             setCnic(user.cnic || '');
             setMobileNumber(user.mobileNumber || '');
+            setRelation(user.relation || '');
+            setLegalStructure(user.legalStructure || '');
         }
     }, [user]);
 
@@ -38,13 +43,19 @@ export function PersonalInfoTab() {
         setIsSaving(true);
         try {
             const userDocRef = doc(db, "users", user.uid);
-            const updatedData = {
+            const updatedData: any = {
                 displayName,
                 cnic,
                 mobileNumber,
             };
+
+            if (user.accountType === 'family') {
+                updatedData.relation = relation;
+            }
+            if (user.accountType === 'business') {
+                updatedData.legalStructure = legalStructure;
+            }
             
-            // Note: Email updates require special handling (re-authentication) and are disabled for now.
             await updateDoc(userDocRef, updatedData);
             
             if (auth.currentUser && auth.currentUser.displayName !== displayName) {
@@ -70,6 +81,8 @@ export function PersonalInfoTab() {
         }
     };
 
+    const isSubAccount = user?.accountType === 'family' || user?.accountType === 'business';
+
     return (
         <div className="p-6">
             <h3 className="text-lg font-medium mb-4">{t({ en: "Your Personal Information", ur: "آپ کی ذاتی معلومات" })}</h3>
@@ -91,12 +104,49 @@ export function PersonalInfoTab() {
                         <Label htmlFor="mobile">{t({ en: "Mobile Number", ur: "موبائل نمبر" })}</Label>
                         <Input id="mobile" type="tel" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="accountType">{t({ en: "Account Type", ur: "اکاؤنٹ کی قسم" })}</Label>
-                        <div>
-                             <Badge variant="secondary">{t({ en: "Primary Account", ur: "بنیادی اکاؤنٹ" })}</Badge>
+
+                    {user?.accountType === 'family' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="relation">{t({ en: "Relation", ur: "رشتہ" })}</Label>
+                             <Select value={relation} onValueChange={setRelation}>
+                                <SelectTrigger id="relation">
+                                    <SelectValue placeholder={t({ en: "Select relation", ur: "رشتہ منتخب کریں" })} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="parent">{t({ en: "Parent", ur: "والدین" })}</SelectItem>
+                                    <SelectItem value="sibling">{t({ en: "Sibling", ur: "بہن بھائی" })}</SelectItem>
+                                    <SelectItem value="child">{t({ en: "Child", ur: "بچہ" })}</SelectItem>
+                                    <SelectItem value="spouse">{t({ en: "Spouse", ur: "شریک حیات" })}</SelectItem>
+                                    <SelectItem value="other">{t({ en: "Other", ur: "دیگر" })}</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </div>
+                    )}
+
+                     {user?.accountType === 'business' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="legal-structure">{t({ en: "Legal Structure", ur: "قانونی ڈھانچہ" })}</Label>
+                            <Select value={legalStructure} onValueChange={setLegalStructure}>
+                                <SelectTrigger id="legal-structure">
+                                    <SelectValue placeholder={t({ en: "Select legal structure", ur: "قانونی ڈھانچہ منتخب کریں" })} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="company">{t({ en: "Company/NPO", ur: "کمپنی/این پی او" })}</SelectItem>
+                                    <SelectItem value="aop">{t({ en: "AOP/Partnership", ur: "اے او پی/شراکت داری" })}</SelectItem>
+                                    <SelectItem value="individual">{t({ en: "Individual/Sole Proprietor", ur: "انفرادی/واحد ملکیت" })}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
+                    {!isSubAccount && (
+                         <div className="space-y-2">
+                            <Label htmlFor="accountType">{t({ en: "Account Type", ur: "اکاؤنٹ کی قسم" })}</Label>
+                            <div>
+                                <Badge variant="secondary">{t({ en: "Primary Account", ur: "بنیادی اکاؤنٹ" })}</Badge>
+                            </div>
+                        </div>
+                    )}
                  </div>
                  <div className="flex justify-end pt-4">
                     <Button onClick={handleSaveChanges} disabled={isSaving}>

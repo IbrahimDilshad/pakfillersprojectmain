@@ -8,11 +8,18 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
+type AccountType = 'family' | 'business';
+type Relation = 'parent' | 'sibling' | 'child' | 'spouse' | 'other';
+type LegalStructure = 'company' | 'aop' | 'individual';
+
 
 export interface AuthUser extends User {
   role: Role;
   mobileNumber?: string;
   cnic?: string;
+  accountType?: AccountType;
+  relation?: Relation;
+  legalStructure?: LegalStructure;
 }
 
 interface AuthContextType {
@@ -43,6 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mobileNumber: userData.mobileNumber,
             cnic: userData.cnic,
             displayName: firebaseUser.displayName, // Ensure display name is synced
+            accountType: userData.accountType,
+            relation: userData.relation,
+            legalStructure: userData.legalStructure,
           });
         } else {
            // Fallback for users created before Firestore profile storage
