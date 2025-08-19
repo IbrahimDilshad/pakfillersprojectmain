@@ -9,6 +9,7 @@ import { ManageAccounts } from "@/components/manage-accounts";
 import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { PersonalInfoTab } from "@/components/personal-info-tab";
 
 const PlaceholderContent = ({ title, description }: { title: string, description: string }) => (
     <div className="p-8 text-center text-muted-foreground">
@@ -88,7 +89,7 @@ export default function FamilyTaxFilingPage() {
             <Card className="mt-4">
               <CardContent className="p-0">
                   <TabsContent value="personal-info">
-                    <PlaceholderContent title="Personal Info" description="This section is under construction." />
+                    <PersonalInfoTab />
                   </TabsContent>
                   <TabsContent value="ntn-registration">
                      <PlaceholderContent title="NTN Registration" description="This section is under construction." />
