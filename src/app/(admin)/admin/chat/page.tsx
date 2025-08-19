@@ -27,11 +27,15 @@ interface ChatViewProps {
 function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatViewProps) {
   const { t } = useLanguage();
   const [message, setMessage] = useState('');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (scrollAreaViewportRef.current) {
+        setTimeout(() => {
+            if(scrollAreaViewportRef.current) {
+                scrollAreaViewportRef.current.scrollTop = scrollAreaViewportRef.current.scrollHeight;
+            }
+        }, 100);
     }
   }, [messages]);
 
@@ -75,26 +79,28 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
                 </AlertDialogContent>
             </AlertDialog>
         </CardHeader>
-        <CardContent ref={scrollAreaRef} className="flex-1 p-4 overflow-y-auto">
-             <div className="space-y-4">
-                {messages?.map((msg: Message) => (
-                    <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'support' ? 'justify-end' : 'justify-start'}`}>
-                        {msg.from !== 'support' && (
-                            <Avatar className="w-8 h-8">
-                                <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                            </Avatar>
-                        )}
-                        <div className={`max-w-[75%] p-3 rounded-lg ${msg.from === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                            <p className="text-sm">{msg.text}</p>
+        <CardContent className="flex-1 p-0 overflow-y-auto">
+             <ScrollArea className="h-full" viewportRef={scrollAreaViewportRef}>
+                <div className="space-y-4 p-4">
+                    {messages?.map((msg: Message) => (
+                        <div key={msg.id} className={cn('flex items-end gap-2', msg.from === 'support' ? 'justify-end' : 'justify-start')}>
+                            {msg.from !== 'support' && (
+                                <Avatar className="w-8 h-8">
+                                    <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                </Avatar>
+                            )}
+                            <div className={cn('max-w-[75%] p-3 rounded-lg', msg.from === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                <p className="text-sm">{msg.text}</p>
+                            </div>
+                             {msg.from === 'support' && (
+                               <Avatar className="w-8 h-8">
+                                    <AvatarFallback>A</AvatarFallback>
+                                </Avatar>
+                            )}
                         </div>
-                         {msg.from === 'support' && (
-                           <Avatar className="w-8 h-8">
-                                <AvatarFallback>A</AvatarFallback>
-                            </Avatar>
-                        )}
-                    </div>
-                ))}
-             </div>
+                    ))}
+                 </div>
+             </ScrollArea>
         </CardContent>
         <CardFooter className="p-4 border-t">
             <div className="flex w-full items-center gap-2">
@@ -179,9 +185,9 @@ export default function AdminChatPage() {
                 )}
               >
                  {!session.isReadByAdmin && (
-                    <div className="w-2.5 h-2.5 bg-primary rounded-full" />
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full mr-2" />
                 )}
-                <Avatar className={cn("flex-shrink-0", session.isReadByAdmin ? "" : "ml-0")}>
+                <Avatar className="flex-shrink-0">
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">

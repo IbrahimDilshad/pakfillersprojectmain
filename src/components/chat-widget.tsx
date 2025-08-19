@@ -5,27 +5,37 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, X, Send, Bot } from 'lucide-react';
+import { MessageSquare, X, Send } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useAuth } from '@/context/auth-context';
 import { useChat } from '@/hooks/useChat';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from './ui/scroll-area';
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const { t } = useLanguage();
   const { user } = useAuth();
-  // We explicitly use the user's UID as the session ID for their chat.
+  
+  // For a user, their session ID is always their UID.
+  // The useChat hook is now smart enough to listen to the correct session.
   const { messages, sendMessage } = useChat(user?.uid, user?.role);
   const chatMessages = user ? messages[user.uid] || [] : [];
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
-    if (isOpen && scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (isOpen && scrollAreaViewportRef.current) {
+        // Use a timeout to ensure the DOM has updated before scrolling
+        setTimeout(() => {
+            if (scrollAreaViewportRef.current) {
+                scrollAreaViewportRef.current.scrollTop = scrollAreaViewportRef.current.scrollHeight;
+            }
+        }, 100);
     }
   }, [chatMessages, isOpen]);
+
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -34,7 +44,7 @@ export function ChatWidget() {
   const handleSendMessage = () => {
     if (inputValue.trim() && user) {
       sendMessage({
-        sessionId: user.uid, 
+        sessionId: user.uid, // The user's own chat session
         text: inputValue, 
         senderId: user.uid, 
         from: 'user', 
@@ -45,7 +55,7 @@ export function ChatWidget() {
     }
   };
 
-  if (!user) return null;
+  if (!user || user.role === 'admin') return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -61,26 +71,28 @@ export function ChatWidget() {
               <X className="h-5 w-5" />
             </Button>
           </CardHeader>
-          <CardContent ref={scrollAreaRef} className="flex-1 p-4 overflow-y-auto">
-            <div className="space-y-4">
-              {chatMessages.length === 0 && (
-                <div className="text-center text-sm text-muted-foreground p-4">
-                  {t({ en: 'Hello! How can we help you today?', ur: 'ہیلو! ہم آج آپ کی کیسے مدد کر سکتے ہیں؟' })}
-                </div>
-              )}
-              {chatMessages.map((msg) => (
-                <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.from === 'support' && (
-                     <Avatar className="w-8 h-8">
-                        <AvatarFallback>A</AvatarFallback>
-                    </Avatar>
+          <CardContent className="flex-1 p-0 overflow-y-auto">
+            <ScrollArea className="h-full" viewportRef={scrollAreaViewportRef}>
+                <div className="p-4 space-y-4">
+                  {chatMessages.length === 0 && (
+                    <div className="text-center text-sm text-muted-foreground p-4">
+                      {t({ en: 'Hello! How can we help you today?', ur: 'ہیلو! ہم آج آپ کی کیسے مدد کر سکتے ہیں؟' })}
+                    </div>
                   )}
-                  <div className={`max-w-[75%] p-3 rounded-lg ${msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className={cn('flex items-end gap-2', msg.from === 'user' ? 'justify-end' : 'justify-start')}>
+                      {msg.from === 'support' && (
+                         <Avatar className="w-8 h-8">
+                            <AvatarFallback>A</AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div className={cn('max-w-[75%] p-3 rounded-lg', msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                        <p className="text-sm">{msg.text}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+            </ScrollArea>
           </CardContent>
           <CardFooter className="p-4 border-t">
             <div className="flex w-full items-center gap-2">
@@ -100,3 +112,4 @@ export function ChatWidget() {
     </div>
   );
 }
+
