@@ -85,7 +85,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       listenerId = currentSessionId;
     } 
     // For a regular user, the listenerId is always their own UID.
-    else if (userRole === 'user' && userId) {
+    else if (userId) {
       listenerId = userId;
     }
 
@@ -133,7 +133,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
-      // 2. Update the parent chat document with the latest message info
+      // 2. Create or update the parent chat document with the latest message info
       const sessionUpdateData: any = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
@@ -144,11 +144,12 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         sessionUpdateData.isReadByAdmin = false;
         if (userName) sessionUpdateData.userName = userName;
         if (userEmail) sessionUpdateData.userEmail = userEmail;
-        batch.set(sessionRef, sessionUpdateData, { merge: true });
       } else { // If support is sending, mark as read
         sessionUpdateData.isReadByAdmin = true;
-        batch.update(sessionRef, sessionUpdateData);
       }
+      
+      // Use set with merge:true to create the document if it doesn't exist or update it if it does.
+      batch.set(sessionRef, sessionUpdateData, { merge: true });
 
       await batch.commit();
 
