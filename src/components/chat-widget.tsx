@@ -27,15 +27,6 @@ export function ChatWidget() {
     }
   }, [chatMessages, isOpen]);
 
-  // Expose a global function to open the chat
-  useEffect(() => {
-    (window as any).openChatWidget = () => setIsOpen(true);
-    return () => {
-      delete (window as any).openChatWidget;
-    };
-  }, []);
-
-
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };

@@ -119,23 +119,15 @@ export default function AdminChatPage() {
   const { user } = useAuth();
   const { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead } = useChat(user?.uid, user?.role);
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
-
-  // Effect to set the current session for fetching messages
-  useEffect(() => {
-    if (selectedSession) {
-        setCurrentSessionId(selectedSession.id);
-    } else {
-        setCurrentSessionId(null);
-    }
-  }, [selectedSession, setCurrentSessionId]);
-
-  // Effect to mark a session as read when it's opened
-  useEffect(() => {
-    if (selectedSession && !selectedSession.isReadByAdmin) {
-        markSessionAsRead(selectedSession.id);
-    }
-  }, [selectedSession, markSessionAsRead]);
   
+  const handleSelectSession = (session: ChatSession) => {
+    setSelectedSession(session);
+    setCurrentSessionId(session.id);
+    if (!session.isReadByAdmin) {
+      markSessionAsRead(session.id);
+    }
+  };
+
   const handleSendMessage = (text: string) => {
     if (selectedSession && user) {
         sendMessage({
@@ -179,7 +171,7 @@ export default function AdminChatPage() {
             {sessions.map(session => (
               <div 
                 key={session.id} 
-                onClick={() => setSelectedSession(session)} 
+                onClick={() => handleSelectSession(session)} 
                 className={cn(
                     "flex items-center gap-4 p-4 border-b hover:bg-accent cursor-pointer",
                     selectedSession?.id === session.id && "bg-accent/80"

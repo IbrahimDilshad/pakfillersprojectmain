@@ -144,9 +144,11 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         sessionUpdateData.isReadByAdmin = false;
         sessionUpdateData.userName = userName;
         sessionUpdateData.userEmail = userEmail;
-        // Use `set` with `merge: true` to create the document if it doesn't exist.
+        // Use `set` with `merge: true` to create the document if it doesn't exist
+        // or update it if it does. This is robust for the first message and subsequent ones.
         batch.set(sessionRef, sessionUpdateData, { merge: true });
       } else { // from 'support'
+        // For admins, we assume the document exists and just update it.
         sessionUpdateData.isReadByAdmin = true;
         batch.update(sessionRef, sessionUpdateData);
       }
