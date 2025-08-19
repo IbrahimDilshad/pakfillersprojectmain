@@ -1,12 +1,12 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if the requester is an authenticated admin.
+    
+    // Helper function to check if the requester is the authenticated admin user by email.
     function isAdmin() {
-      // An admin is a signed-in user whose document in the 'users' collection has role == 'admin'.
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth != null && request.auth.token.email == 'admin@example.com';
     }
 
     // Helper function to check if the requester is the owner of a document.
@@ -33,19 +33,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // --- User Profile Rules ---
+    // We are no longer using a 'users' collection. 
+    // All user data is managed by Firebase Authentication.
     match /users/{userId} {
-      // Admins can view any user's profile. Users can only view their own.
-      allow get: if isOwner(userId) || isAdmin();
-      // Only admins can list all users.
-      allow list: if isAdmin();
-      // A user can create their own profile upon signup, but cannot assign themselves a role.
-      // This prevents privilege escalation.
-      allow create: if isOwner(userId) && !("role" in request.resource.data);
-      // A user can update their own profile, but they cannot change their own role.
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
-      // Only admins can delete user documents.
-      allow delete: if isAdmin();
+      allow read, write: if false;
     }
 
     // --- Chat Rules ---

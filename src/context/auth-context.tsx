@@ -29,13 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
         let role: Role = 'user'; // Default role is 'user'
-        if (userDoc.exists() && userDoc.data().role) {
-          role = userDoc.data().role;
-        }
 
         // Failsafe to ensure admin@example.com is always an admin.
         // This is the primary mechanism for granting initial admin access.
