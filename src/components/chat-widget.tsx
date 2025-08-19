@@ -19,18 +19,12 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  const { messages, sendMessage, setCurrentSessionId } = useChat(user?.uid, user?.role);
+  // The hook now correctly handles session management internally
+  const { messages, sendMessage } = useChat(user?.uid, 'user');
   const chatMessages: Message[] = user ? messages[user.uid] || [] : [];
+  
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   
-  useEffect(() => {
-    // When the user opens the chat, set their own session ID in the hook
-    if (user && user.role === 'user') {
-      setCurrentSessionId(user.uid);
-    }
-  }, [user, setCurrentSessionId]);
-
-
   useEffect(() => {
     if (isOpen && scrollAreaViewportRef.current) {
         setTimeout(() => {
@@ -49,7 +43,7 @@ export function ChatWidget() {
   const handleSendMessage = () => {
     if (inputValue.trim() && user) {
       sendMessage({
-        sessionId: user.uid,
+        sessionId: user.uid, // User's own UID is their session ID
         text: inputValue, 
         senderId: user.uid, 
         from: 'user', 
@@ -59,8 +53,10 @@ export function ChatWidget() {
       setInputValue('');
     }
   };
-
-  if (!user || user.role !== 'user') {
+  
+  // This is the corrected visibility logic.
+  // It only shows for logged-in users who are NOT the admin.
+  if (!user || user.email === 'admin@example.com') {
     return null;
   }
 
