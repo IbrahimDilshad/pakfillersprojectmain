@@ -3,8 +3,8 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if the requester is the authenticated admin user by email.
+
+    // Helper function to check if the requester is the hardcoded admin.
     function isAdmin() {
       return request.auth != null && request.auth.token.email == 'admin@example.com';
     }
@@ -15,7 +15,7 @@ service cloud.firestore {
     }
 
     // --- Public Content Rules (Blog, Videos, FAQs, Services) ---
-    // These collections should be readable by anyone but only writable by an admin.
+    // These collections should be readable by anyone but only writable by the admin.
     match /blogPosts/{docId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -32,21 +32,17 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
-
-    // We are no longer using a 'users' collection. 
-    // All user data is managed by Firebase Authentication.
-    match /users/{userId} {
-      allow read, write: if false;
-    }
+    
+    // There is no longer a 'users' collection managed by the app.
 
     // --- Chat Rules ---
     // This section governs the chat sessions and the messages within them.
     match /chats/{sessionId} {
       // Admins can list all chat sessions to populate their support dashboard.
       allow list: if isAdmin();
-      // A user can get their own chat session. An admin can get any session to view it.
+      // A user can get their own chat session. An admin can get any session.
       allow get: if isOwner(sessionId) || isAdmin();
-      // A user can create/update their own session. An admin can also update any session (e.g., to mark as read).
+      // A user can create/update their own session. An admin can also update any session.
       allow create, update: if isOwner(sessionId) || isAdmin();
       // Only admins should be able to delete entire chat histories.
       allow delete: if isAdmin();
@@ -55,8 +51,6 @@ service cloud.firestore {
       match /messages/{messageId} {
         // The session owner (the user) and any admin can read and write messages.
         allow read, write: if isOwner(sessionId) || isAdmin();
-        // To preserve chat history, prevent messages from being updated or deleted.
-        allow update, delete: if false;
       }
     }
   }
