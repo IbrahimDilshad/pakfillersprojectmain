@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { auth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
+import { useAuth } from "@/context/auth-context";
 
 export default function SignupPage() {
   const { t } = useLanguage();
@@ -20,25 +21,28 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
 
   const handleSignup = async () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update the user's profile for display name
       await updateProfile(user, {
         displayName: fullName,
       });
-
-      // We no longer create a document in Firestore for the user role.
-      // The role is determined by the email address in the auth context.
 
       toast({
         title: "Account Created",
         description: "Your account has been successfully created. Please log in.",
       });
-      router.push('/');
+      router.push('/login');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -48,14 +52,24 @@ export default function SignupPage() {
     }
   };
 
+  if (loading || user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <p>Loading...</p>
+        </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
           <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground rounded-full p-3">
-              <Logo className="h-8 w-8" />
-            </div>
+             <Link href="/" className="flex items-center gap-2">
+                <div className="bg-primary text-primary-foreground rounded-full p-3">
+                <Logo className="h-8 w-8" />
+                </div>
+            </Link>
           </div>
           <CardTitle className="text-2xl text-center font-bold text-primary">PakFiler</CardTitle>
           <CardDescription className="text-center">
@@ -101,7 +115,7 @@ export default function SignupPage() {
           </div>
           <div className="mt-4 text-center text-sm">
             {t({ en: "Already have an account?", ur: "پہلے سے ہی ایک اکاؤنٹ ہے؟" })}{" "}
-            <Link href="/" className="underline">
+            <Link href="/login" className="underline">
               {t({ en: "Log in", ur: "لاگ ان کریں" })}
             </Link>
           </div>
@@ -110,3 +124,5 @@ export default function SignupPage() {
     </div>
   )
 }
+
+    

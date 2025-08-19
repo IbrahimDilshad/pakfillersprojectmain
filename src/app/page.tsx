@@ -3,15 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowRight, ArrowUp, ArrowDown, MoveRight, Phone, Mail, MapPin, Twitter, Facebook, Linkedin, Instagram, PlayCircle, BookOpen } from 'lucide-react';
+import { ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -19,6 +15,8 @@ import { IncomeTaxCalculator } from '@/components/income-tax-calculator';
 import { useVideos } from '@/hooks/useVideos';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PlayCircle, BookOpen } from 'lucide-react';
+import { ChatWidget } from '@/components/chat-widget';
 
 const products = [
   { title: "NTN Registration", description: "Get your National Tax Number registered hassle-free.", buttonText: "Register Now" },
@@ -168,8 +166,8 @@ export default function LandingPage() {
                                 </CarouselItem>
                                 ))}
                             </CarouselContent>
-                            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
-                            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+                            <CarouselPrevious />
+                            <CarouselNext />
                         </Carousel>
                     </div>
                 </section>
@@ -325,7 +323,10 @@ export default function LandingPage() {
                     <Button>Accept</Button>
                 </CardContent>
              </Card>
-
+             
+             <ChatWidget />
         </div>
     );
 }
+
+    

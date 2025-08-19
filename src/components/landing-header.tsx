@@ -10,18 +10,19 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Menu } from 'lucide-react';
+import { UserNav } from './user-nav';
 
 const navItems = [
     { title: { en: "Services", ur: "خدمات" }, href: "/services", loginRequired: true },
-    { title: { en: "Calculator", ur: "کیلکولیٹر" }, href: "/salary-tax-calculator", loginRequired: true },
+    { title: { en: "Calculator", ur: "کیلکولیٹر" }, href: "/salary-tax-calculator", loginRequired: false },
     { title: { en: "Blog", ur: "بلاگ" }, href: "/blog", loginRequired: false },
     { title: { en: "Videos", ur: "ویڈیوز" }, href: "/videos", loginRequired: false },
-    { title: { en: "FAQs", ur: "اکثر سوالات" }, href: "/faqs", loginRequired: true },
+    { title: { en: "FAQs", ur: "اکثر سوالات" }, href: "/faqs", loginRequired: false },
 ];
 
 export function LandingHeader() {
     const { t } = useLanguage();
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -34,8 +35,6 @@ export function LandingHeader() {
                 variant: "destructive",
             });
             router.push('/login');
-        } else {
-            router.push(href);
         }
     };
 
@@ -62,14 +61,22 @@ export function LandingHeader() {
                 </nav>
                 <div className="flex items-center gap-2 ml-auto">
                     <LanguageSwitcher />
-                    <>
-                        <Button variant="ghost" asChild>
-                            <Link href="/login">Log In</Link>
-                        </Button>
-                        <Button asChild>
-                            <Link href="/signup">Sign Up</Link>
-                        </Button>
-                    </>
+                    {!loading && (
+                        <>
+                            {user ? (
+                                <UserNav />
+                            ) : (
+                                <>
+                                    <Button variant="ghost" asChild className="hidden md:inline-flex">
+                                        <Link href="/login">Log In</Link>
+                                    </Button>
+                                    <Button asChild className="hidden md:inline-flex">
+                                        <Link href="/signup">Sign Up</Link>
+                                    </Button>
+                                </>
+                            )}
+                        </>
+                    )}
                      <div className="md:hidden">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -88,6 +95,12 @@ export function LandingHeader() {
                                         </Link>
                                     </DropdownMenuItem>
                                 ))}
+                                <DropdownMenuItem asChild>
+                                    <Link href="/login">Log In</Link>
+                                </DropdownMenuItem>
+                                 <DropdownMenuItem asChild>
+                                    <Link href="/signup">Sign Up</Link>
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -96,3 +109,5 @@ export function LandingHeader() {
         </header>
     );
 }
+
+    

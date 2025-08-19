@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -19,6 +20,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
+
 
   const handleLogin = async () => {
     try {
@@ -32,6 +41,14 @@ export default function LoginPage() {
       });
     }
   };
+
+  if (loading || user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <p>Loading...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -95,3 +112,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
+    
