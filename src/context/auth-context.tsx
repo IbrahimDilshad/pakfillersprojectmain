@@ -32,18 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
         
-        let role: Role = 'user'; // Default role
+        let role: Role = 'user'; // Default role is 'user'
         if (userDoc.exists() && userDoc.data().role) {
           role = userDoc.data().role;
         }
 
-        // Temporary override for admin@example.com for initial access
+        // Failsafe to ensure admin@example.com is always an admin.
+        // This is the primary mechanism for granting initial admin access.
         if (firebaseUser.email === 'admin@example.com') {
             role = 'admin';
         }
 
         setUser({ ...firebaseUser, role });
-
       } else {
         setUser(null);
       }
