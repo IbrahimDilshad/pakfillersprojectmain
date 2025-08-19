@@ -62,20 +62,14 @@ export function LandingHeader() {
                 </nav>
                 <div className="flex items-center gap-2 ml-auto">
                     <LanguageSwitcher />
-                    {user ? (
-                         <Button asChild>
-                            <Link href="/dashboard">Dashboard</Link>
-                         </Button>
-                    ) : (
-                        <>
-                            <Button variant="ghost" asChild>
-                                <Link href="/login">Log In</Link>
-                            </Button>
-                            <Button asChild>
-                                <Link href="/signup">Sign Up</Link>
-                            </Button>
-                        </>
-                    )}
+                    <>
+                        <Button variant="ghost" asChild>
+                            <Link href="/login">Log In</Link>
+                        </Button>
+                        <Button asChild>
+                            <Link href="/signup">Sign Up</Link>
+                        </Button>
+                    </>
                      <div className="md:hidden">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
