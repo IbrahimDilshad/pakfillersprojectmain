@@ -5,20 +5,33 @@ service cloud.firestore {
 
     // Helper function to check if the requester is an authenticated admin.
     function isAdmin() {
+      // An admin is a signed-in user whose document in the 'users' collection has role == 'admin'.
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Helper function to check if the requester is the owner of the document.
+    // Helper function to check if the requester is the owner of a document.
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // --- Public Content Rules ---
-    // Anyone can read, only admins can write.
-    match /blogPosts/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /videos/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /faqs/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /services/{docId} { allow read: if true; allow write: if isAdmin(); }
+    // --- Public Content Rules (Blog, Videos, FAQs, Services) ---
+    // These collections should be readable by anyone but only writable by an admin.
+    match /blogPosts/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /videos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /faqs/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /services/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
     // --- User Profile Rules ---
     match /users/{userId} {
@@ -26,35 +39,34 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin();
       // Only admins can list all users.
       allow list: if isAdmin();
-      // Users can create their own profile upon signup, but cannot assign a role.
+      // A user can create their own profile upon signup, but cannot assign themselves a role.
+      // This prevents privilege escalation.
       allow create: if isOwner(userId) && !("role" in request.resource.data);
-      // Users can update their own profile, but cannot change their role.
+      // A user can update their own profile, but they cannot change their own role.
       allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
-      // Only admins can delete users.
+      // Only admins can delete user documents.
       allow delete: if isAdmin();
     }
 
     // --- Chat Rules ---
+    // This section governs the chat sessions and the messages within them.
     match /chats/{sessionId} {
+      // Admins can list all chat sessions to populate their support dashboard.
       allow list: if isAdmin();
+      // A user can get their own chat session. An admin can get any session to view it.
       allow get: if isOwner(sessionId) || isAdmin();
+      // A user can create/update their own session. An admin can also update any session (e.g., to mark as read).
       allow create, update: if isOwner(sessionId) || isAdmin();
+      // Only admins should be able to delete entire chat histories.
       allow delete: if isAdmin();
 
-      // Messages can be written by the session owner or an admin.
-      // Reading is handled by the recursive rule below.
+      // Messages within a chat session
       match /messages/{messageId} {
-        allow write: if isOwner(sessionId) || isAdmin();
-        // Disallow updating/deleting to preserve history
+        // The session owner (the user) and any admin can read and write messages.
+        allow read, write: if isOwner(sessionId) || isAdmin();
+        // To preserve chat history, prevent messages from being updated or deleted.
         allow update, delete: if false;
       }
-    }
-
-    // This is the critical rule: it gives admins recursive read access
-    // to all documents and subcollections within the 'chats' collection.
-    // This is necessary for the admin support dashboard to function correctly.
-    match /chats/{sessionId}/{document=**} {
-      allow read: if isAdmin();
     }
   }
 }
