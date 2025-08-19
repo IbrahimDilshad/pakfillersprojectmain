@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -14,10 +13,23 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Public content collections (blogPosts, videos, faqs, services)
-    // Anyone can read this content, but only admins can create, update, or delete it.
-    match /{collection}/{docId}
-      where collection in ['blogPosts', 'videos', 'faqs', 'services'] {
+    // Public content collections can be read by anyone, but only written by admins.
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /videos/{videoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /services/{serviceId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -31,7 +43,6 @@ service cloud.firestore {
       // Users can create their own profile upon signup, but cannot assign a role.
       allow create: if isOwner(userId) && !("role" in request.resource.data);
       // Users can update their own profile, but cannot change their role.
-      // Admins should manage role changes through a secure backend process.
       allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
       // Only admins can delete users.
       allow delete: if isAdmin();
@@ -43,8 +54,8 @@ service cloud.firestore {
       allow list: if isAdmin();
       // A user can get their own chat session. An admin can get any session.
       allow get: if isOwner(sessionId) || isAdmin();
-      // A user can create or update their own session document (e.g., when sending the first message).
-      // An admin can also update a session (e.g., to mark it as read).
+      // A user can create or update their own session document.
+      // An admin can also update a session.
       allow create, update: if isOwner(sessionId) || isAdmin();
       // Only admins can delete entire chat histories.
       allow delete: if isAdmin();
