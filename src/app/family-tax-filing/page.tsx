@@ -22,11 +22,8 @@ function AccountsTabContent() {
     const { t } = useLanguage();
     const { user } = useAuth();
     
-    // Dummy data for linked accounts. In a real app, this would come from state/DB.
-    const linkedAccounts = [
-        { name: "Jane Doe", email: "jane.doe@example.com", type: {en: "Spouse", ur: "شریک حیات"}, icon: User },
-        { name: "Acme Inc.", email: "contact@acme.com", type: {en: "Business", ur: "کاروبار"}, icon: Building },
-    ];
+    // In a real app, this array would be populated from Firestore or a state management solution
+    const linkedAccounts: any[] = [];
 
     return (
         <div className="p-6">
@@ -51,21 +48,12 @@ function AccountsTabContent() {
                     </Card>
                 )}
 
-                {/* Linked Accounts */}
-                {linkedAccounts.map((account, index) => (
-                    <Card key={index} className="flex items-center p-4 gap-4">
-                        <Avatar className="h-12 w-12 bg-muted">
-                             <account.icon className="h-6 w-6 text-muted-foreground" />
-                        </Avatar>
-                         <div className="flex-1">
-                             <div className="flex items-center gap-2">
-                                <h4 className="font-semibold">{account.name}</h4>
-                                <Badge variant="outline">{t(account.type)}</Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{account.email}</p>
-                        </div>
-                    </Card>
-                ))}
+                {/* Linked Accounts will be mapped here from state */}
+                {linkedAccounts.length === 0 && !user && (
+                     <div className="text-center text-muted-foreground py-8">
+                        <p>{t({ en: "No linked accounts found.", ur: "کوئی منسلک اکاؤنٹس نہیں ملے۔" })}</p>
+                    </div>
+                )}
             </div>
         </div>
     );
