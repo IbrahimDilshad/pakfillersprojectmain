@@ -2,54 +2,53 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // By default, deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
+  
+    // Helper function to check if a user is an admin
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Get a user's role
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    // Users can only read and write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Check if a user is an admin
-    function isAdmin() {
-      return getUserRole(request.auth.uid) == 'admin';
+    // Chat sessions and messages
+    // A user can only access their own chat session, which is keyed by their UID.
+    // Admins can access any chat session.
+    match /chats/{sessionId} {
+      allow read, create, update: if request.auth.uid == sessionId || isAdmin();
+      
+      match /messages/{messageId} {
+        allow read, create: if request.auth.uid == sessionId || isAdmin();
+      }
     }
 
-    // Users collection rules
-    match /users/{userId} {
-      // A user can read and write to their own document
-      allow read, update, delete: if request.auth.uid == userId;
-      // Anyone can create their own user document (for signup)
-      allow create: if request.auth.uid == userId;
-      // Admins can read any user's document
-      allow read: if isAdmin();
-    }
-
-    // Public content collections (blog, videos, etc.)
+    // Public content that anyone can read, but only admins can write
     match /blogPosts/{postId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
+    
     match /videos/{videoId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /faqs/{faqId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /services/{serviceId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
-    // Chat collection rules
-    // A user can read/write to their own chat session
-    match /chats/{userId}/{message=**} {
-      allow read, write: if request.auth.uid == userId || isAdmin();
+    match /faqs/{faqId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /services/{serviceId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Default deny all other access to prevent unauthorized access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
