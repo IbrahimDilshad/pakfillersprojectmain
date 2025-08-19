@@ -9,22 +9,21 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users can only read and write their own data
+    // Users can only read and write their own data. Admins can access any user's data.
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Chat sessions and messages
+    // Chat sessions and messages. A user can only access their own chat. Admins can access any chat.
     match /chats/{sessionId} {
-      // User can interact with their own chat session. Admin can interact with any.
-      allow read, write, create: if request.auth.uid == sessionId || isAdmin();
+      allow read, create, update: if request.auth.uid == sessionId || isAdmin();
       
       match /messages/{messageId} {
-        allow read, write, create: if request.auth.uid == sessionId || isAdmin();
+        allow read, create: if request.auth.uid == sessionId || isAdmin();
       }
     }
 
-    // Public content that anyone can read
+    // Public content that anyone can read, but only admins can write.
     match /blogPosts/{postId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
@@ -43,11 +42,6 @@ service cloud.firestore {
     match /services/{serviceId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
-    }
-    
-    // Default deny all other access to prevent unauthorized access
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }
