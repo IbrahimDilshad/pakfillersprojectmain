@@ -26,10 +26,13 @@ export default function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update the user's profile
+      // Update the user's profile for display name
       await updateProfile(user, {
         displayName: fullName,
       });
+
+      // We no longer create a document in Firestore for the user role.
+      // The role is determined by the email address in the auth context.
 
       toast({
         title: "Account Created",

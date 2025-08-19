@@ -16,6 +16,7 @@ import {
   deleteDoc,
   updateDoc,
   setDoc,
+  getDoc,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -121,7 +122,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
 
     try {
       const sessionRef = doc(db, 'chats', sessionId);
-      const messagesColRef = collection(db, 'chats', sessionId, 'messages');
+      const messagesColRef = collection(sessionRef, 'messages');
       
       const batch = writeBatch(db);
 
@@ -142,8 +143,8 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       
       if (from === 'user') {
         sessionUpdateData.isReadByAdmin = false;
-        sessionUpdateData.userName = userName;
-        sessionUpdateData.userEmail = userEmail;
+        sessionUpdateData.userName = userName || 'Anonymous';
+        sessionUpdateData.userEmail = userEmail || 'no-email';
         // Use `set` with `merge: true` to create the document if it doesn't exist
         // or update it if it does. This is robust for the first message and subsequent ones.
         batch.set(sessionRef, sessionUpdateData, { merge: true });

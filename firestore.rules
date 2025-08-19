@@ -33,7 +33,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // There is no longer a 'users' collection managed by the app.
+    // There is no longer a 'users' collection managed by the app for roles.
 
     // --- Chat Rules ---
     // This section governs the chat sessions and the messages within them.

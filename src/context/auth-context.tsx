@@ -5,7 +5,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 
@@ -29,14 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        let role: Role = 'user'; // Default role is 'user'
-
-        // Failsafe to ensure admin@example.com is always an admin.
-        // This is the primary mechanism for granting initial admin access.
-        if (firebaseUser.email === 'admin@example.com') {
-            role = 'admin';
-        }
-
+        // This is the definitive logic.
+        // The user's role is determined by their email address.
+        // No more Firestore lookups for roles.
+        const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
         setUser({ ...firebaseUser, role });
       } else {
         setUser(null);
