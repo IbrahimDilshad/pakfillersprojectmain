@@ -85,7 +85,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       listenerId = currentSessionId;
     } 
     // For a regular user, the listenerId is always their own UID.
-    else if (userId) {
+    else if (userRole === 'user' && userId) {
       listenerId = userId;
     }
 
