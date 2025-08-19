@@ -1,95 +1,280 @@
 
 'use client';
-import { useState } from "react";
-import Link from "next/link"
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useLanguage } from "@/context/language-context"
-import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useToast } from "@/hooks/use-toast";
-import { Logo } from "@/components/logo";
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { AppLayout } from '@/components/app-layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ArrowRight, ArrowUp, ArrowDown, MoveRight, Phone, Mail, MapPin, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { useLanguage } from '@/context/language-context';
+import { LandingHeader } from '@/components/landing-header';
+import { LandingFooter } from '@/components/landing-footer';
+import { IncomeTaxCalculator } from '@/components/income-tax-calculator';
 
-export default function LoginPage() {
-  const { t } = useLanguage();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
-  const { toast } = useToast();
+const products = [
+  { title: "NTN Registration", description: "Get your National Tax Number registered hassle-free.", buttonText: "Register Now" },
+  { title: "Income Tax Filing", description: "File your annual income tax returns with our expert assistance.", buttonText: "File Now" },
+  { title: "GST Registration", description: "Register for Goods and Services Tax (GST) with ease.", buttonText: "Get Started" },
+  { title: "Business Incorporation", description: "Start your own company with our seamless incorporation services.", buttonText: "Incorporate" },
+  { title: "Trademark Registration", description: "Protect your brand by registering your trademark.", buttonText: "Protect Brand" },
+];
 
-  const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message,
-      });
-    }
-  };
+const teamMembers = [
+    { name: "Ahmed Khan", designation: "Founder & CEO", image: "https://placehold.co/100x100.png" },
+    { name: "Fatima Ali", designation: "Lead Tax Consultant", image: "https://placehold.co/100x100.png" },
+    { name: "Zubair Ahmed", designation: "Head of Operations", image: "https://placehold.co/100x100.png" },
+    { name: "Ayesha Malik", designation: "Client Relations", image: "https://placehold.co/100x100.png" },
+];
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="mx-auto w-full max-w-sm">
-        <CardHeader>
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground rounded-full p-3">
-              <Logo className="h-8 w-8" />
+const testimonials = [
+    { text: "PakFiler made my tax filing process incredibly simple and stress-free. Highly recommended!", name: "Ali Raza", company: "Tech Solutions Inc." },
+    { text: "The team is professional, responsive, and knowledgeable. They handled my business incorporation perfectly.", name: "Sana Ahmed", company: "Creative Designs" },
+    { text: "I was struggling with my GST registration, but PakFiler guided me through every step. Excellent service!", name: "Usman Tariq", company: "Trade Enterprises" },
+];
+
+export default function LandingPage() {
+    const { t } = useLanguage();
+
+    return (
+        <div className="bg-background text-foreground">
+            {/* Announcement Banner */}
+            <div className="bg-primary text-primary-foreground text-center text-sm py-1">
+                <p>Limited Time Offer: Get 20% off on all tax filing services! <Link href="/services" className="underline">Learn More</Link></p>
             </div>
-          </div>
-          <CardTitle className="text-2xl text-center font-bold text-primary">PakFiler</CardTitle>
-          <CardDescription className="text-center">
-            {t({ en: "Enter your email below to login to your account", ur: "اپنے اکاؤنٹ میں لاگ ان کرنے کے لیے نیچے اپنا ای میل درج کریں۔" })}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t({ en: "Email", ur: "ای میل" })}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">{t({ en: "Password", ur: "پاس ورڈ" })}</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  {t({ en: "Forgot your password?", ur: "اپنا پاس ورڈ بھول گئے؟" })}
-                </Link>
-              </div>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button onClick={handleLogin} className="w-full">
-              {t({ en: "Login", ur: "لاگ ان کریں" })}
-            </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            {t({ en: "Don't have an account?", ur: "اکاؤنٹ نہیں ہے؟" })}{" "}
-            <Link href="/signup" className="underline">
-              {t({ en: "Sign up", ur: "سائن اپ" })}
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+
+            <LandingHeader />
+
+            <main>
+                {/* Hero Section */}
+                <section className="container mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+                    <div className="space-y-6">
+                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+                            Simplify Your Taxes, Amplify Your Savings
+                        </h1>
+                        <p className="text-lg text-muted-foreground">
+                            PakFiler is your trusted partner for all tax and corporate compliance needs in Pakistan. From NTN registration to income tax filing, we make it easy, fast, and secure.
+                        </p>
+                        <Button size="lg" asChild>
+                           <Link href="/signup">Get Started <ArrowRight className="ml-2" /></Link>
+                        </Button>
+                    </div>
+                    <div>
+                        <Image src="https://placehold.co/600x400.png" alt="Tax filing illustration" width={600} height={400} className="rounded-lg shadow-xl" data-ai-hint="tax filing" />
+                    </div>
+                </section>
+
+                {/* Income Tax Calculator */}
+                <section className="bg-muted py-16 md:py-24">
+                    <div className="container mx-auto px-6">
+                         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+                            Quick Income Tax Calculator
+                        </h2>
+                        <IncomeTaxCalculator />
+                    </div>
+                </section>
+                
+                {/* Partners and Collaborators */}
+                <section className="py-16 md:py-24">
+                    <div className="container mx-auto px-6">
+                        <h3 className="text-center text-2xl font-semibold text-muted-foreground mb-12">
+                            Trusted by Leading Organizations
+                        </h3>
+                        <div className="grid grid-cols-4 md:grid-cols-8 gap-8 items-center">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <Image key={i} src={`https://placehold.co/150x75.png`} alt={`Partner logo ${i+1}`} width={150} height={75} className="grayscale hover:grayscale-0 transition-all" data-ai-hint="company logo" />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Mobile App CTA */}
+                <section className="bg-primary text-primary-foreground">
+                     <div className="container mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+                         <div>
+                            <Image src="https://placehold.co/600x600.png" alt="PakFiler Mobile App" width={600} height={600} className="rounded-lg shadow-xl" data-ai-hint="mobile app screenshot" />
+                        </div>
+                        <div className="space-y-6">
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+                                Manage Your Taxes On The Go
+                            </h2>
+                            <p className="text-lg opacity-90">
+                                Download the PakFiler app for a seamless mobile experience. File taxes, upload documents, and get support, all from the palm of your hand.
+                            </p>
+                            <div className="flex gap-4">
+                               <Button variant="secondary" size="lg" className="flex items-center gap-2">
+                                    <Image src="https://placehold.co/32x32.png" alt="App Store" width={32} height={32} data-ai-hint="app store logo" />
+                                    <span>App Store</span>
+                               </Button>
+                               <Button variant="secondary" size="lg" className="flex items-center gap-2">
+                                     <Image src="https://placehold.co/32x32.png" alt="Play Store" width={32} height={32} data-ai-hint="google play logo" />
+                                     <span>Play Store</span>
+                               </Button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Popular Products */}
+                 <section className="py-16 md:py-24">
+                    <div className="container mx-auto px-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+                            Our Popular Services
+                        </h2>
+                        <Carousel
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                            className="w-full max-w-4xl mx-auto"
+                        >
+                            <CarouselContent>
+                                {products.map((product, index) => (
+                                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                                    <div className="p-1">
+                                    <Card className="flex flex-col h-full">
+                                        <CardHeader>
+                                            <CardTitle>{product.title}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="flex-1">
+                                            <p className="text-muted-foreground">{product.description}</p>
+                                        </CardContent>
+                                        <div className="p-6 pt-0">
+                                            <Button className="w-full" asChild>
+                                                <Link href="/services">{product.buttonText}</Link>
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                    </div>
+                                </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
+                            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+                        </Carousel>
+                    </div>
+                </section>
+
+                {/* Testimonials */}
+                <section className="bg-muted py-16 md:py-24">
+                    <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <Image src="https://placehold.co/500x500.png" alt="Happy customer" width={500} height={500} className="rounded-lg shadow-xl" data-ai-hint="happy customer" />
+                        </div>
+                        <div className="space-y-8">
+                            <h2 className="text-3xl md:text-4xl font-bold">
+                                What Our Clients Say
+                            </h2>
+                            <div className="relative space-y-4">
+                                 {testimonials.map((testimonial, index) => (
+                                    <Card key={index} className="p-6 bg-background">
+                                        <p className="text-muted-foreground mb-4">"{testimonial.text}"</p>
+                                        <div className="font-semibold">{testimonial.name}</div>
+                                        <div className="text-sm text-primary">{testimonial.company}</div>
+                                    </Card>
+                                 ))}
+                                 <div className="absolute top-0 right-0 -mt-8 flex gap-2">
+                                    <Button variant="outline" size="icon"><ArrowUp /></Button>
+                                    <Button variant="outline" size="icon"><ArrowDown /></Button>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Our Team */}
+                <section className="py-16 md:py-24">
+                    <div className="container mx-auto px-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+                            Meet Our Experts
+                        </h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            {teamMembers.map(member => (
+                                <div key={member.name} className="text-center space-y-2">
+                                    <Avatar className="h-24 w-24 mx-auto border-4 border-primary/20">
+                                        <AvatarImage src={member.image} alt={member.name} />
+                                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <h4 className="font-semibold text-lg">{member.name}</h4>
+                                    <p className="text-primary">{member.designation}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+                
+                {/* Featured Videos & Blogs */}
+                 <section className="bg-muted py-16 md:py-24">
+                    <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16">
+                        <div>
+                             <h2 className="text-3xl font-bold mb-8">Featured Videos</h2>
+                             <div className="space-y-4">
+                                 {/* In a real app, this would be fetched from a CMS */}
+                                <Card>
+                                    <CardContent className="p-4 flex gap-4 items-center">
+                                        <Image src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" width={120} height={90} alt="Video thumbnail" className="rounded-md" />
+                                        <div>
+                                            <h4 className="font-semibold">How to File Your Taxes: A Beginner's Guide</h4>
+                                            <p className="text-sm text-muted-foreground">Learn the basics of tax filing in Pakistan.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                 <Card>
+                                    <CardContent className="p-4 flex gap-4 items-center">
+                                        <Image src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" width={120} height={90} alt="Video thumbnail" className="rounded-md" />
+                                        <div>
+                                            <h4 className="font-semibold">Understanding NTN Registration</h4>
+                                            <p className="text-sm text-muted-foreground">Everything you need to know about getting your NTN.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                             </div>
+                        </div>
+                         <div>
+                             <h2 className="text-3xl font-bold mb-8">Latest From Our Blog</h2>
+                              <div className="space-y-4">
+                                {/* In a real app, this would be fetched from a CMS */}
+                                <Card>
+                                    <CardContent className="p-4 flex gap-4 items-center">
+                                         <Image src="https://placehold.co/120x90.png" width={120} height={90} alt="Blog post thumbnail" className="rounded-md" data-ai-hint="tax documents"/>
+                                        <div>
+                                            <h4 className="font-semibold">Top 5 Tax-Saving Tips for Salaried Individuals</h4>
+                                            <p className="text-sm text-muted-foreground">Maximize your savings with these expert tips.</p>
+                                            <Link href="#" className="text-sm text-primary font-semibold mt-1">Read More <MoveRight className="inline-block h-4 w-4" /></Link>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                 <Card>
+                                    <CardContent className="p-4 flex gap-4 items-center">
+                                         <Image src="https://placehold.co/120x90.png" width={120} height={90} alt="Blog post thumbnail" className="rounded-md" data-ai-hint="business meeting" />
+                                        <div>
+                                            <h4 className="font-semibold">Why Your Business Needs to be Incorporated</h4>
+                                            <p className="text-sm text-muted-foreground">The benefits of registering your business as a company.</p>
+                                            <Link href="#" className="text-sm text-primary font-semibold mt-1">Read More <MoveRight className="inline-block h-4 w-4" /></Link>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                             </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <LandingFooter />
+
+            {/* Cookies Popout */}
+             <Card className="fixed bottom-4 right-4 w-full max-w-md p-4 shadow-2xl z-50">
+                <CardContent className="p-0 flex items-center justify-between gap-4">
+                    <p className="text-sm text-muted-foreground">We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+                    <Button>Accept</Button>
+                </CardContent>
+             </Card>
+
+        </div>
+    );
 }
