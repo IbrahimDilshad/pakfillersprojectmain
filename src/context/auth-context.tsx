@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -28,11 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch user role from Firestore
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        const role = userDoc.exists() ? userDoc.data().role : 'user';
-        setUser({ ...firebaseUser, role });
+        // Temporary override for admin access
+        if (firebaseUser.email === 'admin@example.com') {
+          setUser({ ...firebaseUser, role: 'admin' });
+        } else {
+          // Fetch user role from Firestore for all other users
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          const role = userDoc.exists() && userDoc.data().role ? userDoc.data().role : 'user';
+          setUser({ ...firebaseUser, role });
+        }
       } else {
         setUser(null);
       }
