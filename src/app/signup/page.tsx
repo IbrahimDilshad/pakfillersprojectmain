@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLanguage } from "@/context/language-context";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/context/auth-context";
@@ -19,6 +20,8 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [cnic, setCnic] = useState('');
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading } = useAuth();
@@ -30,6 +33,14 @@ export default function SignupPage() {
   }, [user, loading, router]);
 
   const handleSignup = async () => {
+    if (!fullName || !email || !password || !mobileNumber || !cnic) {
+        toast({
+            variant: "destructive",
+            title: "Signup Failed",
+            description: "All fields are required.",
+        });
+        return;
+    }
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -37,6 +48,17 @@ export default function SignupPage() {
       await updateProfile(user, {
         displayName: fullName,
       });
+
+      // Save additional user info to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: fullName,
+        email: user.email,
+        mobileNumber: mobileNumber,
+        cnic: cnic,
+        role: 'user', // Default role
+      });
+
 
       toast({
         title: "Account Created",
@@ -61,7 +83,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
           <div className="flex justify-center mb-4">
@@ -79,7 +101,7 @@ export default function SignupPage() {
         <CardContent>
           <div className="grid gap-4">
             <div className="grid gap-2">
-                <Label htmlFor="full-name">{t({ en: "Full Name", ur: "پورا نام" })}</Label>
+                <Label htmlFor="full-name">{t({ en: "Full Name (as per CNIC)", ur: "پورا نام (شناختی کارڈ کے مطابق)" })}</Label>
                 <Input 
                   id="full-name" 
                   placeholder="John Doe" 
@@ -98,6 +120,27 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="mobile-number">{t({ en: "Mobile Number", ur: "موبائل نمبر" })}</Label>
+                <Input 
+                  id="mobile-number" 
+                  type="tel"
+                  placeholder="03001234567" 
+                  required 
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value)}
+                />
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="cnic">{t({ en: "CNIC", ur: "شناختی کارڈ نمبر" })}</Label>
+                <Input 
+                  id="cnic" 
+                  placeholder="12345-1234567-1" 
+                  required 
+                  value={cnic}
+                  onChange={(e) => setCnic(e.target.value)}
+                />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">{t({ en: "Password", ur: "پاس ورڈ" })}</Label>
@@ -124,5 +167,3 @@ export default function SignupPage() {
     </div>
   )
 }
-
-    

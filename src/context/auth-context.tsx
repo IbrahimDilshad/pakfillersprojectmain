@@ -5,12 +5,14 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 
 interface AuthUser extends User {
   role: Role;
+  mobileNumber?: string;
+  cnic?: string;
 }
 
 interface AuthContextType {
@@ -29,11 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // This is the definitive logic.
-        // The user's role is determined by their email address.
-        // No more Firestore lookups for roles.
-        const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
-        setUser({ ...firebaseUser, role });
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUser({
+            ...firebaseUser,
+            role: userData.role || 'user',
+            mobileNumber: userData.mobileNumber,
+            cnic: userData.cnic,
+          });
+        } else {
+           // Fallback for users created before Firestore profile storage
+           const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
+           setUser({ ...firebaseUser, role });
+        }
       } else {
         setUser(null);
       }
@@ -45,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await firebaseSignOut(auth);
+    setUser(null);
     router.push('/');
   };
 
