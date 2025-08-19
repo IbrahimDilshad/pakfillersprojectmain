@@ -16,6 +16,7 @@ import {
   deleteDoc,
   updateDoc,
   setDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -118,13 +119,26 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
     if (!text.trim() || !senderId) return;
 
+     // Optimistic UI update
+    const optimisticMessage: Message = {
+      id: new Date().toISOString(), // Temporary ID
+      text,
+      timestamp: Timestamp.now(),
+      senderId,
+      from,
+    };
+
+    setMessages(prev => ({
+        ...prev,
+        [sessionId]: [...(prev[sessionId] || []), optimisticMessage]
+    }));
+
     try {
       const sessionRef = doc(db, 'chats', sessionId);
       const messagesColRef = collection(sessionRef, 'messages');
       
       const batch = writeBatch(db);
 
-      // 1. Add the new message to the 'messages' subcollection
       const newMessageRef = doc(messagesColRef);
       batch.set(newMessageRef, {
         text,
@@ -133,35 +147,36 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
-      // 2. Create or update the parent chat document with the latest message info
       const sessionUpdateData: any = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
       };
       
-      // If a user is sending the message, update their info and mark as unread for admin
       if (from === 'user') {
         sessionUpdateData.isReadByAdmin = false;
         if (userName) sessionUpdateData.userName = userName;
         if (userEmail) sessionUpdateData.userEmail = userEmail;
-      } else { // If support is sending, mark as read
+      } else { 
         sessionUpdateData.isReadByAdmin = true;
       }
       
-      // Use set with merge:true to create the document if it doesn't exist or update it if it does.
       batch.set(sessionRef, sessionUpdateData, { merge: true });
 
       await batch.commit();
 
     } catch (error) {
       console.error("Error sending message:", error);
+       // Revert optimistic update on failure
+       setMessages(prev => ({
+           ...prev,
+           [sessionId]: (prev[sessionId] || []).filter(msg => msg.id !== optimisticMessage.id)
+       }));
     }
   }, []);
 
   const deleteChat = useCallback(async (sessionId: string) => {
     if (userRole !== 'admin') return;
     try {
-      // Delete all messages in the subcollection first
       const messagesCollection = collection(db, 'chats', sessionId, 'messages');
       const messagesSnapshot = await getDocs(messagesCollection);
       const batch = writeBatch(db);
@@ -170,10 +185,8 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       });
       await batch.commit();
 
-      // Delete the main chat document
       await deleteDoc(doc(db, 'chats', sessionId));
 
-      // Clean up local state
       setMessages(prev => {
         const newMessages = { ...prev };
         delete newMessages[sessionId];

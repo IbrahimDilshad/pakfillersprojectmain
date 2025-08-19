@@ -21,10 +21,19 @@ export function ChatWidget() {
   
   // Use the user's UID as the session ID for both users and admins in this context.
   const sessionId = user?.uid;
-  const { messages, sendMessage } = useChat(sessionId, user?.role);
+  const { messages, sendMessage, setCurrentSessionId } = useChat(user?.uid, user?.role);
+  
+  // The widget should listen to its own session, which is the user's UID.
   const chatMessages: Message[] = sessionId ? messages[sessionId] || [] : [];
   
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // If the user is not an admin, we set their session ID so the hook starts listening
+    if (user?.role !== 'admin' && user?.uid) {
+        setCurrentSessionId(user.uid);
+    }
+  }, [user, setCurrentSessionId]);
   
   useEffect(() => {
     if (isOpen && scrollAreaViewportRef.current) {
@@ -47,6 +56,7 @@ export function ChatWidget() {
         sessionId: sessionId,
         text: inputValue, 
         senderId: user.uid, 
+        // A user's message is always from 'user', admin message always from 'support'
         from: user.role === 'admin' ? 'support' : 'user', 
         userName: user.displayName || 'Anonymous User', 
         userEmail: user.email || 'no-email@example.com'
@@ -92,6 +102,11 @@ export function ChatWidget() {
                       <div className={cn('max-w-[75%] p-3 rounded-lg', msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                         <p className="text-sm">{msg.text}</p>
                       </div>
+                      {msg.from === 'user' && user?.role === 'admin' && (
+                         <Avatar className="w-8 h-8">
+                            <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
                   ))}
                 </div>
