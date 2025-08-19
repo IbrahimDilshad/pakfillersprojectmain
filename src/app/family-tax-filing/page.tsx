@@ -4,8 +4,11 @@ import { AppLayout } from "@/components/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/context/language-context";
-import { Settings } from "lucide-react";
+import { Settings, User, Building, BadgeCheck } from "lucide-react";
 import { ManageAccounts } from "@/components/manage-accounts";
+import { useAuth } from "@/context/auth-context";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 const PlaceholderContent = ({ title, description }: { title: string, description: string }) => (
     <div className="p-8 text-center text-muted-foreground">
@@ -13,6 +16,60 @@ const PlaceholderContent = ({ title, description }: { title: string, description
         <p>{description}</p>
     </div>
 );
+
+
+function AccountsTabContent() {
+    const { t } = useLanguage();
+    const { user } = useAuth();
+    
+    // Dummy data for linked accounts. In a real app, this would come from state/DB.
+    const linkedAccounts = [
+        { name: "Jane Doe", email: "jane.doe@example.com", type: {en: "Spouse", ur: "شریک حیات"}, icon: User },
+        { name: "Acme Inc.", email: "contact@acme.com", type: {en: "Business", ur: "کاروبار"}, icon: Building },
+    ];
+
+    return (
+        <div className="p-6">
+            <h3 className="text-lg font-medium mb-4">{t({ en: "Your Accounts", ur: "آپ کے اکاؤنٹس" })}</h3>
+            <div className="grid gap-4">
+                 {/* Parent Account */}
+                {user && (
+                    <Card className="flex items-center p-4 gap-4">
+                        <Avatar className="h-12 w-12">
+                            <AvatarFallback>{user.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <h4 className="font-semibold">{user.displayName}</h4>
+                                <Badge variant="secondary" className="flex items-center gap-1">
+                                    <BadgeCheck className="h-3.5 w-3.5 text-primary"/>
+                                    {t({ en: "Primary", ur: "بنیادی" })}
+                                </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                    </Card>
+                )}
+
+                {/* Linked Accounts */}
+                {linkedAccounts.map((account, index) => (
+                    <Card key={index} className="flex items-center p-4 gap-4">
+                        <Avatar className="h-12 w-12 bg-muted">
+                             <account.icon className="h-6 w-6 text-muted-foreground" />
+                        </Avatar>
+                         <div className="flex-1">
+                             <div className="flex items-center gap-2">
+                                <h4 className="font-semibold">{account.name}</h4>
+                                <Badge variant="outline">{t(account.type)}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{account.email}</p>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 
 export default function FamilyTaxFilingPage() {
@@ -61,7 +118,7 @@ export default function FamilyTaxFilingPage() {
                     <ManageAccounts />
                   </TabsContent>
                    <TabsContent value="accounts">
-                     <PlaceholderContent title="Accounts" description="This section will display your linked accounts." />
+                     <AccountsTabContent />
                   </TabsContent>
               </CardContent>
             </Card>
