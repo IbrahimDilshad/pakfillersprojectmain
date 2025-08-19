@@ -29,16 +29,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Temporary override for admin access
-        if (firebaseUser.email === 'admin@example.com') {
-          setUser({ ...firebaseUser, role: 'admin' });
-        } else {
-          // Fetch user role from Firestore for all other users
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          const role = userDoc.exists() && userDoc.data().role ? userDoc.data().role : 'user';
-          setUser({ ...firebaseUser, role });
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        let role: Role = 'user'; // Default role
+        if (userDoc.exists() && userDoc.data().role) {
+          role = userDoc.data().role;
         }
+
+        // Temporary override for admin@example.com for initial access
+        if (firebaseUser.email === 'admin@example.com') {
+            role = 'admin';
+        }
+
+        setUser({ ...firebaseUser, role });
+
       } else {
         setUser(null);
       }
