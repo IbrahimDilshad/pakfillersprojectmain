@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { Send, Trash2, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface ChatViewProps {
   session: ChatSession;
@@ -25,6 +27,13 @@ interface ChatViewProps {
 function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatViewProps) {
   const { t } = useLanguage();
   const [message, setMessage] = useState('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (message.trim()) {
@@ -54,19 +63,19 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t({en: "Are you absolutely sure?", ur: "کیا آپ بالکل یقینی ہیں؟"})}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete this chat history. This action cannot be undone.
+                           {t({en: "This will permanently delete this chat history. This action cannot be undone.", ur: "یہ اس چیٹ کی سرگزشت کو مستقل طور پر حذف کر دے گا۔ یہ عمل واپس نہیں کیا جا سکتا۔"})}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDelete}>Continue</AlertDialogAction>
+                        <AlertDialogCancel>{t({en: "Cancel", ur: "منسوخ"})}</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDelete}>{t({en: "Continue", ur: "جاری"})}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </CardHeader>
-        <CardContent className="flex-1 p-4 overflow-y-auto">
+        <CardContent ref={scrollAreaRef} className="flex-1 p-4 overflow-y-auto">
              <div className="space-y-4">
                 {messages?.map((msg: Message) => (
                     <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'support' ? 'justify-end' : 'justify-start'}`}>
@@ -78,6 +87,11 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
                         <div className={`max-w-[75%] p-3 rounded-lg ${msg.from === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                             <p className="text-sm">{msg.text}</p>
                         </div>
+                         {msg.from === 'support' && (
+                           <Avatar className="w-8 h-8">
+                                <AvatarFallback>A</AvatarFallback>
+                            </Avatar>
+                        )}
                     </div>
                 ))}
              </div>
@@ -106,21 +120,30 @@ export default function AdminChatPage() {
   const { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead } = useChat(user?.uid, user?.role);
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
 
+  // Effect to set the current session for fetching messages
   useEffect(() => {
     if (selectedSession) {
         setCurrentSessionId(selectedSession.id);
-        if(!selectedSession.isReadByAdmin) {
-            markSessionAsRead(selectedSession.id);
-        }
     } else {
         setCurrentSessionId(null);
     }
-  }, [selectedSession, setCurrentSessionId, markSessionAsRead]);
+  }, [selectedSession, setCurrentSessionId]);
+
+  // Effect to mark a session as read when it's opened
+  useEffect(() => {
+    if (selectedSession && !selectedSession.isReadByAdmin) {
+        markSessionAsRead(selectedSession.id);
+    }
+  }, [selectedSession, markSessionAsRead]);
   
   const handleSendMessage = (text: string) => {
     if (selectedSession && user) {
-        // When admin sends, the `from` is 'support'
-        sendMessage(selectedSession.id, text, user.uid, 'support');
+        sendMessage({
+            sessionId: selectedSession.id, 
+            text, 
+            senderId: user.uid, 
+            from: 'support'
+        });
     }
   };
 
@@ -139,7 +162,19 @@ export default function AdminChatPage() {
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[70vh]">
-            {loading && <p className="p-4">{t({ en: "Loading chats...", ur: "چیٹس لوڈ ہو رہی ہیں..." })}</p>}
+            {loading && (
+                 <div className="p-4 space-y-4">
+                    {Array.from({length: 5}).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
+                        </div>
+                    ))}
+                 </div>
+            )}
             {!loading && sessions.length === 0 && <p className="p-4 text-muted-foreground">{t({ en: "No active chats.", ur: "کوئی فعال چیٹس نہیں ہیں۔" })}</p>}
             {sessions.map(session => (
               <div 
@@ -153,7 +188,7 @@ export default function AdminChatPage() {
                  {!session.isReadByAdmin && (
                     <div className="w-2.5 h-2.5 bg-primary rounded-full" />
                 )}
-                <Avatar className={cn("flex-shrink-0", !session.isReadByAdmin && "-ml-2.5")}>
+                <Avatar className={cn("flex-shrink-0", session.isReadByAdmin ? "" : "ml-0")}>
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
@@ -172,7 +207,7 @@ export default function AdminChatPage() {
 
   return (
         <div className="grid md:grid-cols-3 gap-6">
-            <div className={selectedSession ? "hidden md:block" : ""}>
+            <div className={cn("md:block", selectedSession && "hidden")}>
                 <ChatList />
             </div>
             <div className={`md:col-span-2 ${!selectedSession ? 'hidden md:block' : ''}`}>

@@ -11,13 +11,10 @@ import {
   addDoc,
   serverTimestamp,
   doc,
-  setDoc,
-  deleteDoc,
   writeBatch,
   getDocs,
+  deleteDoc,
   updateDoc,
-  getDoc,
-  collectionGroup,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -36,6 +33,15 @@ export interface ChatSession {
   lastMessage: string;
   lastMessageTimestamp: any;
   isReadByAdmin: boolean;
+}
+
+interface SendMessagePayload {
+    sessionId: string;
+    text: string;
+    senderId: string;
+    from: 'user' | 'support';
+    userName?: string;
+    userEmail?: string;
 }
 
 export function useChat(userId: string | undefined, userRole: Role | undefined) {
@@ -78,8 +84,8 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         listenerId = userId;
     } else if (userRole === 'admin' && currentSessionId) {
         listenerId = currentSessionId;
-    } else if (userRole === 'admin' && !currentSessionId) {
-        // If admin hasn't selected a chat, don't listen to any messages yet.
+    } else {
+        // Don't listen to any messages if no session is active
         return;
     }
 
@@ -108,45 +114,43 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     };
   }, [userId, userRole, currentSessionId]);
   
-  const sendMessage = useCallback(async (
-    sessionId: string, 
-    text: string, 
-    senderId: string, 
-    from: 'user' | 'support',
-    userName?: string,
-    userEmail?: string
-  ) => {
+  const sendMessage = useCallback(async (payload: SendMessagePayload) => {
+    const { sessionId, text, senderId, from, userName, userEmail } = payload;
     if (!text.trim() || !senderId) return;
 
     try {
         const sessionRef = doc(db, 'chats', sessionId);
-        const messageData = {
-          text,
-          timestamp: serverTimestamp(),
-          senderId,
-          from,
-        };
-        
-        const batch = writeBatch(db);
-        
-        const messagesRef = doc(collection(db, 'chats', sessionId, 'messages'));
-        batch.set(messagesRef, messageData);
+        const messagesColRef = collection(db, 'chats', sessionId, 'messages');
+        const newMessageRef = doc(messagesColRef);
 
+        const batch = writeBatch(db);
+
+        // 1. Add the new message to the messages subcollection
+        batch.set(newMessageRef, {
+            text,
+            timestamp: serverTimestamp(),
+            senderId,
+            from,
+        });
+
+        // 2. Update the parent chat session document
         const sessionUpdateData: any = {
             lastMessage: text,
             lastMessageTimestamp: serverTimestamp(),
         };
-        
+
         if (from === 'user') {
+            // If the user sends a message, it's unread for the admin.
             sessionUpdateData.isReadByAdmin = false;
+            // Also update user info in case it's the first message
             sessionUpdateData.userName = userName;
             sessionUpdateData.userEmail = userEmail;
-            // Use merge to create the doc if it doesn't exist, and update if it does.
-            // This is crucial for the very first message from a user.
+            // Use `merge: true` to create the document if it doesn't exist, or update it if it does.
             batch.set(sessionRef, sessionUpdateData, { merge: true });
         } else { // from 'support'
+            // If admin sends, it's considered "read" by admin.
             sessionUpdateData.isReadByAdmin = true;
-            // Admins only update existing sessions, they don't create them.
+            // Admins only update existing sessions.
             batch.update(sessionRef, sessionUpdateData);
         }
 
@@ -160,6 +164,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const deleteChat = useCallback(async (sessionId: string) => {
      if (userRole !== 'admin') return;
      try {
+        // Delete all messages in the subcollection first
         const messagesCollection = collection(db, 'chats', sessionId, 'messages');
         const messagesSnapshot = await getDocs(messagesCollection);
         const batch = writeBatch(db);
@@ -168,8 +173,10 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         });
         await batch.commit();
 
+        // Delete the main chat document
         await deleteDoc(doc(db, 'chats', sessionId));
 
+        // Clean up local state
         setMessages(prev => {
             const newMessages = {...prev};
             delete newMessages[sessionId];

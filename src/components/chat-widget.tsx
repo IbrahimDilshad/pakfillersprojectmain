@@ -5,10 +5,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, X, Send } from 'lucide-react';
+import { MessageSquare, X, Send, Bot } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useAuth } from '@/context/auth-context';
 import { useChat } from '@/hooks/useChat';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,15 +42,14 @@ export function ChatWidget() {
 
   const handleSendMessage = () => {
     if (inputValue.trim() && user) {
-      // When a user sends a message, their UID is the session ID.
-      sendMessage(
-        user.uid, 
-        inputValue, 
-        user.uid, 
-        'user', 
-        user.displayName || 'Anonymous', 
-        user.email || 'no-email'
-      );
+      sendMessage({
+        sessionId: user.uid, 
+        text: inputValue, 
+        senderId: user.uid, 
+        from: 'user', 
+        userName: user.displayName || 'Anonymous User', 
+        userEmail: user.email || 'no-email@example.com'
+      });
       setInputValue('');
     }
   };
@@ -74,13 +74,15 @@ export function ChatWidget() {
             <div className="space-y-4">
               {chatMessages.length === 0 && (
                 <div className="text-center text-sm text-muted-foreground p-4">
-                  {t({ en: 'Hello! How can I help you today?', ur: 'ہیلو! میں آج آپ کی کیسے مدد کر سکتا ہوں؟' })}
+                  {t({ en: 'Hello! How can we help you today?', ur: 'ہیلو! ہم آج آپ کی کیسے مدد کر سکتے ہیں؟' })}
                 </div>
               )}
               {chatMessages.map((msg) => (
                 <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.from === 'support' && (
-                     <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">P</div>
+                     <Avatar className="w-8 h-8">
+                        <AvatarFallback>A</AvatarFallback>
+                    </Avatar>
                   )}
                   <div className={`max-w-[75%] p-3 rounded-lg ${msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                     <p className="text-sm">{msg.text}</p>
