@@ -45,7 +45,7 @@ export function ChatWidget() {
         sessionId: user.uid, // User's own UID is their session ID
         text: inputValue, 
         senderId: user.uid, 
-        from: 'user', 
+        from: user.role === 'admin' ? 'support' : 'user', 
         userName: user.displayName || 'Anonymous User', 
         userEmail: user.email || 'no-email@example.com'
       });
@@ -53,9 +53,7 @@ export function ChatWidget() {
     }
   };
   
-  // This is the definitive visibility logic.
-  // Show the widget ONLY if a user is logged in AND their role is 'user'.
-  if (!user || user.role !== 'user') {
+  if (!user) {
     return null;
   }
 
