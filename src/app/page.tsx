@@ -11,11 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowRight, ArrowUp, ArrowDown, MoveRight, Phone, Mail, MapPin, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { ArrowRight, ArrowUp, ArrowDown, MoveRight, Phone, Mail, MapPin, Twitter, Facebook, Linkedin, Instagram, PlayCircle, BookOpen } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { IncomeTaxCalculator } from '@/components/income-tax-calculator';
+import { useVideos } from '@/hooks/useVideos';
+import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const products = [
   { title: "NTN Registration", description: "Get your National Tax Number registered hassle-free.", buttonText: "Register Now" },
@@ -40,6 +43,8 @@ const testimonials = [
 
 export default function LandingPage() {
     const { t } = useLanguage();
+    const { videos, loading: videosLoading } = useVideos();
+    const { posts, loading: postsLoading } = useBlogPosts();
 
     return (
         <div className="bg-background text-foreground">
@@ -210,56 +215,95 @@ export default function LandingPage() {
                 
                 {/* Featured Videos & Blogs */}
                  <section className="bg-muted py-16 md:py-24">
-                    <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16">
-                        <div>
-                             <h2 className="text-3xl font-bold mb-8">Featured Videos</h2>
-                             <div className="space-y-4">
-                                 {/* In a real app, this would be fetched from a CMS */}
-                                <Card>
-                                    <CardContent className="p-4 flex gap-4 items-center">
-                                        <Image src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" width={120} height={90} alt="Video thumbnail" className="rounded-md" />
-                                        <div>
-                                            <h4 className="font-semibold">How to File Your Taxes: A Beginner's Guide</h4>
-                                            <p className="text-sm text-muted-foreground">Learn the basics of tax filing in Pakistan.</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                 <Card>
-                                    <CardContent className="p-4 flex gap-4 items-center">
-                                        <Image src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" width={120} height={90} alt="Video thumbnail" className="rounded-md" />
-                                        <div>
-                                            <h4 className="font-semibold">Understanding NTN Registration</h4>
-                                            <p className="text-sm text-muted-foreground">Everything you need to know about getting your NTN.</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                             </div>
-                        </div>
-                         <div>
-                             <h2 className="text-3xl font-bold mb-8">Latest From Our Blog</h2>
-                              <div className="space-y-4">
-                                {/* In a real app, this would be fetched from a CMS */}
-                                <Card>
-                                    <CardContent className="p-4 flex gap-4 items-center">
-                                         <Image src="https://placehold.co/120x90.png" width={120} height={90} alt="Blog post thumbnail" className="rounded-md" data-ai-hint="tax documents"/>
-                                        <div>
-                                            <h4 className="font-semibold">Top 5 Tax-Saving Tips for Salaried Individuals</h4>
-                                            <p className="text-sm text-muted-foreground">Maximize your savings with these expert tips.</p>
-                                            <Link href="#" className="text-sm text-primary font-semibold mt-1">Read More <MoveRight className="inline-block h-4 w-4" /></Link>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                 <Card>
-                                    <CardContent className="p-4 flex gap-4 items-center">
-                                         <Image src="https://placehold.co/120x90.png" width={120} height={90} alt="Blog post thumbnail" className="rounded-md" data-ai-hint="business meeting" />
-                                        <div>
-                                            <h4 className="font-semibold">Why Your Business Needs to be Incorporated</h4>
-                                            <p className="text-sm text-muted-foreground">The benefits of registering your business as a company.</p>
-                                            <Link href="#" className="text-sm text-primary font-semibold mt-1">Read More <MoveRight className="inline-block h-4 w-4" /></Link>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                             </div>
+                    <div className="container mx-auto px-6">
+                        <div className="grid lg:grid-cols-2 gap-16">
+                            <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                                    <PlayCircle className="h-7 w-7 text-primary" />
+                                    {t({ en: "Featured Videos", ur: "نمایاں ویڈیوز" })}
+                                    </h2>
+                                    <Link href="/videos">
+                                        <Button variant="outline">
+                                        {t({ en: "View More", ur: "مزید دیکھیں" })}
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {videosLoading ? (
+                                        Array.from({ length: 4 }).map((_, index) => (
+                                            <Card key={index}>
+                                            <Skeleton className="w-full aspect-video rounded-t-md" />
+                                            <CardHeader className="p-4">
+                                                <Skeleton className="h-5 w-3/4" />
+                                            </CardHeader>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                    videos.slice(0, 8).map((video) => {
+                                        const videoId = video.src.split('embed/')[1];
+                                        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+                                        return (
+                                            <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow text-sm">
+                                                <div className="aspect-video">
+                                                   <Image src={thumbnailUrl} alt={t(video.title)} width={300} height={225} className="w-full h-full object-cover" />
+                                                </div>
+                                                <CardHeader className="p-4">
+                                                    <CardTitle className="text-base line-clamp-2">{t(video.title)}</CardTitle>
+                                                </CardHeader>
+                                            </Card>
+                                        );
+                                    })
+                                    )}
+                                </div>
+                            </div>
+                             <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                                    <BookOpen className="h-7 w-7 text-primary" />
+                                    {t({ en: "Latest From Our Blog", ur: "ہمارے بلاگ سے تازہ ترین" })}
+                                    </h2>
+                                    <Link href="/blog">
+                                        <Button variant="outline">
+                                        {t({ en: "View More", ur: "مزید دیکھیں" })}
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {postsLoading ? (
+                                    Array.from({ length: 4 }).map((_, index) => (
+                                        <Card key={index}>
+                                            <Skeleton className="w-full h-32" />
+                                            <CardHeader className="p-4">
+                                                <Skeleton className="h-5 w-3/4" />
+                                            </CardHeader>
+                                             <CardContent className="p-4 pt-0">
+                                                 <Skeleton className="h-4 w-24" />
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                    ) : (
+                                    posts.slice(0, 8).map((post) => (
+                                    <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow text-sm">
+                                        <Link href={post.href || '#'}>
+                                            <Image src={post.image} alt={t(post.title)} width={300} height={200} className="w-full h-32 object-cover" data-ai-hint={post.hint} />
+                                            <CardHeader className="p-4">
+                                                <CardTitle className="text-base line-clamp-2">{t(post.title)}</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-4 pt-0">
+                                                 <Button variant="link" className="p-0 text-xs">
+                                                    {t({ en: "Read More", ur: "مزید پڑھیں" })}
+                                                    <ArrowRight className="ml-2 h-3 w-3" />
+                                                </Button>
+                                            </CardContent>
+                                        </Link>
+                                    </Card>
+                                    ))
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
