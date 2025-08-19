@@ -1,7 +1,5 @@
-
-
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +11,8 @@ import { useChat, ChatSession, Message } from '@/hooks/useChat';
 import { Send, Trash2, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface ChatViewProps {
   session: ChatSession;
@@ -103,8 +103,19 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
 export default function AdminChatPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { sessions, loading, messages, sendMessage, deleteChat } = useChat(user?.uid, user?.role);
+  const { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead } = useChat(user?.uid, user?.role);
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
+
+  useEffect(() => {
+    if (selectedSession) {
+        setCurrentSessionId(selectedSession.id);
+        if(!selectedSession.isReadByAdmin) {
+            markSessionAsRead(selectedSession.id);
+        }
+    } else {
+        setCurrentSessionId(null);
+    }
+  }, [selectedSession, setCurrentSessionId, markSessionAsRead]);
   
   const handleSendMessage = (text: string) => {
     if (selectedSession && user) {
@@ -130,12 +141,22 @@ export default function AdminChatPage() {
             {loading && <p className="p-4">{t({ en: "Loading chats...", ur: "چیٹس لوڈ ہو رہی ہیں..." })}</p>}
             {!loading && sessions.length === 0 && <p className="p-4 text-muted-foreground">{t({ en: "No active chats.", ur: "کوئی فعال چیٹس نہیں ہیں۔" })}</p>}
             {sessions.map(session => (
-              <div key={session.id} onClick={() => setSelectedSession(session)} className="flex items-center gap-4 p-4 border-b hover:bg-accent cursor-pointer">
-                <Avatar>
+              <div 
+                key={session.id} 
+                onClick={() => setSelectedSession(session)} 
+                className={cn(
+                    "flex items-center gap-4 p-4 border-b hover:bg-accent cursor-pointer",
+                    selectedSession?.id === session.id && "bg-accent/80"
+                )}
+              >
+                 {!session.isReadByAdmin && (
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full" />
+                )}
+                <Avatar className={cn(!session.isReadByAdmin && "-ml-2.5")}>
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
-                  <p className="font-semibold">{session.userName || t({ en: 'Unknown User', ur: 'نامعلوم صارف' })}</p>
+                  <p className={cn("font-semibold", !session.isReadByAdmin && "font-bold")}>{session.userName || t({ en: 'Unknown User', ur: 'نامعلوم صارف' })}</p>
                   <p className="text-sm text-muted-foreground truncate">{session.lastMessage}</p>
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -157,7 +178,7 @@ export default function AdminChatPage() {
                  {selectedSession ? (
                     <ChatView 
                         session={selectedSession}
-                        messages={messages[selectedSession.id]}
+                        messages={messages[selectedSession.id] || []}
                         onSendMessage={handleSendMessage}
                         onDelete={handleDeleteChat}
                         onBack={() => setSelectedSession(null)}

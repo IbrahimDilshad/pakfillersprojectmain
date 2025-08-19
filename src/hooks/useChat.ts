@@ -15,7 +15,7 @@ import {
   deleteDoc,
   writeBatch,
   getDocs,
-  limit,
+  updateDoc,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -40,8 +40,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<{ [key: string]: Message[] }>({});
   const [loading, setLoading] = useState(true);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // For admins, listen to all chat sessions
+  // For admins, listen to all chat sessions to populate the list
   useEffect(() => {
     if (userRole !== 'admin') {
         setLoading(false);
@@ -63,10 +64,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     return () => unsubscribe();
   }, [userRole]);
 
-  // For users, listen to their own chat messages
-  // For admins, listen to messages of all sessions
+  // Listen for messages for the relevant session(s)
   useEffect(() => {
-    const unsubscribes: (() => void)[] = [];
+    let unsubscribe: (() => void) | null = null;
 
     const setupListener = (sessionId: string) => {
         const messagesQuery = query(
@@ -77,23 +77,31 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         return onSnapshot(messagesQuery, (querySnapshot) => {
             const sessionMessages: Message[] = [];
             querySnapshot.forEach((doc) => {
-            sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
+                sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
             });
             setMessages(prev => ({ ...prev, [sessionId]: sessionMessages }));
+        }, (error) => {
+            console.error(`Error fetching messages for session ${sessionId}:`, error);
         });
     };
-
-    if (userRole === 'user' && userId) {
-      unsubscribes.push(setupListener(userId));
-    } else if (userRole === 'admin' && sessions.length > 0) {
-      sessions.forEach(session => {
-        unsubscribes.push(setupListener(session.id));
-      });
-    }
     
-    return () => unsubscribes.forEach(unsub => unsub());
+    // For users, they only ever need to listen to their own chat.
+    if (userRole === 'user' && userId) {
+        unsubscribe = setupListener(userId);
+    } 
+    // For admins, only listen to the currently selected chat.
+    else if (userRole === 'admin' && currentSessionId) {
+        if (!messages[currentSessionId]) { // Fetch only if not already fetched
+            unsubscribe = setupListener(currentSessionId);
+        }
+    }
 
-  }, [userId, userRole, sessions]);
+    return () => {
+        if (unsubscribe) {
+            unsubscribe();
+        }
+    };
+  }, [userId, userRole, currentSessionId, messages]);
   
   const sendMessage = useCallback(async (
     sessionId: string, 
@@ -118,7 +126,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     const sessionUpdateData: Partial<ChatSession> = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'user' ? false : true,
+        isReadByAdmin: from === 'support', // If admin sends, it's read. If user sends, it's unread.
     };
 
     if (from === 'user' && userName && userEmail) {
@@ -147,11 +155,22 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
             const newMessages = {...prev};
             delete newMessages[sessionId];
             return newMessages;
-        })
+        });
      } catch (error) {
         console.error("Error deleting chat:", error);
      }
   }, [userRole]);
 
-  return { sessions, loading, messages, sendMessage, deleteChat };
+  const markSessionAsRead = useCallback(async (sessionId: string) => {
+    if (userRole !== 'admin') return;
+    try {
+        const sessionRef = doc(db, 'chats', sessionId);
+        await updateDoc(sessionRef, { isReadByAdmin: true });
+    } catch (error) {
+        console.error("Error marking session as read:", error);
+    }
+  }, [userRole]);
+
+
+  return { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead };
 }

@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from "react";
 import Link from "next/link"
@@ -8,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLanguage } from "@/context/language-context";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
 
@@ -24,9 +24,21 @@ export default function SignupPage() {
   const handleSignup = async () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, {
+      const user = userCredential.user;
+      
+      // Update the user's profile
+      await updateProfile(user, {
         displayName: fullName,
       });
+
+      // Create a document in the 'users' collection
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: fullName,
+        role: 'user', // Default role
+      });
+
       toast({
         title: "Account Created",
         description: "Your account has been successfully created. Please log in.",

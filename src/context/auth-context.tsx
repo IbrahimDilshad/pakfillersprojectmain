@@ -1,10 +1,10 @@
-
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 
@@ -20,26 +20,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock function to determine user role
-const getRoleFromEmail = (email: string | null): Role => {
-  if (email === 'admin@example.com') {
-    return 'admin';
-  }
-  if (email && email.endsWith('@accountant.com')) {
-    return 'accountant';
-  }
-  return 'user';
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const role = getRoleFromEmail(firebaseUser.email);
+        // Fetch user role from Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        const role = userDoc.exists() ? userDoc.data().role : 'user';
         setUser({ ...firebaseUser, role });
       } else {
         setUser(null);
