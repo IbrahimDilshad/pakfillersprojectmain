@@ -81,17 +81,13 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   useEffect(() => {
     let listenerId: string | null = null;
     
-    // Determine which session to listen to based on role.
     if (userRole === 'admin') {
-      // An admin listens to the currently selected session.
       listenerId = currentSessionId;
     } else if (userId) {
-      // A regular user (or an admin using their own chat widget) always listens to their own chat session.
       listenerId = userId;
     }
 
     if (!listenerId) {
-      // If there's no session to listen to, do nothing.
       return;
     }
 
@@ -110,8 +106,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       console.error(`Error fetching messages for session ${listenerId}:`, error);
     });
 
-    // Cleanup function to unsubscribe from the listener when the component unmounts
-    // or when the listenerId changes.
     return () => {
       unsubscribe();
     };
@@ -127,7 +121,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       
       const batch = writeBatch(db);
 
-      // 1. Add the new message
       const newMessageRef = doc(messagesColRef);
       batch.set(newMessageRef, {
         text,
@@ -136,7 +129,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
-      // 2. Update the parent chat session document
       const sessionUpdateData: any = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
@@ -146,11 +138,8 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         sessionUpdateData.isReadByAdmin = false;
         sessionUpdateData.userName = userName || 'Anonymous';
         sessionUpdateData.userEmail = userEmail || 'no-email';
-        // Use `set` with `merge: true` to create the document if it doesn't exist
-        // or update it if it does. This is robust for the first message and subsequent ones.
         batch.set(sessionRef, sessionUpdateData, { merge: true });
       } else { // from 'support'
-        // For admins, we assume the document exists and just update it.
         sessionUpdateData.isReadByAdmin = true;
         batch.update(sessionRef, sessionUpdateData);
       }
@@ -165,7 +154,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const deleteChat = useCallback(async (sessionId: string) => {
     if (userRole !== 'admin') return;
     try {
-      // Delete all messages in the subcollection first
       const messagesCollection = collection(db, 'chats', sessionId, 'messages');
       const messagesSnapshot = await getDocs(messagesCollection);
       const batch = writeBatch(db);
@@ -174,10 +162,8 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       });
       await batch.commit();
 
-      // Delete the main chat document
       await deleteDoc(doc(db, 'chats', sessionId));
 
-      // Clean up local state
       setMessages(prev => {
         const newMessages = { ...prev };
         delete newMessages[sessionId];
