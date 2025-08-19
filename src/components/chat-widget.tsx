@@ -19,10 +19,18 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  const { messages, sendMessage } = useChat(user?.uid, user?.role);
+  const { messages, sendMessage, setCurrentSessionId } = useChat(user?.uid, user?.role);
   const chatMessages: Message[] = user ? messages[user.uid] || [] : [];
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   
+  useEffect(() => {
+    // When the user opens the chat, set their own session ID in the hook
+    if (user && user.role === 'user') {
+      setCurrentSessionId(user.uid);
+    }
+  }, [user, setCurrentSessionId]);
+
+
   useEffect(() => {
     if (isOpen && scrollAreaViewportRef.current) {
         setTimeout(() => {
