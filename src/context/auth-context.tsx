@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, Dispatch, SetStateAction } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 
-interface AuthUser extends User {
+export interface AuthUser extends User {
   role: Role;
   mobileNumber?: string;
   cnic?: string;
@@ -19,6 +19,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   logout: () => Promise<void>;
+  setUser: Dispatch<SetStateAction<AuthUser | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'user',
             mobileNumber: userData.mobileNumber,
             cnic: userData.cnic,
+            displayName: firebaseUser.displayName, // Ensure display name is synced
           });
         } else {
            // Fallback for users created before Firestore profile storage
@@ -63,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );
