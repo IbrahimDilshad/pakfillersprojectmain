@@ -34,7 +34,10 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
     if (scrollAreaRef.current) {
         setTimeout(() => {
             if(scrollAreaRef.current) {
-                scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+                const scrollableDiv = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+                if (scrollableDiv) {
+                    scrollableDiv.scrollTop = scrollableDiv.scrollHeight;
+                }
             }
         }, 100);
     }
