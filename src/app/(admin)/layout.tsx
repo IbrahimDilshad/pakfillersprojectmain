@@ -42,7 +42,7 @@ function AdminSidebar() {
                          <SidebarMenuItem key={item.href}>
                              <Link href={item.href} className="w-full">
                                 <SidebarMenuButton
-                                    isActive={pathname === item.href}
+                                    isActive={pathname.endsWith(item.href)}
                                 >
                                     <item.icon />
                                     {t(item.label)}
@@ -77,7 +77,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   if (loading || !user || user.role !== 'admin') {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
-            {/* You can add a more sophisticated loader here */}
             <p>Loading...</p>
         </div>
     );

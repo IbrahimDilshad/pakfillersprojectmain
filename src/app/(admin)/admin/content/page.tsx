@@ -20,7 +20,7 @@ import { useFaqs, Faq } from '@/hooks/useFaqs';
 import { useServices, Service } from '@/hooks/useServices';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Pencil, PlusCircle, CreditCard } from 'lucide-react';
+import { Trash2, Pencil, PlusCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 

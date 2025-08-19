@@ -16,6 +16,8 @@ import {
   writeBatch,
   getDocs,
   updateDoc,
+  getDoc,
+  collectionGroup,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
@@ -76,6 +78,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         listenerId = userId;
     } else if (userRole === 'admin' && currentSessionId) {
         listenerId = currentSessionId;
+    } else if (userRole === 'admin' && !currentSessionId) {
+        // If admin hasn't selected a chat, don't listen to any messages yet.
+        return;
     }
 
     if (listenerId) {
@@ -95,6 +100,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         });
     }
 
+    // Cleanup: if listenerId changes, unsubscribe from the old one.
     return () => {
         if (unsubscribe) {
             unsubscribe();
@@ -110,9 +116,10 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     userName?: string,
     userEmail?: string
   ) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !senderId) return;
 
     try {
+        const sessionRef = doc(db, 'chats', sessionId);
         const messageData = {
           text,
           timestamp: serverTimestamp(),
@@ -120,23 +127,30 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
           from,
         };
         
-        await addDoc(collection(db, 'chats', sessionId, 'messages'), messageData);
+        const batch = writeBatch(db);
+        
+        const messagesRef = doc(collection(db, 'chats', sessionId, 'messages'));
+        batch.set(messagesRef, messageData);
 
-        const sessionRef = doc(db, 'chats', sessionId);
         const sessionUpdateData: any = {
             lastMessage: text,
             lastMessageTimestamp: serverTimestamp(),
-            isReadByAdmin: from === 'support', // If admin sends, it's read. If user sends, it's unread.
         };
-
+        
         if (from === 'user') {
-            // Only add user info if it's not already there
+            sessionUpdateData.isReadByAdmin = false;
             sessionUpdateData.userName = userName;
             sessionUpdateData.userEmail = userEmail;
+            // Use merge to create the doc if it doesn't exist, and update if it does.
+            // This is crucial for the very first message from a user.
+            batch.set(sessionRef, sessionUpdateData, { merge: true });
+        } else { // from 'support'
+            sessionUpdateData.isReadByAdmin = true;
+            // Admins only update existing sessions, they don't create them.
+            batch.update(sessionRef, sessionUpdateData);
         }
 
-        // Use set with merge to create the doc if it doesn't exist or update it if it does
-        await setDoc(sessionRef, sessionUpdateData, { merge: true });
+        await batch.commit();
 
     } catch (error) {
         console.error("Error sending message:", error);
