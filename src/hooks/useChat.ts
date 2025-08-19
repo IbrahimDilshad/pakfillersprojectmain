@@ -59,6 +59,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       });
       setSessions(sessionsData);
       setLoading(false);
+    }, (error) => {
+        console.error("Error fetching chat sessions:", error);
+        setLoading(false);
     });
 
     return () => unsubscribe();
@@ -67,33 +70,29 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   // Listen for messages for the relevant session(s)
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
+    let listenerId: string | null = null;
 
-    const setupListener = (sessionId: string) => {
+    if (userRole === 'user' && userId) {
+        listenerId = userId;
+    } else if (userRole === 'admin' && currentSessionId) {
+        listenerId = currentSessionId;
+    }
+
+    if (listenerId) {
         const messagesQuery = query(
-            collection(db, 'chats', sessionId, 'messages'),
+            collection(db, 'chats', listenerId, 'messages'),
             orderBy('timestamp', 'asc')
         );
 
-        return onSnapshot(messagesQuery, (querySnapshot) => {
+        unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
             const sessionMessages: Message[] = [];
             querySnapshot.forEach((doc) => {
                 sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
             });
-            setMessages(prev => ({ ...prev, [sessionId]: sessionMessages }));
+            setMessages(prev => ({ ...prev, [listenerId!]: sessionMessages }));
         }, (error) => {
-            console.error(`Error fetching messages for session ${sessionId}:`, error);
+            console.error(`Error fetching messages for session ${listenerId}:`, error);
         });
-    };
-    
-    // For users, they only ever need to listen to their own chat.
-    if (userRole === 'user' && userId) {
-        unsubscribe = setupListener(userId);
-    } 
-    // For admins, only listen to the currently selected chat.
-    else if (userRole === 'admin' && currentSessionId) {
-        if (!messages[currentSessionId]) { // Fetch only if not already fetched
-            unsubscribe = setupListener(currentSessionId);
-        }
     }
 
     return () => {
@@ -101,7 +100,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
             unsubscribe();
         }
     };
-  }, [userId, userRole, currentSessionId, messages]);
+  }, [userId, userRole, currentSessionId]);
   
   const sendMessage = useCallback(async (
     sessionId: string, 
@@ -113,29 +112,35 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   ) => {
     if (!text.trim()) return;
 
-    const messageData = {
-      text,
-      timestamp: serverTimestamp(),
-      senderId,
-      from,
-    };
-    
-    await addDoc(collection(db, 'chats', sessionId, 'messages'), messageData);
+    try {
+        const messageData = {
+          text,
+          timestamp: serverTimestamp(),
+          senderId,
+          from,
+        };
+        
+        await addDoc(collection(db, 'chats', sessionId, 'messages'), messageData);
 
-    const sessionRef = doc(db, 'chats', sessionId);
-    const sessionUpdateData: Partial<ChatSession> = {
-        lastMessage: text,
-        lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'support', // If admin sends, it's read. If user sends, it's unread.
-    };
+        const sessionRef = doc(db, 'chats', sessionId);
+        const sessionUpdateData: any = {
+            lastMessage: text,
+            lastMessageTimestamp: serverTimestamp(),
+            isReadByAdmin: from === 'support', // If admin sends, it's read. If user sends, it's unread.
+        };
 
-    if (from === 'user' && userName && userEmail) {
-        sessionUpdateData.userName = userName;
-        sessionUpdateData.userEmail = userEmail;
+        if (from === 'user') {
+            // Only add user info if it's not already there
+            sessionUpdateData.userName = userName;
+            sessionUpdateData.userEmail = userEmail;
+        }
+
+        // Use set with merge to create the doc if it doesn't exist or update it if it does
+        await setDoc(sessionRef, sessionUpdateData, { merge: true });
+
+    } catch (error) {
+        console.error("Error sending message:", error);
     }
-
-    await setDoc(sessionRef, sessionUpdateData, { merge: true });
-
   }, []);
 
   const deleteChat = useCallback(async (sessionId: string) => {

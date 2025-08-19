@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -119,6 +120,7 @@ export default function AdminChatPage() {
   
   const handleSendMessage = (text: string) => {
     if (selectedSession && user) {
+        // When admin sends, the `from` is 'support'
         sendMessage(selectedSession.id, text, user.uid, 'support');
     }
   };
@@ -152,14 +154,14 @@ export default function AdminChatPage() {
                  {!session.isReadByAdmin && (
                     <div className="w-2.5 h-2.5 bg-primary rounded-full" />
                 )}
-                <Avatar className={cn(!session.isReadByAdmin && "-ml-2.5")}>
+                <Avatar className={cn("flex-shrink-0", !session.isReadByAdmin && "-ml-2.5")}>
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
                   <p className={cn("font-semibold", !session.isReadByAdmin && "font-bold")}>{session.userName || t({ en: 'Unknown User', ur: 'نامعلوم صارف' })}</p>
                   <p className="text-sm text-muted-foreground truncate">{session.lastMessage}</p>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground flex-shrink-0">
                     {session.lastMessageTimestamp && formatDistanceToNow(session.lastMessageTimestamp.toDate(), { addSuffix: true })}
                 </div>
               </div>

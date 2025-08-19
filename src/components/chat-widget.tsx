@@ -15,6 +15,7 @@ export function ChatWidget() {
   const [inputValue, setInputValue] = useState('');
   const { t } = useLanguage();
   const { user } = useAuth();
+  // We explicitly use the user's UID as the session ID for their chat.
   const { messages, sendMessage } = useChat(user?.uid, user?.role);
   const chatMessages = user ? messages[user.uid] || [] : [];
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,15 @@ export function ChatWidget() {
 
   const handleSendMessage = () => {
     if (inputValue.trim() && user) {
-      sendMessage(user.uid, inputValue, user.uid, 'user', user.displayName || 'Anonymous', user.email || 'no-email');
+      // When a user sends a message, their UID is the session ID.
+      sendMessage(
+        user.uid, 
+        inputValue, 
+        user.uid, 
+        'user', 
+        user.displayName || 'Anonymous', 
+        user.email || 'no-email'
+      );
       setInputValue('');
     }
   };
