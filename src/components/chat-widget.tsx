@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useAuth } from '@/context/auth-context';
-import { useChat } from '@/hooks/useChat';
+import { useChat, Message } from '@/hooks/useChat';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
@@ -19,15 +19,12 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  // For a user, their session ID is always their UID.
-  // The useChat hook is now smart enough to listen to the correct session.
   const { messages, sendMessage } = useChat(user?.uid, user?.role);
-  const chatMessages = user ? messages[user.uid] || [] : [];
+  const chatMessages: Message[] = user ? messages[user.uid] || [] : [];
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (isOpen && scrollAreaViewportRef.current) {
-        // Use a timeout to ensure the DOM has updated before scrolling
         setTimeout(() => {
             if (scrollAreaViewportRef.current) {
                 scrollAreaViewportRef.current.scrollTop = scrollAreaViewportRef.current.scrollHeight;
@@ -44,7 +41,7 @@ export function ChatWidget() {
   const handleSendMessage = () => {
     if (inputValue.trim() && user) {
       sendMessage({
-        sessionId: user.uid, // The user's own chat session
+        sessionId: user.uid,
         text: inputValue, 
         senderId: user.uid, 
         from: 'user', 
@@ -55,7 +52,7 @@ export function ChatWidget() {
     }
   };
 
-  if (!user || user.role === 'admin') return null;
+  if (!user || user.role !== 'user') return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -112,4 +109,3 @@ export function ChatWidget() {
     </div>
   );
 }
-
