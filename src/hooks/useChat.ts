@@ -80,13 +80,14 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   // Effect to listen for messages for the relevant session
   useEffect(() => {
     let listenerId: string | null = null;
-
-    if (userRole === 'user' && userId) {
-      // A regular user always listens to their own chat session.
-      listenerId = userId;
-    } else if (userRole === 'admin' && currentSessionId) {
+    
+    // Determine which session to listen to based on role.
+    if (userRole === 'admin') {
       // An admin listens to the currently selected session.
       listenerId = currentSessionId;
+    } else if (userId) {
+      // A regular user (or an admin using their own chat widget) always listens to their own chat session.
+      listenerId = userId;
     }
 
     if (!listenerId) {

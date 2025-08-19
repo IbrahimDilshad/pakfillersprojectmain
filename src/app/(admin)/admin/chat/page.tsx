@@ -143,6 +143,7 @@ export default function AdminChatPage() {
     if (selectedSession) {
         deleteChat(selectedSession.id);
         setSelectedSession(null);
+        setCurrentSessionId(null);
     }
   };
 
