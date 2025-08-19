@@ -152,7 +152,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
 
       await batch.commit();
 
-    } catch (error) => {
+    } catch (error) {
       console.error("Error sending message:", error);
     }
   }, []);
