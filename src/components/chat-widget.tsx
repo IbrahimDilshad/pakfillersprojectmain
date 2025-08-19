@@ -19,8 +19,7 @@ export function ChatWidget() {
   const { t } = useLanguage();
   const { user } = useAuth();
   
-  // The hook now correctly handles session management internally
-  const { messages, sendMessage } = useChat(user?.uid, 'user');
+  const { messages, sendMessage } = useChat(user?.uid, user?.role);
   const chatMessages: Message[] = user ? messages[user.uid] || [] : [];
   
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
@@ -54,9 +53,9 @@ export function ChatWidget() {
     }
   };
   
-  // This is the corrected visibility logic.
-  // It only shows for logged-in users who are NOT the admin.
-  if (!user || user.email === 'admin@example.com') {
+  // This is the definitive visibility logic.
+  // Show the widget ONLY if a user is logged in AND their role is 'user'.
+  if (!user || user.role !== 'user') {
     return null;
   }
 
