@@ -44,6 +44,8 @@ export default function LandingPage() {
     const { videos, loading: videosLoading } = useVideos();
     const { posts, loading: postsLoading } = useBlogPosts();
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
+    const [showCookieBanner, setShowCookieBanner] = useState(true);
+
 
     const nextTestimonial = () => {
         setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -317,16 +319,17 @@ export default function LandingPage() {
             <LandingFooter />
 
             {/* Cookies Popout */}
-             <Card className="fixed bottom-4 right-4 w-full max-w-md p-4 shadow-2xl z-50">
-                <CardContent className="p-0 flex items-center justify-between gap-4">
-                    <p className="text-sm text-muted-foreground">We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
-                    <Button>Accept</Button>
-                </CardContent>
-             </Card>
+             {showCookieBanner && (
+                <Card className="fixed bottom-4 right-4 w-full max-w-md p-4 shadow-2xl z-50 animate-in slide-in-from-bottom-10">
+                    <CardContent className="p-0 flex items-center justify-between gap-4">
+                        <p className="text-sm text-muted-foreground">We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+                        <Button onClick={() => setShowCookieBanner(false)}>Accept</Button>
+                    </CardContent>
+                </Card>
+             )}
              
              <ChatWidget />
         </div>
     );
 }
 
-    
