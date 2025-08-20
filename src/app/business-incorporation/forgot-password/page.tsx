@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useServices } from '@/hooks/useServices';
+import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
@@ -20,9 +21,10 @@ export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { services } = useServices();
+  const serviceName = 'password recovery';
 
   const handleContinue = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes('password recovery'));
+    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
     if (service) {
         addItem({
             id: service.id,
@@ -78,6 +80,9 @@ export default function ForgotPasswordPage() {
             </Alert>
           </CardContent>
         </Card>
+         <div className="flex justify-between items-center mt-6">
+            <ServicePricingDisplay serviceTitle={serviceName} />
+        </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}

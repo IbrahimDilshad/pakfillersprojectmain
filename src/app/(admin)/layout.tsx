@@ -10,16 +10,17 @@ import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { UserNav } from '@/components/user-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart, DollarSign } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 
 
 const adminNavItems = [
   { href: '/admin/orders', label: { en: 'Orders', ur: 'آرڈرز' }, icon: ShoppingCart },
-  { href: '/admin', label: { en: 'User Management', ur: 'صارف کا انتظام' }, icon: Users },
-  { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart },
   { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: LayoutDashboard },
+  { href: '/admin/pricing', label: { en: 'Pricing', ur: 'قیمت' }, icon: DollarSign },
   { href: '/admin/chat', label: { en: 'Support Chat', ur: 'سپورٹ چیٹ' }, icon: Bot },
+  { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart },
+  { href: '/admin', label: { en: 'User Management', ur: 'صارف کا انتظام' }, icon: Users },
   { href: '/admin/config', label: { en: 'Configuration', ur: 'کنفیگریشن' }, icon: Settings },
 ];
 
@@ -43,7 +44,7 @@ function AdminSidebar() {
                          <SidebarMenuItem key={item.href}>
                              <Link href={item.href} className="w-full">
                                 <SidebarMenuButton
-                                    isActive={pathname.endsWith(item.href)}
+                                    isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
                                 >
                                     <item.icon />
                                     {t(item.label)}

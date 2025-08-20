@@ -11,6 +11,7 @@ import { Download, File as FileIcon, Trash2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/cart-context';
 import { useServices } from '@/hooks/useServices';
+import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 interface UploadedFile {
   id: string;
@@ -36,6 +37,7 @@ export default function AopPartnershipDocumentsPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const { addItem } = useCart();
   const { services } = useServices();
+  const serviceName = 'aop/partnership';
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -74,7 +76,7 @@ export default function AopPartnershipDocumentsPage() {
   };
 
   const handleSubmit = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes('aop/partnership'));
+    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
      if (service) {
         addItem({
             id: service.id,
@@ -152,6 +154,9 @@ export default function AopPartnershipDocumentsPage() {
             )}
           </CardContent>
         </Card>
+        <div className="flex justify-between items-center mt-6">
+            <ServicePricingDisplay serviceTitle={serviceName} />
+        </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}

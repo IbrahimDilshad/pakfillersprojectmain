@@ -18,6 +18,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
 import { useServices } from '@/hooks/useServices';
+import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function RemoveBusinessFromNtnPage() {
   const { t } = useLanguage();
@@ -26,9 +27,10 @@ export default function RemoveBusinessFromNtnPage() {
   const [date, setDate] = useState<Date>();
   const { addItem } = useCart();
   const { services } = useServices();
+  const serviceName = 'remove business from ntn';
 
   const handleContinue = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes('remove business from ntn'));
+    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
     if (service) {
         addItem({
             id: service.id,
@@ -124,6 +126,9 @@ export default function RemoveBusinessFromNtnPage() {
             </form>
           </CardContent>
         </Card>
+        <div className="flex justify-between items-center mt-6">
+            <ServicePricingDisplay serviceTitle={serviceName} />
+        </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}

@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import { useServices } from '@/hooks/useServices';
+import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function IrisEmployerInfoPage() {
   const { t } = useLanguage();
@@ -18,9 +19,10 @@ export default function IrisEmployerInfoPage() {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { services } = useServices();
+  const serviceName = 'iris profile update';
 
   const handleSubmit = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes('iris profile update'));
+    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
     if (service) {
         addItem({
             id: service.id,
@@ -68,6 +70,9 @@ export default function IrisEmployerInfoPage() {
             </form>
           </CardContent>
         </Card>
+        <div className="flex justify-between items-center mt-6">
+            <ServicePricingDisplay serviceTitle={serviceName} />
+        </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}
