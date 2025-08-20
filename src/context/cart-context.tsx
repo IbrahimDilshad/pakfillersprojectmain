@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Language } from './language-context';
+import { useAuth } from './auth-context';
 
 export interface CartItem {
     id: string; // Unique ID for the cart item instance
@@ -22,19 +23,29 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>(() => {
-        if (typeof window === 'undefined') return [];
-        const savedCart = localStorage.getItem('pakfiler-cart');
-        return savedCart ? JSON.parse(savedCart) : [];
-    });
+    const [items, setItems] = useState<CartItem[]>([]);
+    const { activeUser } = useAuth();
+    const cartId = `pakfiler-cart-${activeUser?.uid || 'guest'}`;
 
     useEffect(() => {
-        localStorage.setItem('pakfiler-cart', JSON.stringify(items));
-    }, [items]);
+        if (typeof window !== 'undefined' && activeUser) {
+            const savedCart = localStorage.getItem(cartId);
+            setItems(savedCart ? JSON.parse(savedCart) : []);
+        } else {
+            setItems([]);
+        }
+    }, [activeUser, cartId]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && activeUser) {
+             localStorage.setItem(cartId, JSON.stringify(items));
+        }
+    }, [items, activeUser, cartId]);
 
     const addItem = (service: { id: string, name: { [key in Language]: string }, price: number, serviceId: string }) => {
+        if (!activeUser) return;
         const newItem: CartItem = {
-            id: `${service.id}-${Date.now()}`, // Create a unique ID for this cart instance
+            id: `${service.id}-${Date.now()}`,
             serviceId: service.id,
             name: service.name,
             price: service.price,
@@ -43,10 +54,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     const removeItem = (itemId: string) => {
+         if (!activeUser) return;
         setItems(prevItems => prevItems.filter(item => item.id !== itemId));
     };
 
     const clearCart = () => {
+         if (!activeUser) return;
         setItems([]);
     };
     

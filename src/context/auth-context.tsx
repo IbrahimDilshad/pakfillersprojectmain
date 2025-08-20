@@ -5,7 +5,7 @@ import { createContext, useContext, useState, ReactNode, useEffect, Dispatch, Se
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 type AccountType = 'family' | 'business';
@@ -20,19 +20,25 @@ export interface AuthUser extends User {
   accountType?: AccountType;
   relation?: Relation;
   legalStructure?: LegalStructure;
+  isSubAccount?: boolean;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
+  activeUser: AuthUser | null; // The currently selected profile
+  subAccounts: AuthUser[];
   loading: boolean;
   logout: () => Promise<void>;
   setUser: Dispatch<SetStateAction<AuthUser | null>>;
+  setActiveUser: Dispatch<SetStateAction<AuthUser | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [activeUser, setActiveUser] = useState<AuthUser | null>(null);
+  const [subAccounts, setSubAccounts] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -44,23 +50,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUser({
+          const mainUser = {
             ...firebaseUser,
+            ...userData,
             role: userData.role || 'user',
-            mobileNumber: userData.mobileNumber,
-            cnic: userData.cnic,
-            displayName: firebaseUser.displayName, // Ensure display name is synced
-            accountType: userData.accountType,
-            relation: userData.relation,
-            legalStructure: userData.legalStructure,
-          });
+            displayName: firebaseUser.displayName,
+          } as AuthUser;
+          setUser(mainUser);
+          setActiveUser(mainUser); // Initially, the active user is the main user
         } else {
-           // Fallback for users created before Firestore profile storage
            const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
-           setUser({ ...firebaseUser, role });
+           const mainUser = { ...firebaseUser, role } as AuthUser;
+           setUser(mainUser);
+           setActiveUser(mainUser);
         }
       } else {
         setUser(null);
+        setActiveUser(null);
+        setSubAccounts([]);
       }
       setLoading(false);
     });
@@ -68,14 +75,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  // Effect to listen for sub-account changes
+  useEffect(() => {
+    if (user?.uid) {
+      const subAccountsCollectionRef = collection(db, `users/${user.uid}/subAccounts`);
+      const unsubscribe = onSnapshot(subAccountsCollectionRef, (snapshot) => {
+        const accounts = snapshot.docs.map(doc => ({
+          ...doc.data(),
+          uid: doc.id, // The doc id is the uid for the sub-account
+          isSubAccount: true,
+        } as AuthUser));
+        setSubAccounts(accounts);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user?.uid]);
+
   const logout = async () => {
     await firebaseSignOut(auth);
     setUser(null);
+    setActiveUser(null);
+    setSubAccounts([]);
     router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
+    <AuthContext.Provider value={{ user, activeUser, subAccounts, loading, logout, setUser, setActiveUser }}>
       {children}
     </AuthContext.Provider>
   );

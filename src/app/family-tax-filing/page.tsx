@@ -1,15 +1,15 @@
 
 'use client';
 import { AppLayout } from "@/components/app-layout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/context/language-context";
 import { Settings, User, Building, BadgeCheck } from "lucide-react";
 import { ManageAccounts } from "@/components/manage-accounts";
-import { useAuth } from "@/context/auth-context";
+import { useAuth, AuthUser } from "@/context/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PersonalInfoTab } from "@/components/personal-info-tab";
+import { Card, CardContent } from "@/components/ui/card";
 
 const PlaceholderContent = ({ title, description }: { title: string, description: string }) => (
     <div className="p-8 text-center text-muted-foreground">
@@ -21,38 +21,42 @@ const PlaceholderContent = ({ title, description }: { title: string, description
 
 function AccountsTabContent() {
     const { t } = useLanguage();
-    const { user } = useAuth();
+    const { user, subAccounts } = useAuth();
     
-    // In a real app, this array would be populated from Firestore or a state management solution
-    const linkedAccounts: any[] = [];
+    const allAccounts: AuthUser[] = user ? [user, ...subAccounts] : [...subAccounts];
 
     return (
         <div className="p-6">
             <h3 className="text-lg font-medium mb-4">{t({ en: "Your Accounts", ur: "آپ کے اکاؤنٹس" })}</h3>
             <div className="grid gap-4">
-                 {/* Parent Account */}
-                {user && (
-                    <Card className="flex items-center p-4 gap-4">
+                 {allAccounts.map(account => (
+                     <Card key={account.uid} className="flex items-center p-4 gap-4">
                         <Avatar className="h-12 w-12">
-                            <AvatarFallback>{user.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{account.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <h4 className="font-semibold">{user.displayName}</h4>
-                                <Badge variant="secondary" className="flex items-center gap-1">
-                                    <BadgeCheck className="h-3.5 w-3.5 text-primary"/>
-                                    {t({ en: "Primary", ur: "بنیادی" })}
-                                </Badge>
+                                <h4 className="font-semibold">{account.displayName}</h4>
+                                {!account.isSubAccount && (
+                                    <Badge variant="secondary" className="flex items-center gap-1">
+                                        <BadgeCheck className="h-3.5 w-3.5 text-primary"/>
+                                        {t({ en: "Primary", ur: "بنیادی" })}
+                                    </Badge>
+                                )}
+                                {account.accountType && (
+                                     <Badge variant="outline">
+                                        {t({ en: account.accountType, ur: account.accountType === 'family' ? 'فیملی' : 'کاروبار' })}
+                                     </Badge>
+                                )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <p className="text-sm text-muted-foreground">{account.email}</p>
                         </div>
                     </Card>
-                )}
+                 ))}
 
-                {/* Linked Accounts will be mapped here from state */}
-                {linkedAccounts.length === 0 && !user && (
+                {allAccounts.length === 0 && (
                      <div className="text-center text-muted-foreground py-8">
-                        <p>{t({ en: "No linked accounts found.", ur: "کوئی منسلک اکاؤنٹس نہیں ملے۔" })}</p>
+                        <p>{t({ en: "No accounts found.", ur: "کوئی اکاؤنٹس نہیں ملے۔" })}</p>
                     </div>
                 )}
             </div>

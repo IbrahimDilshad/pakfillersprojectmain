@@ -12,14 +12,24 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
-import { CreditCard, LogOut, Settings, User } from "lucide-react"
+import { CreditCard, LogOut, Settings, User, Check, Users } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { useAuth } from "@/context/auth-context"
 
 export function UserNav() {
   const { t } = useLanguage();
-  const { user, logout } = useAuth();
+  const { user, subAccounts, activeUser, setActiveUser, logout } = useAuth();
+  
+  if (!user || !activeUser) return null;
+
+  const handleSwitchAccount = (user: any) => {
+    setActiveUser(user);
+  };
   
   return (
     <DropdownMenu>
@@ -27,25 +37,25 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage src="https://placehold.co/40x40.png" alt="@user" data-ai-hint="user avatar" />
-            <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+            <AvatarFallback>{activeUser?.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.displayName || 'User'}</p>
+            <p className="text-sm font-medium leading-none">{activeUser.displayName || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || 'user@example.com'}
+              {activeUser.email || 'user@example.com'}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            <Link href="/profile" className="flex items-center w-full">
+            <Link href="/family-tax-filing" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
-              <span>{t({ en: "Profile", ur: "پروفائل" })}</span>
+              <span>{t({ en: "Profile Settings", ur: "پروفائل کی ترتیبات" })}</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
@@ -54,10 +64,29 @@ export function UserNav() {
                 <span>{t({ en: "Billing", ur: "بلنگ" })}</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>{t({ en: "Settings", ur: "ترتیبات" })}</span>
-          </DropdownMenuItem>
+           <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Users className="mr-2 h-4 w-4" />
+              <span>{t({en: "Switch Account", ur: "اکاؤنٹ تبدیل کریں"})}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => handleSwitchAccount(user)}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{user.displayName} (Primary)</span>
+                   {activeUser.uid === user.uid && <Check className="ml-auto h-4 w-4" />}
+                </DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                {subAccounts.map(sub => (
+                   <DropdownMenuItem key={sub.uid} onClick={() => handleSwitchAccount(sub)}>
+                     <Users className="mr-2 h-4 w-4" />
+                    <span>{sub.displayName}</span>
+                    {activeUser.uid === sub.uid && <Check className="ml-auto h-4 w-4" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout}>

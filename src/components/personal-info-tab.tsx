@@ -16,54 +16,68 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export function PersonalInfoTab() {
     const { t } = useLanguage();
-    const { user, setUser } = useAuth();
+    const { user, activeUser, setUser, setActiveUser } = useAuth();
     const { toast } = useToast();
 
-    const [displayName, setDisplayName] = useState(user?.displayName || '');
-    const [email, setEmail] = useState(user?.email || '');
-    const [cnic, setCnic] = useState(user?.cnic || '');
-    const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || '');
-    const [relation, setRelation] = useState(user?.relation || '');
-    const [legalStructure, setLegalStructure] = useState(user?.legalStructure || '');
+    const [displayName, setDisplayName] = useState(activeUser?.displayName || '');
+    const [email, setEmail] = useState(activeUser?.email || '');
+    const [cnic, setCnic] = useState(activeUser?.cnic || '');
+    const [mobileNumber, setMobileNumber] = useState(activeUser?.mobileNumber || '');
+    const [relation, setRelation] = useState(activeUser?.relation || '');
+    const [legalStructure, setLegalStructure] = useState(activeUser?.legalStructure || '');
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setDisplayName(user.displayName || '');
-            setEmail(user.email || '');
-            setCnic(user.cnic || '');
-            setMobileNumber(user.mobileNumber || '');
-            setRelation(user.relation || '');
-            setLegalStructure(user.legalStructure || '');
+        if (activeUser) {
+            setDisplayName(activeUser.displayName || '');
+            setEmail(activeUser.email || '');
+            setCnic(activeUser.cnic || '');
+            setMobileNumber(activeUser.mobileNumber || '');
+            setRelation(activeUser.relation || '');
+            setLegalStructure(activeUser.legalStructure || '');
         }
-    }, [user]);
+    }, [activeUser]);
 
     const handleSaveChanges = async () => {
-        if (!user) return;
+        if (!user || !activeUser) return;
         setIsSaving(true);
+        
         try {
-            const userDocRef = doc(db, "users", user.uid);
+            let userDocRef;
+            if (activeUser.isSubAccount) {
+                userDocRef = doc(db, `users/${user.uid}/subAccounts`, activeUser.uid);
+            } else {
+                userDocRef = doc(db, "users", activeUser.uid);
+            }
+
             const updatedData: any = {
                 displayName,
                 cnic,
                 mobileNumber,
+                email, // assuming email can be edited for sub-accounts but not main
             };
 
-            if (user.accountType === 'family') {
+            if (activeUser?.accountType === 'family') {
                 updatedData.relation = relation;
             }
-            if (user.accountType === 'business') {
+            if (activeUser?.accountType === 'business') {
                 updatedData.legalStructure = legalStructure;
             }
             
             await updateDoc(userDocRef, updatedData);
             
-            if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+            if (!activeUser.isSubAccount && auth.currentUser && auth.currentUser.displayName !== displayName) {
                  await updateProfile(auth.currentUser, { displayName });
             }
 
-            // Update local context state
-            setUser(prevUser => prevUser ? { ...prevUser, ...updatedData } : null);
+            const finalUpdatedUser = { ...activeUser, ...updatedData };
+            setActiveUser(finalUpdatedUser);
+
+            if(activeUser.isSubAccount) {
+                // To-Do: update subAccounts array in context
+            } else {
+                setUser(finalUpdatedUser);
+            }
 
             toast({
                 title: t({ en: "Profile Updated", ur: "پروفائل اپ ڈیٹ ہو گیا" }),
@@ -81,8 +95,6 @@ export function PersonalInfoTab() {
         }
     };
 
-    const isSubAccount = user?.accountType === 'family' || user?.accountType === 'business';
-
     return (
         <div className="p-6">
             <h3 className="text-lg font-medium mb-4">{t({ en: "Your Personal Information", ur: "آپ کی ذاتی معلومات" })}</h3>
@@ -94,7 +106,7 @@ export function PersonalInfoTab() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">{t({ en: "Email", ur: "ای میل" })}</Label>
-                        <Input id="email" type="email" value={email} readOnly disabled />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!activeUser?.isSubAccount} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="cnic">{t({ en: "CNIC", ur: "شناختی کارڈ نمبر" })}</Label>
@@ -105,7 +117,7 @@ export function PersonalInfoTab() {
                         <Input id="mobile" type="tel" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
                     </div>
 
-                    {user?.accountType === 'family' && (
+                    {activeUser?.accountType === 'family' && (
                         <div className="space-y-2">
                             <Label htmlFor="relation">{t({ en: "Relation", ur: "رشتہ" })}</Label>
                              <Select value={relation} onValueChange={setRelation}>
@@ -123,7 +135,7 @@ export function PersonalInfoTab() {
                         </div>
                     )}
 
-                     {user?.accountType === 'business' && (
+                     {activeUser?.accountType === 'business' && (
                         <div className="space-y-2">
                             <Label htmlFor="legal-structure">{t({ en: "Legal Structure", ur: "قانونی ڈھانچہ" })}</Label>
                             <Select value={legalStructure} onValueChange={setLegalStructure}>
@@ -139,7 +151,7 @@ export function PersonalInfoTab() {
                         </div>
                     )}
 
-                    {!isSubAccount && (
+                    {!activeUser?.isSubAccount && (
                          <div className="space-y-2">
                             <Label htmlFor="accountType">{t({ en: "Account Type", ur: "اکاؤنٹ کی قسم" })}</Label>
                             <div>
