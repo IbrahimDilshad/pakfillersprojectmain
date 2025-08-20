@@ -69,12 +69,14 @@ export default function AdminPricingPage() {
     <Card>
       <CardHeader>
         <CardTitle>{t({ en: "Manage Service Pricing", ur: "سروس کی قیمتوں کا نظم کریں" })}</CardTitle>
-        <CardDescription>{t({ en: "Set the prices for all services and forms offered on the platform.", ur: "پلیٹ فارم پر پیش کی جانے والی تمام خدمات اور فارموں کی قیمتیں مقرر کریں۔" })}</CardDescription>
+        <CardDescription>{t({ en: "Set the prices for all services and forms offered on the platform. To add or edit service details, go to the Content page.", ur: "پلیٹ فارم پر پیش کی جانے والی تمام خدمات اور فارموں کی قیمتیں مقرر کریں۔ سروس کی تفصیلات شامل کرنے یا ترمیم کرنے کے لیے، مواد کے صفحے پر جائیں۔" })}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)
+          ) : services.length === 0 ? (
+            <p className="text-muted-foreground md:col-span-3">{t({ en: "No services found. Please add services from the 'Content' page.", ur: "کوئی خدمات نہیں ملیں۔ براہ کرم 'مواد' کے صفحے سے خدمات شامل کریں۔" })}</p>
           ) : (
             services.map(service => (
               <Card key={service.id} className="flex flex-col">
@@ -97,7 +99,7 @@ export default function AdminPricingPage() {
                   <Button 
                     className="w-full" 
                     onClick={() => handleSavePrice(service.id)}
-                    disabled={savingStatus[service.id]}
+                    disabled={savingStatus[service.id] || prices[service.id] === service.price}
                   >
                     {savingStatus[service.id] ? t({ en: "Saving...", ur: "محفوظ ہو رہا ہے۔.." }) : t({ en: "Save Price", ur: "قیمت محفوظ کریں" })}
                   </Button>
