@@ -12,8 +12,14 @@ import { PersonalTaxSidebar } from '@/components/personal-tax-filing/sidebar';
 import { useLanguage } from '@/context/language-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PersonalTaxFilingProvider } from '@/context/personal-tax-filing-context';
+import { PersonalTaxFilingProvider, usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
@@ -28,6 +34,12 @@ function PersonalTaxFilingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { formData } = usePersonalTaxFiling();
+  const { services } = useServices();
+  const { addItem } = useCart();
+  const router = useRouter();
+
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -41,11 +53,48 @@ function PersonalTaxFilingWizard() {
     }
   };
   
-  const handleSubmit = () => {
-    toast({
-        title: "Form Submitted!",
-        description: "Your tax form has been successfully submitted for review.",
-    });
+  const handleSubmit = async () => {
+    if (!user) {
+        toast({ variant: 'destructive', title: "Not Authenticated", description: "You must be logged in to submit a filing." });
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "filings"), {
+            userId: user.uid,
+            userEmail: user.email,
+            type: "Personal Tax",
+            formData,
+            status: 'submitted',
+            createdAt: serverTimestamp(),
+        });
+        
+        const taxFilingService = services.find(s => t(s.title).toLowerCase().includes('personal tax filing'));
+        
+        if (taxFilingService) {
+            addItem({
+                id: taxFilingService.id,
+                name: taxFilingService.title,
+                price: taxFilingService.price,
+                serviceId: taxFilingService.id,
+            });
+             toast({
+                title: "Added to Cart",
+                description: "Personal Tax Filing service added to your cart.",
+            });
+            router.push('/cart');
+        } else {
+             toast({
+                title: "Filing Submitted",
+                description: "Your tax filing has been submitted for review.",
+            });
+            router.push('/dashboard');
+        }
+
+    } catch (error) {
+        console.error("Error submitting filing:", error);
+        toast({ variant: 'destructive', title: 'Submission Error', description: 'There was a problem submitting your filing.' });
+    }
   }
 
   const renderStep = () => {
@@ -77,7 +126,7 @@ function PersonalTaxFilingWizard() {
       <PersonalTaxSidebar steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
       <div className="flex-1">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-6 min-h-[50vh]">
             {renderStep()}
           </CardContent>
         </Card>
@@ -91,7 +140,7 @@ function PersonalTaxFilingWizard() {
             </Button>
           ) : (
             <Button onClick={handleSubmit}>
-              {t({ en: 'Submit for Review', ur: 'جائزہ کے لیے جمع کرائیں' })}
+              {t({ en: 'Submit & Add to Cart', ur: 'جمع کرائیں اور کارٹ میں شامل کریں' })}
             </Button>
           )}
         </div>
