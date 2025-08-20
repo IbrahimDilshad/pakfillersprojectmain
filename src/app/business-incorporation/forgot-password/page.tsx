@@ -24,7 +24,12 @@ export default function ForgotPasswordPage() {
   const handleContinue = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('password recovery'));
     if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "Password Recovery Assistance has been added to your cart.", ur: "پاس ورڈ کی بازیابی میں معاونت آپ کی کارٹ میں شامل کر دی گئی ہے۔" })

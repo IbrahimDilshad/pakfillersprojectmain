@@ -30,7 +30,12 @@ export default function AddBusinessToNtnPage() {
   const handleContinue = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('add business to ntn'));
     if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "Add Business to NTN has been added to your cart.", ur: "این ٹی این میں کاروبار شامل کریں آپ کی کارٹ میں شامل کر دیا گیا ہے۔" })

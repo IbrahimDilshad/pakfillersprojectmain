@@ -83,7 +83,12 @@ export default function GstDocumentsPage() {
   const handleSubmit = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('gst registration'));
     if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "GST Registration has been added to your cart.", ur: "جی ایس ٹی رجسٹریشن آپ کی کارٹ میں شامل کر دی گئی ہے۔" })

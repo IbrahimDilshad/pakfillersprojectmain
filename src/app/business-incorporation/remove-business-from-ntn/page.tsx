@@ -30,7 +30,12 @@ export default function RemoveBusinessFromNtnPage() {
   const handleContinue = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('remove business from ntn'));
     if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "Remove Business from NTN service has been added to your cart.", ur: "این ٹی این سے کاروبار ہٹائیں سروس آپ کی کارٹ میں شامل کر دی گئی ہے۔" })

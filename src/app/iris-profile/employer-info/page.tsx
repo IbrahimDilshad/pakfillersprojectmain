@@ -22,7 +22,12 @@ export default function IrisEmployerInfoPage() {
   const handleSubmit = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('iris profile update'));
     if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "IRIS Profile Update has been added to your cart.", ur: "آئرس پروفائل اپ ڈیٹ آپ کی کارٹ میں شامل کر دی گئی ہے۔" })

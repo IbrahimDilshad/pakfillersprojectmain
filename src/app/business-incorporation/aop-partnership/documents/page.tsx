@@ -76,7 +76,12 @@ export default function AopPartnershipDocumentsPage() {
   const handleSubmit = () => {
     const service = services.find(s => t(s.title).toLowerCase().includes('aop/partnership'));
      if (service) {
-        addItem(service);
+        addItem({
+            id: service.id,
+            serviceId: service.id,
+            name: service.title,
+            price: service.price,
+        });
         toast({
             title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
             description: t({ en: "AOP/Partnership Registration has been added to your cart.", ur: "اے او پی/شراکت داری رجسٹریشن آپ کی کارٹ میں شامل کر دی گئی ہے۔" })
