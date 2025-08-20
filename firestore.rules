@@ -3,27 +3,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Helper function to check if a user is an admin
+    // Helper function to check if the requesting user is an admin.
     function isAdmin() {
+      // Check if the user's document exists and if their role is 'admin'.
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users can only read and write their own data. Admins can access any user's data.
+    // Rules for the 'users' collection.
     match /users/{userId} {
+      // A user can read or write to their own profile.
+      // An admin can also read or write to any user's profile.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Chat sessions and messages. A user can only access their own chat. Admins can access any chat.
+    // Rules for the 'chats' collection, which contains support chat sessions.
     match /chats/{sessionId} {
+      // Admins can list all chat sessions to build the chat list view.
+      allow list: if isAdmin();
+      // A user can read, create, or update their own chat session (where the session ID is their UID).
+      // An admin can access any individual chat session.
       allow read, create, update: if request.auth.uid == sessionId || isAdmin();
+      // Only an admin can delete a chat session.
+      allow delete: if isAdmin();
       
+      // Rules for messages within a chat session.
       match /messages/{messageId} {
+        // A user can read or create messages within their own chat session.
+        // An admin can also read or create messages in any session.
         allow read, create: if request.auth.uid == sessionId || isAdmin();
       }
     }
 
-    // Public content that anyone can read, but only admins can write.
+    // Rules for public content collections.
+    // These allow anyone to read, but only admins to manage content.
     match /blogPosts/{postId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
@@ -42,6 +55,12 @@ service cloud.firestore {
     match /services/{serviceId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
+    }
+    
+    // This is a critical security measure.
+    // It denies all read and write access to any collection not explicitly defined above.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
