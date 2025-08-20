@@ -11,20 +11,32 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
+  const { addItem } = useCart();
+  const { services } = useServices();
 
   const handleContinue = () => {
-    // In a real app, you would add a specific item to the cart.
-    // For now, we simulate this and redirect.
-    toast({
-      title: "Service Added to Cart",
-      description: "Password Recovery Assistance has been added to your cart.",
-    });
-    router.push('/cart');
+    const service = services.find(s => t(s.title).toLowerCase().includes('password recovery'));
+    if (service) {
+        addItem(service);
+        toast({
+            title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
+            description: t({ en: "Password Recovery Assistance has been added to your cart.", ur: "پاس ورڈ کی بازیابی میں معاونت آپ کی کارٹ میں شامل کر دی گئی ہے۔" })
+        });
+        router.push('/cart');
+    } else {
+        toast({
+            variant: 'destructive',
+            title: t({ en: "Service Not Found", ur: "سروس نہیں ملی" }),
+            description: t({ en: "This service is currently unavailable.", ur: "یہ سروس فی الحال دستیاب نہیں ہے۔" })
+        });
+    }
   };
 
   const handleBack = () => {

@@ -9,6 +9,8 @@ import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
 import { Download, File as FileIcon, Trash2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
 
 interface UploadedFile {
   id: string;
@@ -27,6 +29,8 @@ export default function NtnRegistrationPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const { addItem } = useCart();
+  const { services } = useServices();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -65,11 +69,21 @@ export default function NtnRegistrationPage() {
   };
 
   const handleSubmit = () => {
-    toast({
-        title: "Added to Cart (Simulation)",
-        description: "NTN Registration service has been added to your cart."
-    });
-    router.push('/cart');
+    const service = services.find(s => t(s.title).toLowerCase().includes('ntn registration'));
+    if (service) {
+        addItem(service);
+        toast({
+            title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
+            description: t({ en: "NTN Registration has been added to your cart.", ur: "این ٹی این رجسٹریشن آپ کی کارٹ میں شامل کر دی گئی ہے۔" })
+        });
+        router.push('/cart');
+    } else {
+        toast({
+            variant: 'destructive',
+            title: t({ en: "Service Not Found", ur: "سروس نہیں ملی" }),
+            description: t({ en: "This service is currently unavailable.", ur: "یہ سروس فی الحال دستیاب نہیں ہے۔" })
+        });
+    }
   };
 
   return (

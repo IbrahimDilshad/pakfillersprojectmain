@@ -9,19 +9,32 @@ import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
 
 export default function IrisEmployerInfoPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
+  const { addItem } = useCart();
+  const { services } = useServices();
 
   const handleSubmit = () => {
-    // In a real app, you would collect all form data and process it.
-    toast({
-      title: "Service Added to Cart",
-      description: "IRIS Profile update service has been added to your cart.",
-    });
-    router.push('/cart');
+    const service = services.find(s => t(s.title).toLowerCase().includes('iris profile update'));
+    if (service) {
+        addItem(service);
+        toast({
+            title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
+            description: t({ en: "IRIS Profile Update has been added to your cart.", ur: "آئرس پروفائل اپ ڈیٹ آپ کی کارٹ میں شامل کر دی گئی ہے۔" })
+        });
+        router.push('/cart');
+    } else {
+        toast({
+            variant: 'destructive',
+            title: t({ en: "Service Not Found", ur: "سروس نہیں ملی" }),
+            description: t({ en: "This service is currently unavailable.", ur: "یہ سروس فی الحال دستیاب نہیں ہے۔" })
+        });
+    }
   };
 
   const handleBack = () => {

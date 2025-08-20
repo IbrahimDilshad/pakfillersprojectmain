@@ -9,6 +9,8 @@ import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
 import { Download, File as FileIcon, Trash2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
 
 interface UploadedFile {
   id: string;
@@ -32,6 +34,8 @@ export default function AopPartnershipDocumentsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const { addItem } = useCart();
+  const { services } = useServices();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -70,12 +74,21 @@ export default function AopPartnershipDocumentsPage() {
   };
 
   const handleSubmit = () => {
-    // TODO: Implement cart logic
-    toast({
-        title: "Added to Cart (Simulation)",
-        description: "This service has been added to your cart. You will be redirected shortly."
-    });
-    // router.push('/cart');
+    const service = services.find(s => t(s.title).toLowerCase().includes('aop/partnership'));
+     if (service) {
+        addItem(service);
+        toast({
+            title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
+            description: t({ en: "AOP/Partnership Registration has been added to your cart.", ur: "اے او پی/شراکت داری رجسٹریشن آپ کی کارٹ میں شامل کر دی گئی ہے۔" })
+        });
+        router.push('/cart');
+    } else {
+         toast({
+            variant: 'destructive',
+            title: t({ en: "Service Not Found", ur: "سروس نہیں ملی" }),
+            description: t({ en: "This service is currently unavailable.", ur: "یہ سروس فی الحال دستیاب نہیں ہے۔" })
+        });
+    }
   };
 
   return (
@@ -139,7 +152,7 @@ export default function AopPartnershipDocumentsPage() {
             {t({ en: 'Back', ur: 'پیچھے' })}
           </Button>
           <Button onClick={handleSubmit} disabled={uploadedFiles.length < requiredDocs.length}>
-            {t({ en: 'Submit', ur: 'جمع کرائیں' })}
+            {t({ en: 'Submit & Add to Cart', ur: 'جمع کرائیں اور کارٹ میں شامل کریں' })}
           </Button>
         </div>
       </div>

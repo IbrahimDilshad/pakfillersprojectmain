@@ -16,20 +16,33 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useCart } from '@/context/cart-context';
+import { useServices } from '@/hooks/useServices';
 
 export default function AddBusinessToNtnPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
+  const { addItem } = useCart();
+  const { services } = useServices();
 
   const handleContinue = () => {
-    // In a real app, you'd collect form data and add a specific item to the cart.
-    toast({
-        title: "Service Added to Cart",
-        description: "Add Business to NTN service has been added to your cart."
-    });
-    router.push('/cart');
+    const service = services.find(s => t(s.title).toLowerCase().includes('add business to ntn'));
+    if (service) {
+        addItem(service);
+        toast({
+            title: t({ en: "Service Added", ur: "سروس شامل کر دی گئی" }),
+            description: t({ en: "Add Business to NTN has been added to your cart.", ur: "این ٹی این میں کاروبار شامل کریں آپ کی کارٹ میں شامل کر دیا گیا ہے۔" })
+        });
+        router.push('/cart');
+    } else {
+         toast({
+            variant: 'destructive',
+            title: t({ en: "Service Not Found", ur: "سروس نہیں ملی" }),
+            description: t({ en: "This service is currently unavailable.", ur: "یہ سروس فی الحال دستیاب نہیں ہے۔" })
+        });
+    }
   };
 
   const handleBack = () => {
@@ -111,7 +124,7 @@ export default function AddBusinessToNtnPage() {
             {t({ en: 'Back', ur: 'پیچھے' })}
           </Button>
           <Button onClick={handleContinue}>
-            {t({ en: 'Continue', ur: 'جاری رکھیں' })}
+            {t({ en: 'Add to Cart & Continue', ur: 'کارٹ میں شامل کریں اور جاری رکھیں' })}
           </Button>
         </div>
       </div>
