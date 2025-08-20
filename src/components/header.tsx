@@ -9,6 +9,9 @@ import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
 import { useAuth } from "@/context/auth-context";
 import { Logo } from "./logo";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Badge } from "./ui/badge";
+import { formatDistanceToNow } from 'date-fns';
 
 interface HeaderProps {
   title: string;
@@ -26,6 +29,42 @@ const pages = [
   { href: "/blog", title: { en: "Blog & Updates", ur: "بلاگ اور اپڈیٹس" }, icon: Rss },
   { href: "/videos", title: { en: "Videos", ur: "ویڈیوز" }, icon: Tv },
 ]
+
+function NotificationsDropdown() {
+    const { t } = useLanguage();
+    const { user } = useAuth();
+    const { notifications, markAsRead } = useNotifications(user?.uid);
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+    
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                 <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0">{unreadCount}</Badge>
+                    )}
+                    <span className="sr-only">Notifications</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>{t({en: "Notifications", ur: "اطلاعات"})}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length === 0 ? (
+                    <p className="p-4 text-sm text-muted-foreground">{t({en: "No new notifications.", ur: "کوئی نئی اطلاعات نہیں ہیں۔"})}</p>
+                ) : (
+                    notifications.map(notification => (
+                         <DropdownMenuItem key={notification.id} onClick={() => markAsRead(notification.id)} className="flex flex-col items-start gap-1 p-2">
+                           <p className={`text-sm ${!notification.isRead && 'font-bold'}`}>{notification.message}</p>
+                           <p className="text-xs text-muted-foreground">{formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true })}</p>
+                        </DropdownMenuItem>
+                    ))
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 
 export function Header({ title }: HeaderProps) {
   const { t } = useLanguage();
@@ -46,10 +85,7 @@ export function Header({ title }: HeaderProps) {
                 <span className="sr-only">Home</span>
             </Button>
         </Link>
-        <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-        </Button>
+        <NotificationsDropdown />
 
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
