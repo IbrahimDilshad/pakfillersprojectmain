@@ -7,7 +7,7 @@ import { useLanguage } from "@/context/language-context";
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format }s from 'date-fns';
+import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
 interface Order {
