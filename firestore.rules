@@ -3,40 +3,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Helper function to check if the requesting user is an admin.
+    // Helper function to check if a user is an admin
     function isAdmin() {
-      // Check if the user's document exists and if their role is 'admin'.
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Rules for the 'users' collection.
+    // Users can only read and write their own data
     match /users/{userId} {
-      // A user can read or write to their own profile.
-      // An admin can also read or write to any user's profile.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Rules for the 'chats' collection, which contains support chat sessions.
+    // Chat sessions and messages
     match /chats/{sessionId} {
-      // Admins can list all chat sessions to build the chat list view.
-      allow list: if isAdmin();
-      // A user can read, create, or update their own chat session (where the session ID is their UID).
-      // An admin can access any individual chat session.
-      allow read, create, update: if request.auth.uid == sessionId || isAdmin();
-      // Only an admin can delete a chat session.
+      // Admins can read the entire collection for querying/listing.
+      // Individual users can only get their own session document.
+      allow get: if request.auth.uid == sessionId || isAdmin();
+      allow list, create, update: if isAdmin();
+      
+      // A user can create their own session.
+      allow create: if request.auth.uid == sessionId;
+
+      // An admin can delete any session.
       allow delete: if isAdmin();
       
-      // Rules for messages within a chat session.
       match /messages/{messageId} {
-        // A user can read or create messages within their own chat session.
-        // An admin can also read or create messages in any session.
+        // A user can read/create messages in their own session, or an admin can access any.
         allow read, create: if request.auth.uid == sessionId || isAdmin();
       }
     }
 
-    // Rules for public content collections.
-    // These allow anyone to read, but only admins to manage content.
+    // Public content that anyone can read, but only admins can write
     match /blogPosts/{postId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
@@ -57,8 +54,7 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
     
-    // This is a critical security measure.
-    // It denies all read and write access to any collection not explicitly defined above.
+    // Default deny all other access
     match /{document=**} {
       allow read, write: if false;
     }
