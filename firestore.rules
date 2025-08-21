@@ -3,99 +3,100 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to check user roles and ownership
+    // =================================
+    // Helper Functions
+    // =================================
+
+    // Checks if the requesting user has the 'admin' role.
     function isAdmin() {
-      // Check if the user has the 'admin' role in the users collection.
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Checks if the requesting user is the owner of the document.
     function isOwner(userId) {
-      // Check if the currently authenticated user is the owner of the document.
       return request.auth.uid == userId;
     }
     
     function isAccountant() {
-      // Check if the user has the 'accountant' role.
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant';
     }
 
-    // RULES FOR 'users' COLLECTION
+    // =================================
+    // Collection Rules
+    // =================================
+
+    // USERS collection
+    // Users can read/update their own profile. Admins can manage any profile.
     match /users/{userId} {
-      // A user can read or update their own profile. Admins can also do this.
       allow read, update: if isOwner(userId) || isAdmin();
-      // Any authenticated user can create a user document for themselves upon signup.
       allow create: if request.auth.uid != null;
     }
 
-    // RULES FOR 'subAccounts' SUBCOLLECTION
+    // SUB-ACCOUNTS (nested under users)
+    // Only the parent user or an admin can manage sub-accounts.
     match /users/{parentUserId}/subAccounts/{subAccountId} {
-      // The parent account owner or an admin can manage sub-accounts.
       allow read, update, create, delete: if isOwner(parentUserId) || isAdmin();
     }
     
-    // RULES FOR PUBLIC CONTENT (Blog, Videos, FAQs, Services)
-    // Anyone can read this content, but only admins can write to it.
-    match /blogPosts/{postId} {
-      allow read: if true;
-      allow write: if isAdmin(); // Combines create, update, delete
-    }
-    
-    match /videos/{videoId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    match /faqs/{faqId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    match /services/{serviceId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // CHAT SESSIONS collection
+    match /chats/{sessionId} {
+      // Rule for listing documents: Admins can list all chats.
+      allow list: if isAdmin();
+      
+      // Rule for individual document access:
+      // An admin can read/write to any chat session.
+      // A user can only read/write to their own chat session.
+      allow read, write: if isOwner(sessionId) || isAdmin();
+      
+      // MESSAGES sub-collection within a chat
+      match /messages/{messageId} {
+         // Permissions are inherited. Admins can read/write any message.
+         // A user can only read/write messages in their own session.
+         allow read, write: if isOwner(sessionId) || isAdmin();
+      }
     }
 
-    // RULES FOR 'orders' COLLECTION
+    // ORDERS collection
+    // Users can create their own orders. Only they or an admin can view/update them.
     match /orders/{orderId} {
-      // A user can only create an order for themselves.
       allow create: if isOwner(request.resource.data.userId);
-      // Only the user who owns the order or an admin can read/update it.
       allow read, update: if isOwner(get(/databases/$(database)/documents/orders/$(orderId)).data.userId) || isAdmin();
-      // Only admins can delete orders.
       allow delete: if isAdmin();
     }
     
-    // RULES FOR 'filings' COLLECTION (Personal Tax Filing data)
+    // FILINGS (For personal tax filing data)
+    // Only readable/writable by the user who owns it or an admin/accountant.
     match /filings/{filingId} {
-        // A user can only create a filing for themselves.
         allow create: if isOwner(request.resource.data.userId);
-        // The owner, an admin, or an accountant can access the filing.
         allow read, update: if isOwner(get(/databases/$(database)/documents/filings/$(filingId)).data.userId) || isAdmin() || isAccountant();
-        // Only admins can delete filings.
         allow delete: if isAdmin();
     }
 
-    // RULES FOR 'notifications' COLLECTION
+    // NOTIFICATIONS collection
+    // Admins can create notifications for users. Users can only read their own.
     match /notifications/{notificationId} {
-        // Only admins can create notifications for users.
         allow create: if isAdmin();
-        // Only the user receiving the notification or an admin can read/update it.
         allow read, update: if isOwner(get(/databases/$(database)/documents/notifications/$(notificationId)).data.userId) || isAdmin();
-        // Only admins can delete notifications.
         allow delete: if isAdmin();
     }
     
-    // RULES FOR 'chats' COLLECTION
-    match /chats/{sessionId} {
-      // A user can only access their own chat session (where sessionId == userId).
-      // An admin can access any chat session.
-      allow read, write: if isOwner(sessionId) || isAdmin();
-      
-      // RULES FOR 'messages' SUBCOLLECTION (nested under chats)
-      match /messages/{messageId} {
-         // Same logic applies: user can manage messages in their own session, admin in any.
-         allow read, write: if isOwner(sessionId) || isAdmin();
-      }
+    // PUBLIC CONTENT (Blog, Videos, FAQs, Services)
+    // Anyone can read this content, but only admins can modify it.
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /videos/{videoId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /services/{serviceId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
     }
   }
 }
