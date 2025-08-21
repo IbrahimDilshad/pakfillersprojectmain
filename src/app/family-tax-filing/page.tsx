@@ -3,16 +3,17 @@
 import { AppLayout } from "@/components/app-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/context/language-context";
-import { Settings, User, Building, BadgeCheck } from "lucide-react";
+import { Settings, User, BadgeCheck } from "lucide-react";
 import { ManageAccounts } from "@/components/manage-accounts";
 import { useAuth, AuthUser } from "@/context/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PersonalInfoTab } from "@/components/personal-info-tab";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PaymentHistoryTab } from "@/components/payment-history-tab";
 
 const PlaceholderContent = ({ title, description }: { title: string, description: string }) => (
     <div className="p-8 text-center text-muted-foreground">
@@ -122,7 +123,7 @@ export default function FamilyTaxFilingPage() {
                      <NtnRegistrationTab />
                   </TabsContent>
                    <TabsContent value="payment-history">
-                     <PlaceholderContent title="Payment History" description="This section is under construction." />
+                     <PaymentHistoryTab />
                   </TabsContent>
                   <TabsContent value="manage-accounts">
                     <ManageAccounts />
