@@ -62,7 +62,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {videosLoading ? (
-              Array.from({ length: 8 }).map((_, index) => (
+              Array.from({ length: 4 }).map((_, index) => (
                 <Card key={index}>
                   <Skeleton className="w-full aspect-video rounded-t-md" />
                   <CardHeader>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
                 </Card>
               ))
             ) : (
-              videos.slice(0, 8).map((video) => (
+              videos.slice(0, 4).map((video) => (
               <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video">
                   <iframe 
@@ -112,7 +112,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {postsLoading ? (
-               Array.from({ length: 8 }).map((_, index) => (
+               Array.from({ length: 4 }).map((_, index) => (
                 <Card key={index}>
                   <Skeleton className="w-full h-48" />
                   <CardHeader>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                 </Card>
               ))
             ) : (
-              posts.slice(0, 8).map((post) => (
+              posts.slice(0, 4).map((post) => (
               <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <Link href={post.href || '#'}>
                   <Image src={post.image} alt={t(post.title)} width={600} height={400} className="w-full h-48 object-cover" data-ai-hint={post.hint} />
@@ -151,3 +151,5 @@ export default function DashboardPage() {
     </AppLayout>
   )
 }
+
+    

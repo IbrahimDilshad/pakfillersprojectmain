@@ -17,7 +17,7 @@ export default function VideosPage() {
         <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <PlayCircle className="h-8 w-8 text-primary" />
-              {t({ en: "Featured Videos", ur: "نمایاں ویڈیوز" })}
+              {t({ en: "All Videos", ur: "تمام ویڈیوز" })}
             </h1>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -55,8 +55,15 @@ export default function VideosPage() {
                 </Card>
                 ))
             )}
+            {!loading && videos.length === 0 && (
+                <p className="text-center text-muted-foreground col-span-full py-16">
+                    {t({ en: "No videos have been added yet.", ur: "ابھی تک کوئی ویڈیو شامل نہیں کی گئی ہے۔" })}
+                </p>
+            )}
           </div>
       </div>
     </AppLayout>
   );
 }
+
+    
