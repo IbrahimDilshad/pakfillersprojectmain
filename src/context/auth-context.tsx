@@ -59,8 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             displayName: firebaseUser.displayName || userData.displayName,
           } as AuthUser;
         } else {
-           const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
-           mainUser = { ...firebaseUser, role, displayName: firebaseUser.displayName } as AuthUser;
+           // If user doc doesn't exist, they are a regular user.
+           // Admin role must be set manually in the database.
+           mainUser = { ...firebaseUser, role: 'user', displayName: firebaseUser.displayName } as AuthUser;
         }
         setUser(mainUser);
         // Set active user only if it's not already set or if the main user changes
