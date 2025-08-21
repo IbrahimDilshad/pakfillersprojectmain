@@ -9,7 +9,10 @@ import { useAuth, AuthUser } from "@/context/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PersonalInfoTab } from "@/components/personal-info-tab";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const PlaceholderContent = ({ title, description }: { title: string, description: string }) => (
     <div className="p-8 text-center text-muted-foreground">
@@ -18,6 +21,28 @@ const PlaceholderContent = ({ title, description }: { title: string, description
     </div>
 );
 
+function NtnRegistrationTab() {
+    const { t } = useLanguage();
+    return (
+        <div className="p-6">
+            <h3 className="text-lg font-medium mb-4">{t({ en: "FBR Credentials", ur: "ایف بی آر کی اسناد" })}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t({ en: "Please provide your FBR IRIS credentials. This allows our team to access your profile for filing purposes.", ur: "براہ کرم اپنی ایف بی آر آئرس کی اسناد فراہم کریں۔ یہ ہماری ٹیم کو فائلنگ کے مقاصد کے لیے آپ کے پروفائل تک رسائی کی اجازت دیتا ہے۔" })}</p>
+             <form className="space-y-6 max-w-md">
+                <div className="space-y-2">
+                    <Label htmlFor="fbr-pin">{t({ en: 'FBR PIN', ur: 'ایف بی آر پن' })}</Label>
+                    <Input id="fbr-pin" type="password" placeholder="••••" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="fbr-password">{t({ en: 'FBR Password', ur: 'ایف بی آر پاس ورڈ' })}</Label>
+                    <Input id="fbr-password" type="password" placeholder="••••••••" />
+                </div>
+                 <div className="flex justify-end">
+                    <Button>{t({ en: "Save Credentials", ur: "اسناد محفوظ کریں" })}</Button>
+                </div>
+            </form>
+        </div>
+    );
+}
 
 function AccountsTabContent() {
     const { t } = useLanguage();
@@ -94,7 +119,7 @@ export default function FamilyTaxFilingPage() {
                     <PersonalInfoTab />
                   </TabsContent>
                   <TabsContent value="ntn-registration">
-                     <PlaceholderContent title="NTN Registration" description="This section is under construction." />
+                     <NtnRegistrationTab />
                   </TabsContent>
                    <TabsContent value="payment-history">
                      <PlaceholderContent title="Payment History" description="This section is under construction." />
