@@ -20,7 +20,7 @@ export function ChatWidget() {
   const { user } = useAuth();
   
   const sessionId = user?.uid;
-  const { messages, sendMessage, setCurrentSessionId } = useChat(user?.uid, user?.role);
+  const { messages, sendMessage, setSessionIdForMessages } = useChat(user?.uid, user?.role);
   
   const chatMessages: Message[] = sessionId ? messages[sessionId] || [] : [];
   
@@ -28,9 +28,9 @@ export function ChatWidget() {
 
   useEffect(() => {
     if (user?.uid) {
-        setCurrentSessionId(user.uid);
+        setSessionIdForMessages(user.uid);
     }
-  }, [user, setCurrentSessionId]);
+  }, [user, setSessionIdForMessages]);
   
   useEffect(() => {
     if (isOpen && scrollAreaRef.current) {
