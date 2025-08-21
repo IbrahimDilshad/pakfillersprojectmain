@@ -10,13 +10,14 @@ import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { UserNav } from '@/components/user-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart, DollarSign, Wallet } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 
 
 const adminNavItems = [
   { href: '/admin/orders', label: { en: 'Orders', ur: 'آرڈرز' }, icon: ShoppingCart },
   { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: LayoutDashboard },
+  { href: '/admin/payments', label: { en: 'Payments', ur: 'ادائیگیاں' }, icon: Wallet },
   { href: '/admin/pricing', label: { en: 'Pricing', ur: 'قیمت' }, icon: DollarSign },
   { href: '/admin/chat', label: { en: 'Support Chat', ur: 'سپورٹ چیٹ' }, icon: Bot },
   { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart },

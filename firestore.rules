@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -16,72 +17,41 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
-    
-    function isAccountant() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant';
-    }
 
     // =================================
     // Collection Rules
     // =================================
 
     // USERS collection
-    // Users can read/update their own profile. Admins can manage any profile.
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin();
       allow create: if request.auth.uid != null;
     }
 
     // SUB-ACCOUNTS (nested under users)
-    // Only the parent user or an admin can manage sub-accounts.
     match /users/{parentUserId}/subAccounts/{subAccountId} {
       allow read, update, create, delete: if isOwner(parentUserId) || isAdmin();
     }
     
     // CHAT SESSIONS collection
     match /chats/{sessionId} {
-      // Rule for listing documents: Admins can list all chats.
-      allow list: if isAdmin();
-      
-      // Rule for individual document access:
-      // An admin can read/write to any chat session.
-      // A user can only read/write to their own chat session.
+      allow list: if isAdmin(); 
       allow read, write: if isOwner(sessionId) || isAdmin();
       
       // MESSAGES sub-collection within a chat
       match /messages/{messageId} {
-         // Permissions are inherited. Admins can read/write any message.
-         // A user can only read/write messages in their own session.
          allow read, write: if isOwner(sessionId) || isAdmin();
       }
     }
 
     // ORDERS collection
-    // Users can create their own orders. Only they or an admin can view/update them.
     match /orders/{orderId} {
       allow create: if isOwner(request.resource.data.userId);
       allow read, update: if isOwner(get(/databases/$(database)/documents/orders/$(orderId)).data.userId) || isAdmin();
       allow delete: if isAdmin();
     }
     
-    // FILINGS (For personal tax filing data)
-    // Only readable/writable by the user who owns it or an admin/accountant.
-    match /filings/{filingId} {
-        allow create: if isOwner(request.resource.data.userId);
-        allow read, update: if isOwner(get(/databases/$(database)/documents/filings/$(filingId)).data.userId) || isAdmin() || isAccountant();
-        allow delete: if isAdmin();
-    }
-
-    // NOTIFICATIONS collection
-    // Admins can create notifications for users. Users can only read their own.
-    match /notifications/{notificationId} {
-        allow create: if isAdmin();
-        allow read, update: if isOwner(get(/databases/$(database)/documents/notifications/$(notificationId)).data.userId) || isAdmin();
-        allow delete: if isAdmin();
-    }
-    
     // PUBLIC CONTENT (Blog, Videos, FAQs, Services)
-    // Anyone can read this content, but only admins can modify it.
     match /blogPosts/{postId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
@@ -97,6 +67,20 @@ service cloud.firestore {
     match /services/{serviceId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+    }
+
+    // PAYMENT METHODS collection
+    match /paymentMethods/{methodId} {
+      allow read: if request.auth.uid != null; // Allow any authenticated user to read
+      allow list: if request.auth.uid != null; // Allow any authenticated user to list
+      allow create, update, delete: if isAdmin(); // Only admins can modify
+    }
+
+    // NOTIFICATIONS collection
+    match /notifications/{notificationId} {
+        allow create: if isAdmin();
+        allow read, update: if isOwner(get(/databases/$(database)/documents/notifications/$(notificationId)).data.userId) || isAdmin();
+        allow delete: if isAdmin();
     }
   }
 }

@@ -10,14 +10,17 @@ import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, orderBy, query } from 'firebase/firestore';
 import { Upload, ClipboardCopy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const paymentAccounts = [
-    { bank: 'Meezan Bank', account: '0123456789012345', title: 'PakFiler Pvt. Ltd.' },
-    { bank: 'HBL', account: '9876543210987654', title: 'PakFiler Pvt. Ltd.' },
-];
+interface PaymentMethod {
+    id: string;
+    bankName: string;
+    accountTitle: string;
+    accountNumber: string;
+}
 
 export default function CheckoutPage() {
     const { t } = useLanguage();
@@ -27,12 +30,32 @@ export default function CheckoutPage() {
     const router = useRouter();
     const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
 
     useEffect(() => {
         if (items.length === 0) {
             router.replace('/dashboard');
         }
     }, [items, router]);
+
+    useEffect(() => {
+        const fetchPaymentMethods = async () => {
+            setLoadingPaymentMethods(true);
+            try {
+                const q = query(collection(db, "paymentMethods"), orderBy("bankName"));
+                const querySnapshot = await getDocs(q);
+                const methods = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentMethod));
+                setPaymentMethods(methods);
+            } catch (error) {
+                console.error("Error fetching payment methods: ", error);
+                toast({ variant: 'destructive', title: t({ en: "Error", ur: "خرابی" }), description: t({ en: "Could not load payment methods.", ur: "ادائیگی کے طریقے لوڈ نہیں ہو سکے۔" }) });
+            } finally {
+                setLoadingPaymentMethods(false);
+            }
+        };
+        fetchPaymentMethods();
+    }, [t, toast]);
 
     const handleFileCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -97,18 +120,24 @@ export default function CheckoutPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p>{t({ en: `Please transfer the total amount of PKR ${total.toLocaleString()} to one of the following bank accounts:`, ur: `براہ کرم کل رقم PKR ${total.toLocaleString()} درج ذیل بینک کھاتوں میں سے کسی ایک میں منتقل کریں:`})}</p>
-                            {paymentAccounts.map(acc => (
-                                <Card key={acc.account} className="p-4 bg-muted/50">
-                                    <p className="font-semibold">{acc.bank}</p>
-                                    <p className="text-sm text-muted-foreground">{acc.title}</p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <p className="font-mono text-sm">{acc.account}</p>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleFileCopy(acc.account)}>
-                                            <ClipboardCopy className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            ))}
+                            {loadingPaymentMethods ? (
+                                Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                            ) : paymentMethods.length > 0 ? (
+                                paymentMethods.map(acc => (
+                                    <Card key={acc.id} className="p-4 bg-muted/50">
+                                        <p className="font-semibold">{acc.bankName}</p>
+                                        <p className="text-sm text-muted-foreground">{acc.accountTitle}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="font-mono text-sm">{acc.accountNumber}</p>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleFileCopy(acc.accountNumber)}>
+                                                <ClipboardCopy className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                ))
+                            ) : (
+                                <p className="text-center text-muted-foreground py-4">{t({en: "No payment methods configured.", ur: "کوئی ادائیگی کا طریقہ ترتیب نہیں دیا گیا ہے۔"})}</p>
+                            )}
                         </CardContent>
                     </Card>
 
