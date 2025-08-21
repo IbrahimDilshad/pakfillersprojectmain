@@ -43,8 +43,8 @@ interface SendMessagePayload {
     text: string;
     senderId: string;
     from: 'user' | 'support';
-    userName?: string;
-    userEmail?: string;
+    userName: string;
+    userEmail: string;
 }
 
 export function useChat(userId: string | undefined, userRole: Role | undefined) {
@@ -53,6 +53,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [loading, setLoading] = useState(true);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  // Effect for fetching admin chat sessions
   useEffect(() => {
     if (userRole !== 'admin') {
       setLoading(false);
@@ -77,15 +78,14 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     return () => unsubscribe();
   }, [userRole]);
 
+  // Effect for fetching messages for a given session
   useEffect(() => {
     let listenerId: string | null = null;
     
     if (userRole === 'admin') {
       listenerId = currentSessionId;
-    } else if (userRole === 'user' && userId) {
+    } else if (userId) { // For non-admins (users), the session ID is their UID
       listenerId = userId;
-    } else if (userId) { // Fallback for when role is not yet defined but userId is
-       listenerId = userId;
     }
     
     if (!listenerId) {
@@ -114,24 +114,16 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
     if (!text.trim() || !senderId) return;
 
-    const optimisticMessage: Message = {
-      id: new Date().toISOString(),
-      text,
-      timestamp: Timestamp.now(),
-      senderId,
-      from,
-    };
-
-    setMessages(prev => ({
-        ...prev,
-        [sessionId]: [...(prev[sessionId] || []), optimisticMessage]
-    }));
-
     try {
       const sessionRef = doc(db, 'chats', sessionId);
       const messagesColRef = collection(sessionRef, 'messages');
+      
+      const docSnap = await getDoc(sessionRef);
+
+      // Create a batch to perform multiple writes atomically
       const batch = writeBatch(db);
 
+      // 1. Add the new message
       const newMessageRef = doc(messagesColRef);
       batch.set(newMessageRef, {
         text,
@@ -140,28 +132,27 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
+      // 2. Update the session document
       const sessionUpdateData: any = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'support',
+        isReadByAdmin: from === 'support', // Mark as read if admin sends
       };
       
-      const docSnap = await getDoc(sessionRef);
+      // If the session doesn't exist, it's the first message from a user.
+      // We must create the session with the user's details.
       if (!docSnap.exists()) {
         sessionUpdateData.userName = userName;
         sessionUpdateData.userEmail = userEmail;
       }
       
+      // Use set with merge:true to create or update the session doc
       batch.set(sessionRef, sessionUpdateData, { merge: true });
 
       await batch.commit();
 
     } catch (error) {
       console.error("Error sending message:", error);
-       setMessages(prev => ({
-           ...prev,
-           [sessionId]: (prev[sessionId] || []).filter(msg => msg.id !== optimisticMessage.id)
-       }));
     }
   }, []);
 
