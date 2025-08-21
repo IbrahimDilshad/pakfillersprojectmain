@@ -130,12 +130,12 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
 export default function AdminChatPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages } = useChat(user?.uid, user?.role);
-  const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
-  const currentMessages = selectedSession ? messages[selectedSession.id] || [] : [];
+  const { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages, currentSessionId } = useChat(user?.uid, user?.role);
+  
+  const selectedSession = sessions.find(s => s.id === currentSessionId) || null;
+  const currentMessages = currentSessionId ? messages[currentSessionId] || [] : [];
   
   const handleSelectSession = (session: ChatSession) => {
-    setSelectedSession(session);
     setSessionIdForMessages(session.id);
   };
 
@@ -155,7 +155,6 @@ export default function AdminChatPage() {
   const handleDeleteChat = () => {
     if (selectedSession) {
         deleteChat(selectedSession.id);
-        setSelectedSession(null);
         setSessionIdForMessages(null);
     }
   };
@@ -188,7 +187,7 @@ export default function AdminChatPage() {
                 onClick={() => handleSelectSession(session)} 
                 className={cn(
                     "flex items-center gap-4 p-4 border-b hover:bg-accent cursor-pointer",
-                    selectedSession?.id === session.id && "bg-accent/80"
+                    currentSessionId === session.id && "bg-accent/80"
                 )}
               >
                  {!session.isReadByAdmin && (
@@ -223,7 +222,7 @@ export default function AdminChatPage() {
                         messages={currentMessages}
                         onSendMessage={handleSendMessage}
                         onDelete={handleDeleteChat}
-                        onBack={() => setSelectedSession(null)}
+                        onBack={() => setSessionIdForMessages(null)}
                     />
                  ) : (
                     <Card className="flex items-center justify-center h-[calc(80vh)]">

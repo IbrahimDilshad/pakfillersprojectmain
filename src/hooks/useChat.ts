@@ -14,9 +14,7 @@ import {
   writeBatch,
   getDocs,
   deleteDoc,
-  updateDoc,
   setDoc,
-  Timestamp,
   getDoc,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
@@ -51,16 +49,15 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<{ [key: string]: Message[] }>({});
   const [loading, setLoading] = useState(true);
-  const [sessionIdForMessages, setSessionIdForMessages] = useState<string | null>(null);
+  const [currentSessionId, setSessionIdForMessages] = useState<string | null>(null);
 
-  // Effect for fetching chat sessions (for admin) or a single session's messages (for user)
+  // Effect for fetching chat data. It behaves differently for admins vs. users.
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
-    
+    setLoading(true);
     if (userRole === 'admin') {
-      setLoading(true);
+      // Admin: Fetch all chat sessions. Messages are fetched later when a session is selected.
       const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
-      unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const sessionsData: ChatSession[] = [];
         querySnapshot.forEach((doc) => {
           sessionsData.push({ id: doc.id, ...doc.data() } as ChatSession);
@@ -71,12 +68,13 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         console.error("Error fetching chat sessions for admin:", error);
         setLoading(false);
       });
+      return () => unsubscribe();
     } else if (userId) {
-      setLoading(true);
+      // User: Fetch their own chat messages directly.
       const sessionRef = doc(db, 'chats', userId);
       const messagesQuery = query(collection(sessionRef, 'messages'), orderBy('timestamp', 'asc'));
       
-      unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+      const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
         const sessionMessages: Message[] = [];
         querySnapshot.forEach((doc) => {
           sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
@@ -87,35 +85,40 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         console.error(`Error fetching messages for session ${userId}:`, error);
         setLoading(false);
       });
+       return () => unsubscribe();
     } else {
       setLoading(false);
     }
-    
-    return () => unsubscribe();
   }, [userId, userRole]);
 
 
-  // Effect for fetching messages for the *currently selected* session in admin view
+  // Effect for fetching messages for the *currently selected* session in the admin view
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
-    
-    if (userRole === 'admin' && sessionIdForMessages) {
+    if (userRole === 'admin' && currentSessionId) {
       const messagesQuery = query(
-        collection(db, 'chats', sessionIdForMessages, 'messages'),
+        collection(db, 'chats', currentSessionId, 'messages'),
         orderBy('timestamp', 'asc')
       );
 
-      unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+      const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
         const sessionMessages: Message[] = [];
         querySnapshot.forEach((doc) => {
           sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
         });
-        setMessages(prev => ({ ...prev, [sessionIdForMessages]: sessionMessages }));
+        // Important: Use a functional update to avoid stale state
+        setMessages(prev => ({ ...prev, [currentSessionId]: sessionMessages }));
+        
+        // Mark session as read
+        const sessionRef = doc(db, 'chats', currentSessionId);
+        updateDoc(sessionRef, { isReadByAdmin: true });
+
+      }, (error) => {
+         console.error(`Error fetching messages for selected session ${currentSessionId}:`, error);
       });
+      
+      return () => unsubscribe();
     }
-    
-    return () => unsubscribe();
-  }, [userRole, sessionIdForMessages]);
+  }, [userRole, currentSessionId]);
 
   const sendMessage = useCallback(async (payload: SendMessagePayload) => {
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
@@ -124,9 +127,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     try {
       const sessionRef = doc(db, 'chats', sessionId);
       const messagesColRef = collection(sessionRef, 'messages');
-      
       const batch = writeBatch(db);
 
+      // 1. Add new message to the messages sub-collection
       const newMessageRef = doc(messagesColRef);
       batch.set(newMessageRef, {
         text,
@@ -135,16 +138,17 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
-      const sessionUpdateData: any = {
+      // 2. Update the parent chat session document
+      const sessionDataToSet = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'support' ? true : false,
-        userName, // Always include user info
-        userEmail, // Always include user info
+        isReadByAdmin: from === 'support', // true if admin sends, false if user sends
+        userName: userName,
+        userEmail: userEmail,
       };
       
-      batch.set(sessionRef, sessionUpdateData, { merge: true });
-
+      batch.set(sessionRef, sessionDataToSet, { merge: true });
+      
       await batch.commit();
 
     } catch (error) {
@@ -155,26 +159,30 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const deleteChat = useCallback(async (sessionId: string) => {
     if (userRole !== 'admin') return;
     try {
-      const messagesCollection = collection(db, 'chats', sessionId, 'messages');
-      const messagesSnapshot = await getDocs(messagesCollection);
+      // Delete all messages in the subcollection first
+      const messagesCollectionRef = collection(db, 'chats', sessionId, 'messages');
+      const messagesSnapshot = await getDocs(messagesCollectionRef);
       const batch = writeBatch(db);
       messagesSnapshot.forEach(doc => {
         batch.delete(doc.ref);
       });
       await batch.commit();
 
+      // Then delete the main chat document
       await deleteDoc(doc(db, 'chats', sessionId));
 
+      // Update local state to remove the deleted chat
       setMessages(prev => {
         const newMessages = { ...prev };
         delete newMessages[sessionId];
         return newMessages;
       });
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
       
     } catch (error) {
       console.error("Error deleting chat:", error);
     }
   }, [userRole]);
 
-  return { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages };
+  return { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages, currentSessionId };
 }
