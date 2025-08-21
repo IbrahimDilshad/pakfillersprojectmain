@@ -10,11 +10,12 @@ export interface CartItem {
     serviceId: string; // ID of the service from the DB
     name: { [key in Language]: string };
     price: number;
+    filingData?: any; // To hold data from multi-step forms
 }
 
 interface CartContextType {
     items: CartItem[];
-    addItem: (service: { id: string, name: { [key in Language]: string }, price: number, serviceId: string }) => void;
+    addItem: (service: Omit<CartItem, 'id'> & { id: string }) => void;
     removeItem: (itemId: string) => void;
     clearCart: () => void;
     total: number;
@@ -45,13 +46,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }, [items, activeUser]);
 
-    const addItem = (service: { id: string, name: { [key in Language]: string }, price: number, serviceId: string }) => {
+    const addItem = (service: Omit<CartItem, 'id'> & { id: string }) => {
         if (!activeUser) return;
         const newItem: CartItem = {
+            ...service,
             id: `${service.id}-${Date.now()}`,
-            serviceId: service.id,
-            name: service.name,
-            price: service.price,
         };
         setItems(prevItems => [...prevItems, newItem]);
     };

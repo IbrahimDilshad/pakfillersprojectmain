@@ -119,7 +119,7 @@ export default function AdminContentPage() {
       await deleteDoc(doc(db, 'services', serviceId));
       setServices(services.filter(s => s.id !== serviceId));
       // toast({ title: 'Success', description: 'Service deleted successfully.' });
-    } catch (error) {
+    } catch (error) => {
       // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete service.' });
     }
   };
@@ -141,13 +141,13 @@ export default function AdminContentPage() {
                     <CardTitle>{t({ en: "Manage Services & Forms", ur: "خدمات اور فارم کا نظم کریں" })}</CardTitle>
                     <CardDescription>{t({ en: "Add, edit, or delete service offerings. Price is fixed at PKR 3000.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔ قیمت 3000 پاکستانی روپے مقرر ہے۔" })}</CardDescription>
                 </div>
-                <Button onClick={handleAddNewService}><PlusCircle className="mr-2" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
+                <Button onClick={handleAddNewService}><PlusCircle className="mr-2 h-4 w-4" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
                {servicesLoading ? (
-                Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
-              ) : (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+              ) : services.length > 0 ? (
                 services.map(service => (
                   <Card key={service.id} className="p-4">
                     <div className="flex justify-between items-start">
@@ -182,6 +182,8 @@ export default function AdminContentPage() {
                     </div>
                   </Card>
                 ))
+              ) : (
+                <p className="text-center text-muted-foreground py-10">{t({en: "No services added yet.", ur: "ابھی تک کوئی خدمات شامل نہیں کی گئی ہیں۔"})}</p>
               )}
             </CardContent>
           </Card>
@@ -194,13 +196,13 @@ export default function AdminContentPage() {
                     <CardTitle>{t({ en: "Manage Blog Posts", ur: "بلاگ پوسٹس کا نظم کریں" })}</CardTitle>
                     <CardDescription>{t({ en: "Add, edit, or delete blog posts.", ur: "بلاگ پوسٹس شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
                 </div>
-                <Button onClick={handleAddNewPost}><PlusCircle className="mr-2"/>{t({en: "Add New Post", ur: "نئی پوسٹ شامل کریں"})}</Button>
+                <Button onClick={handleAddNewPost}><PlusCircle className="mr-2 h-4 w-4"/>{t({en: "Add New Post", ur: "نئی پوسٹ شامل کریں"})}</Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {postsLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
-              ) : (
+              ) : posts.length > 0 ? (
                 posts.map(post => (
                   <Card key={post.id} className="flex items-center p-4 gap-4">
                     <Image src={post.image} alt={t(post.title)} width={100} height={100} className="rounded-md object-cover w-24 h-24" />
@@ -230,6 +232,8 @@ export default function AdminContentPage() {
                     </div>
                   </Card>
                 ))
+               ) : (
+                <p className="text-center text-muted-foreground py-10">{t({en: "No blog posts added yet.", ur: "ابھی تک کوئی بلاگ پوسٹس شامل نہیں کی گئی ہیں۔"})}</p>
               )}
             </CardContent>
           </Card>
@@ -242,13 +246,13 @@ export default function AdminContentPage() {
                         <CardTitle>{t({ en: "Manage Videos", ur: "ویڈیوز کا نظم کریں" })}</CardTitle>
                         <CardDescription>{t({ en: "Add, edit, or delete videos.", ur: "ویڈیوز شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
                     </div>
-                    <Button onClick={handleAddNewVideo}><PlusCircle className="mr-2" />{t({en: "Add New Video", ur: "نئی ویڈیو شامل کریں"})}</Button>
+                    <Button onClick={handleAddNewVideo}><PlusCircle className="mr-2 h-4 w-4" />{t({en: "Add New Video", ur: "نئی ویڈیو شامل کریں"})}</Button>
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
                {videosLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
-              ) : (
+              ) : videos.length > 0 ? (
                 videos.map(video => {
                     const videoId = video.src.split('embed/')[1];
                     const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
@@ -282,6 +286,8 @@ export default function AdminContentPage() {
                         </Card>
                     );
                 })
+               ) : (
+                <p className="text-center text-muted-foreground py-10">{t({en: "No videos added yet.", ur: "ابھی تک کوئی ویڈیوز شامل نہیں کی گئی ہیں۔"})}</p>
               )}
             </CardContent>
           </Card>
@@ -294,13 +300,13 @@ export default function AdminContentPage() {
                     <CardTitle>{t({ en: "Manage FAQs", ur: "اکثر پوچھے گئے سوالات کا نظم کریں" })}</CardTitle>
                     <CardDescription>{t({ en: "Add, edit, or delete frequently asked questions.", ur: "اکثر پوچھے گئے سوالات شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
                 </div>
-                <Button onClick={handleAddNewFaq}><PlusCircle className="mr-2" />{t({en: "Add New FAQ", ur: "نیا سوال شامل کریں"})}</Button>
+                <Button onClick={handleAddNewFaq}><PlusCircle className="mr-2 h-4 w-4" />{t({en: "Add New FAQ", ur: "نیا سوال شامل کریں"})}</Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
                {faqsLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
-              ) : (
+              ) : faqs.length > 0 ? (
                 faqs.map(faq => (
                   <Card key={faq.id} className="p-4">
                     <div className="flex justify-between items-start">
@@ -331,6 +337,8 @@ export default function AdminContentPage() {
                     </div>
                   </Card>
                 ))
+              ) : (
+                <p className="text-center text-muted-foreground py-10">{t({en: "No FAQs added yet.", ur: "ابھی تک کوئی سوالات شامل نہیں کیے گئے ہیں۔"})}</p>
               )}
             </CardContent>
           </Card>
@@ -751,7 +759,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                         <Label htmlFor="service-details">{t({ en: "Details", ur: "تفصیلات" })}</Label>
                         <Textarea id="service-details" value={details} onChange={(e) => setDetails(e.target.value)} required rows={5}/>
                     </div>
-                    <DialogFooter className="pt-8">
+                    <DialogFooter className="pt-4">
                          <DialogClose asChild>
                             <Button type="button" variant="secondary">Cancel</Button>
                        </DialogClose>

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { useLanguage } from "@/context/language-context";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/context/auth-context";
@@ -57,6 +57,7 @@ export default function SignupPage() {
         mobileNumber: mobileNumber,
         cnic: cnic,
         role: 'user', // Default role
+        createdAt: serverTimestamp(),
       });
 
 

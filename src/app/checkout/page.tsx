@@ -11,6 +11,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, orderBy, query } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Upload, ClipboardCopy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -64,7 +65,13 @@ export default function CheckoutPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setPaymentScreenshot(e.target.files[0]);
+            const file = e.target.files[0];
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                toast({ variant: 'destructive', title: t({ en: "File Too Large", ur: "فائل بہت بڑی ہے" }), description: t({ en: "Please upload an image smaller than 5MB.", ur: "براہ کرم 5MB سے چھوٹی تصویر اپ لوڈ کریں۔" }) });
+                e.target.value = ''; // Reset file input
+                return;
+            }
+            setPaymentScreenshot(file);
         }
     };
 
@@ -81,17 +88,25 @@ export default function CheckoutPage() {
 
         setIsSubmitting(true);
         try {
-            // In a real app, you would upload the file to Firebase Storage
-            // For now, we'll just record the order in Firestore.
+            // Upload the file to Firebase Storage
+            const storage = getStorage();
+            const screenshotRef = ref(storage, `payment_screenshots/${activeUser.uid}/${Date.now()}_${paymentScreenshot.name}`);
+            const uploadResult = await uploadBytes(screenshotRef, paymentScreenshot);
+            const downloadURL = await getDownloadURL(uploadResult.ref);
             
             const orderData = {
                 userId: activeUser.uid,
                 userEmail: activeUser.email,
-                items: items.map(item => ({ name: item.name, price: item.price, serviceId: item.serviceId })),
+                items: items.map(item => ({ 
+                    name: item.name, 
+                    price: item.price, 
+                    serviceId: item.serviceId,
+                    filingData: item.filingData || null // Include filing data
+                })),
                 total,
                 status: 'pending',
                 createdAt: serverTimestamp(),
-                paymentScreenshot: paymentScreenshot.name, // In real app, this would be a URL from storage
+                paymentScreenshot: downloadURL,
             };
             
             await addDoc(collection(db, 'orders'), orderData);
@@ -102,7 +117,7 @@ export default function CheckoutPage() {
 
         } catch (error) {
             console.error("Error submitting order: ", error);
-            toast({ variant: 'destructive', title: t({ en: "Submission Failed", ur: "جمع کرانے میں ناکامی" }) });
+            toast({ variant: 'destructive', title: t({ en: "Submission Failed", ur: "جمع کرانے میں ناکامی" }), description: (error as Error).message });
         } finally {
             setIsSubmitting(false);
         }

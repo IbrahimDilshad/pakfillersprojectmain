@@ -10,18 +10,18 @@ import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { UserNav } from '@/components/user-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart, DollarSign, Wallet } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCart, DollarSign, Wallet, Newspaper } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 
 
 const adminNavItems = [
+  { href: '/admin', label: { en: 'Dashboard', ur: 'ڈیش بورڈ' }, icon: LayoutDashboard },
   { href: '/admin/orders', label: { en: 'Orders', ur: 'آرڈرز' }, icon: ShoppingCart },
-  { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: LayoutDashboard },
+  { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: Newspaper },
   { href: '/admin/payments', label: { en: 'Payments', ur: 'ادائیگیاں' }, icon: Wallet },
-  { href: '/admin/pricing', label: { en: 'Pricing', ur: 'قیمت' }, icon: DollarSign },
   { href: '/admin/chat', label: { en: 'Support Chat', ur: 'سپورٹ چیٹ' }, icon: Bot },
+  { href: '/admin/users', label: { en: 'Users', ur: 'صارفین' }, icon: Users },
   { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart },
-  { href: '/admin', label: { en: 'User Management', ur: 'صارف کا انتظام' }, icon: Users },
   { href: '/admin/config', label: { en: 'Configuration', ur: 'کنفیگریشن' }, icon: Settings },
 ];
 

@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, Timestamp, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Language } from '@/context/language-context';
 
@@ -13,6 +13,7 @@ export interface Order {
     total: number;
     status: 'pending' | 'processing' | 'completed';
     createdAt: Timestamp;
+    paymentScreenshot?: string;
 }
 
 export function useOrders(userId?: string) {
@@ -21,20 +22,22 @@ export function useOrders(userId?: string) {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!userId) {
-        setOrders([]);
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       try {
+        let q;
         const ordersCollection = collection(db, 'orders');
-        const q = query(
-          ordersCollection, 
-          where('userId', '==', userId), 
-          orderBy('createdAt', 'desc')
-        );
+        if (userId) {
+            // Fetch orders for a specific user
+            q = query(
+              ordersCollection, 
+              where('userId', '==', userId), 
+              orderBy('createdAt', 'desc')
+            );
+        } else {
+            // Fetch all orders for admin
+            q = query(ordersCollection, orderBy('createdAt', 'desc'));
+        }
+        
         const ordersSnapshot = await getDocs(q);
         const ordersList = ordersSnapshot.docs.map(doc => ({
           id: doc.id,

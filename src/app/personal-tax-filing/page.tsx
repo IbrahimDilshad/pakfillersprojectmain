@@ -15,8 +15,6 @@ import { Button } from '@/components/ui/button';
 import { PersonalTaxFilingProvider, usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useCart } from '@/context/cart-context';
 import { useServices } from '@/hooks/useServices';
 import { useRouter } from 'next/navigation';
@@ -34,7 +32,7 @@ function PersonalTaxFilingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { activeUser } = useAuth();
   const { formData } = usePersonalTaxFiling();
   const { services } = useServices();
   const { addItem } = useCart();
@@ -54,46 +52,33 @@ function PersonalTaxFilingWizard() {
   };
   
   const handleSubmit = async () => {
-    if (!user) {
+    if (!activeUser) {
         toast({ variant: 'destructive', title: "Not Authenticated", description: "You must be logged in to submit a filing." });
         return;
     }
 
-    try {
-        await addDoc(collection(db, "filings"), {
-            userId: user.uid,
-            userEmail: user.email,
-            type: "Personal Tax",
-            formData,
-            status: 'submitted',
-            createdAt: serverTimestamp(),
+    const serviceName = 'personal tax filing';
+    const taxFilingService = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    
+    if (taxFilingService) {
+        addItem({
+            id: taxFilingService.id,
+            name: taxFilingService.title,
+            price: taxFilingService.price,
+            serviceId: taxFilingService.id,
+            filingData: formData, // Attach the form data to the cart item
         });
-        
-        const taxFilingService = services.find(s => t(s.title).toLowerCase().includes('personal tax filing'));
-        
-        if (taxFilingService) {
-            addItem({
-                id: taxFilingService.id,
-                name: taxFilingService.title,
-                price: taxFilingService.price,
-                serviceId: taxFilingService.id,
-            });
-             toast({
-                title: "Added to Cart",
-                description: "Personal Tax Filing service added to your cart. Please complete the checkout process.",
-            });
-            router.push('/cart');
-        } else {
-             toast({
-                title: "Filing Submitted",
-                description: "Your tax filing has been submitted for review. Service cost could not be determined.",
-            });
-            router.push('/dashboard');
-        }
-
-    } catch (error) {
-        console.error("Error submitting filing:", error);
-        toast({ variant: 'destructive', title: 'Submission Error', description: 'There was a problem submitting your filing.' });
+        toast({
+            title: "Added to Cart",
+            description: "Personal Tax Filing service added to your cart. Please complete the checkout process.",
+        });
+        router.push('/cart');
+    } else {
+          toast({
+            variant: 'destructive',
+            title: "Service Not Found",
+            description: "The Personal Tax Filing service is currently unavailable.",
+        });
     }
   }
 
@@ -140,7 +125,7 @@ function PersonalTaxFilingWizard() {
             </Button>
           ) : (
             <Button onClick={handleSubmit}>
-              {t({ en: 'Submit & Add to Cart', ur: 'جمع کرائیں اور کارٹ میں شامل کریں' })}
+              {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
             </Button>
           )}
         </div>

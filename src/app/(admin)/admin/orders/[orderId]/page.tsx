@@ -2,13 +2,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useLanguage } from '@/context/language-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send } from 'lucide-react';
+import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send, CheckCircle, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -16,12 +16,20 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { AuthUser } from '@/context/auth-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface OrderItem {
+  name: { en: string, ur: string };
+  price: number;
+  serviceId: string;
+  filingData?: any; // To hold data from personal tax filing form etc.
+}
 
 interface Order {
     id: string;
     userId: string;
     userEmail: string;
-    items: { name: { en: string, ur: string }; price: number }[];
+    items: OrderItem[];
     total: number;
     status: 'pending' | 'processing' | 'completed';
     createdAt: any;
@@ -39,43 +47,43 @@ export default function OrderDetailsPage() {
     const [customer, setCustomer] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
+    const [status, setStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
+
+    const fetchOrderAndCustomer = async () => {
+        if (!orderId) return;
+        setLoading(true);
+        try {
+            const orderDocRef = doc(db, 'orders', orderId as string);
+            const orderDocSnap = await getDoc(orderDocRef);
+
+            if (orderDocSnap.exists()) {
+                const orderData = { id: orderDocSnap.id, ...orderDocSnap.data() } as Order;
+                setOrder(orderData);
+                setStatus(orderData.status);
+
+                // Fetch customer details
+                const userDocRef = doc(db, 'users', orderData.userId);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    setCustomer(userDocSnap.data() as AuthUser);
+                }
+            } else {
+                toast({ variant: 'destructive', title: 'Order not found' });
+            }
+        } catch (error) {
+            console.error("Error fetching order details:", error);
+            toast({ variant: 'destructive', title: 'Failed to fetch details' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchOrderAndCustomer = async () => {
-            if (!orderId) return;
-            setLoading(true);
-            try {
-                const orderDocRef = doc(db, 'orders', orderId as string);
-                const orderDocSnap = await getDoc(orderDocRef);
-
-                if (orderDocSnap.exists()) {
-                    const orderData = { id: orderDocSnap.id, ...orderDocSnap.data() } as Order;
-                    setOrder(orderData);
-
-                    // Fetch customer details
-                    const userDocRef = doc(db, 'users', orderData.userId);
-                    const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists()) {
-                        setCustomer(userDocSnap.data() as AuthUser);
-                    }
-                } else {
-                    toast({ variant: 'destructive', title: 'Order not found' });
-                }
-            } catch (error) {
-                console.error("Error fetching order details:", error);
-                toast({ variant: 'destructive', title: 'Failed to fetch details' });
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchOrderAndCustomer();
     }, [orderId, toast]);
     
     const handleSendMessage = async () => {
-        if (!message.trim() || !order) {
-            return;
-        }
+        if (!message.trim() || !order) return;
         try {
             await addDoc(collection(db, 'notifications'), {
                 userId: order.userId,
@@ -90,6 +98,49 @@ export default function OrderDetailsPage() {
             toast({ variant: 'destructive', title: "Error", description: "Failed to send message."})
         }
     };
+
+    const handleStatusChange = async (newStatus: 'pending' | 'processing' | 'completed') => {
+        if (!order) return;
+        setStatus(newStatus);
+        try {
+            const orderDocRef = doc(db, 'orders', order.id);
+            await updateDoc(orderDocRef, { status: newStatus });
+            toast({ title: "Status Updated", description: `Order marked as ${newStatus}.`});
+        } catch (error) {
+             toast({ variant: 'destructive', title: "Error", description: "Failed to update status."})
+        }
+    }
+    
+    const FilingDataDisplay = ({ data }: { data: any }) => {
+        if (!data) return null;
+
+        const sections = [
+            { title: "Personal Info", data: data.personalInfo },
+            { title: "Income", data: data.incomes?.salary },
+            { title: "Wealth Statement", data: data.wealthStatement },
+            { title: "Deductions", data: data.deductions },
+        ];
+
+        return (
+            <div className="space-y-4">
+                {sections.map(section => (
+                    section.data && Object.keys(section.data).length > 0 && (
+                        <div key={section.title}>
+                            <h4 className="font-semibold mb-2">{t({en: section.title, ur: section.title})}</h4>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm border p-3 rounded-md">
+                                {Object.entries(section.data).map(([key, value]) => (
+                                     <div key={key} className="flex justify-between">
+                                        <span className="text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
+                                        <span className="font-medium">{String(value)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )
+                ))}
+            </div>
+        )
+    }
 
     if (loading) {
         return (
@@ -122,6 +173,16 @@ export default function OrderDetailsPage() {
                     <h1 className="text-2xl font-bold">{t({en: "Order Details", ur: "آرڈر کی تفصیلات"})}</h1>
                     <p className="text-muted-foreground font-mono text-xs">{order.id}</p>
                 </div>
+                 <Select value={status} onValueChange={handleStatusChange}>
+                    <SelectTrigger className="w-[180px] ml-auto">
+                        <SelectValue placeholder="Change status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="pending"><Clock className="mr-2" />{t({en: 'Pending', ur: 'زیر التواء'})}</SelectItem>
+                        <SelectItem value="processing"><Activity className="mr-2" />{t({en: 'Processing', ur: 'پروسیسنگ'})}</SelectItem>
+                        <SelectItem value="completed"><CheckCircle className="mr-2" />{t({en: 'Completed', ur: 'مکمل'})}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -132,11 +193,14 @@ export default function OrderDetailsPage() {
                             <CardTitle>{t({en: "Order Summary", ur: "آرڈر کا خلاصہ"})}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                             <div className="space-y-2">
+                             <div className="space-y-4">
                                 {order.items.map((item, index) => (
-                                    <div key={index} className="flex justify-between items-center">
-                                        <span>{t(item.name)}</span>
-                                        <span className="font-medium">PKR {item.price.toLocaleString()}</span>
+                                    <div key={index} className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-semibold">{t(item.name)}</span>
+                                            <span className="font-medium">PKR {item.price.toLocaleString()}</span>
+                                        </div>
+                                        {item.filingData && <FilingDataDisplay data={item.filingData} />}
                                     </div>
                                 ))}
                              </div>
@@ -150,7 +214,7 @@ export default function OrderDetailsPage() {
                              <div className="text-sm text-muted-foreground">
                                 {t({en: "Order placed on:", ur: "آرڈر دیا گیا:"})} {format(order.createdAt.toDate(), 'PPP p')}
                             </div>
-                            <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>{t({en: order.status, ur: order.status === 'pending' ? 'زیر التواء' : order.status === 'processing' ? 'پروسیسنگ' : 'مکمل'})}</Badge>
+                            <Badge variant={order.status === 'completed' ? 'default' : order.status === 'processing' ? 'secondary' : 'destructive'}>{t({en: order.status, ur: order.status === 'pending' ? 'زیر التواء' : order.status === 'processing' ? 'پروسیسنگ' : 'مکمل'})}</Badge>
                          </CardFooter>
                     </Card>
 
@@ -197,7 +261,9 @@ export default function OrderDetailsPage() {
                             {order.paymentScreenshot ? (
                                 <div>
                                     <p className="text-sm font-medium mb-2">{t({en: "Payment Screenshot", ur: "ادائیگی کا اسکرین شاٹ"})}</p>
-                                    <Image src={order.paymentScreenshot} alt="Payment Screenshot" width={300} height={200} className="rounded-md border"/>
+                                    <a href={order.paymentScreenshot} target="_blank" rel="noopener noreferrer">
+                                        <Image src={order.paymentScreenshot} alt="Payment Screenshot" width={300} height={200} className="rounded-md border hover:opacity-80 transition-opacity"/>
+                                    </a>
                                 </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground">{t({en: "No attachments found.", ur: "کوئی منسلکات نہیں ملے۔"})}</p>
@@ -209,4 +275,3 @@ export default function OrderDetailsPage() {
         </div>
     );
 }
-
