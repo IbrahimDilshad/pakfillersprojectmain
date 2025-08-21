@@ -23,35 +23,45 @@ service cloud.firestore {
     // =================================
 
     // USERS collection
+    // Users can read/update their own profile. Admins can manage any profile.
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin();
       allow create: if request.auth.uid != null;
     }
 
     // SUB-ACCOUNTS (nested under users)
+    // Only the parent user or an admin can manage sub-accounts.
     match /users/{parentUserId}/subAccounts/{subAccountId} {
       allow read, update, create, delete: if isOwner(parentUserId) || isAdmin();
     }
     
     // CHAT SESSIONS collection
     match /chats/{sessionId} {
+      // This rule allows the admin to query the entire 'chats' collection.
       allow list: if isAdmin(); 
+      
+      // These rules allow a user to access their own chat, or an admin to access any chat.
       allow read, write: if isOwner(sessionId) || isAdmin();
       
       // MESSAGES sub-collection within a chat
       match /messages/{messageId} {
+         // Permissions are inherited from the parent /chats/{sessionId} document.
          allow read, write: if isOwner(sessionId) || isAdmin();
       }
     }
 
     // ORDERS collection
+    // Users can create their own orders. Only they or an admin can view/update them.
     match /orders/{orderId} {
+      // This is the new rule that fixes the permission error for admins.
+      allow list: if isAdmin();
       allow create: if isOwner(request.resource.data.userId);
       allow read, update: if isOwner(get(/databases/$(database)/documents/orders/$(orderId)).data.userId) || isAdmin();
       allow delete: if isAdmin();
     }
     
     // PUBLIC CONTENT (Blog, Videos, FAQs, Services)
+    // Anyone can read this content, but only admins can modify it.
     match /blogPosts/{postId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
@@ -70,13 +80,14 @@ service cloud.firestore {
     }
 
     // PAYMENT METHODS collection
-    match /paymentMethods/{methodId} {
-      allow read: if request.auth.uid != null; // Allow any authenticated user to read
-      allow list: if request.auth.uid != null; // Allow any authenticated user to list
-      allow create, update, delete: if isAdmin(); // Only admins can modify
+    // All users can read the payment methods for checkout. Only admins can modify them.
+     match /paymentMethods/{methodId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if isAdmin();
     }
 
     // NOTIFICATIONS collection
+    // Admins can create notifications for users. Users can only read their own.
     match /notifications/{notificationId} {
         allow create: if isAdmin();
         allow read, update: if isOwner(get(/databases/$(database)/documents/notifications/$(notificationId)).data.userId) || isAdmin();
