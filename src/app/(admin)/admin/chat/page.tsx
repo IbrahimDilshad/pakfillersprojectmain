@@ -130,15 +130,13 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
 export default function AdminChatPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead } = useChat(user?.uid, user?.role);
+  const { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages } = useChat(user?.uid, user?.role);
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
+  const currentMessages = selectedSession ? messages[selectedSession.id] || [] : [];
   
   const handleSelectSession = (session: ChatSession) => {
     setSelectedSession(session);
-    setCurrentSessionId(session.id);
-    if (!session.isReadByAdmin) {
-      markSessionAsRead(session.id);
-    }
+    setSessionIdForMessages(session.id);
   };
 
   const handleSendMessage = (text: string) => {
@@ -158,7 +156,7 @@ export default function AdminChatPage() {
     if (selectedSession) {
         deleteChat(selectedSession.id);
         setSelectedSession(null);
-        setCurrentSessionId(null);
+        setSessionIdForMessages(null);
     }
   };
 
@@ -222,7 +220,7 @@ export default function AdminChatPage() {
                  {selectedSession ? (
                     <ChatView 
                         session={selectedSession}
-                        messages={messages[selectedSession.id] || []}
+                        messages={currentMessages}
                         onSendMessage={handleSendMessage}
                         onDelete={handleDeleteChat}
                         onBack={() => setSelectedSession(null)}

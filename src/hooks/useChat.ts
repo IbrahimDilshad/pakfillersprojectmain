@@ -51,9 +51,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<{ [key: string]: Message[] }>({});
   const [loading, setLoading] = useState(true);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [sessionIdForMessages, setSessionIdForMessages] = useState<string | null>(null);
 
-  // Effect for fetching chat data based on role
+  // Effect for fetching chat sessions (for admin) or a single session's messages (for user)
   useEffect(() => {
     let unsubscribe: () => void = () => {};
     
@@ -81,7 +81,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         querySnapshot.forEach((doc) => {
           sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
         });
-        setMessages({ [userId]: sessionMessages });
+        setMessages(prev => ({ ...prev, [userId]: sessionMessages }));
         setLoading(false);
       }, (error) => {
         console.error(`Error fetching messages for session ${userId}:`, error);
@@ -99,9 +99,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
     
-    if (userRole === 'admin' && currentSessionId) {
+    if (userRole === 'admin' && sessionIdForMessages) {
       const messagesQuery = query(
-        collection(db, 'chats', currentSessionId, 'messages'),
+        collection(db, 'chats', sessionIdForMessages, 'messages'),
         orderBy('timestamp', 'asc')
       );
 
@@ -110,12 +110,12 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         querySnapshot.forEach((doc) => {
           sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
         });
-        setMessages(prev => ({ ...prev, [currentSessionId]: sessionMessages }));
+        setMessages(prev => ({ ...prev, [sessionIdForMessages]: sessionMessages }));
       });
     }
     
     return () => unsubscribe();
-  }, [userRole, currentSessionId]);
+  }, [userRole, sessionIdForMessages]);
 
   const sendMessage = useCallback(async (payload: SendMessagePayload) => {
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
@@ -176,15 +176,5 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     }
   }, [userRole]);
 
-  const markSessionAsRead = useCallback(async (sessionId: string) => {
-    if (userRole !== 'admin') return;
-    try {
-      const sessionRef = doc(db, 'chats', sessionId);
-      await updateDoc(sessionRef, { isReadByAdmin: true });
-    } catch (error) {
-      console.error("Error marking session as read:", error);
-    }
-  }, [userRole]);
-
-  return { sessions, loading, messages, sendMessage, deleteChat, setCurrentSessionId, markSessionAsRead };
+  return { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages };
 }
