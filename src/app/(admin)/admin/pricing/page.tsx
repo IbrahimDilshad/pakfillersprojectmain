@@ -32,7 +32,7 @@ export default function AdminPricingPage() {
 
   const handlePriceChange = (serviceId: string, value: string) => {
     const newPrice = Number(value);
-    if (!isNaN(newPrice)) {
+    if (!isNaN(newPrice) && newPrice >= 0) {
       setPrices(prev => ({ ...prev, [serviceId]: newPrice }));
     }
   };
@@ -52,7 +52,7 @@ export default function AdminPricingPage() {
 
       toast({
         title: t({ en: "Price Updated", ur: "قیمت اپ ڈیٹ ہو گئی" }),
-        description: `${t(services.find(s=>s.id === serviceId)?.title || {en: 'Service', ur: 'Service'})} ${t({en: 'price updated to', ur: 'کی قیمت اپ ڈیٹ ہو گئی'})} PKR ${prices[serviceId]}.`
+        description: `${t(services.find(s=>s.id === serviceId)?.title || {en: 'Service', ur: 'Service'})} ${t({en: 'price updated to', ur: 'کی قیمت اپ ڈیٹ ہو گئی'})} PKR ${prices[serviceId].toLocaleString()}.`
       });
     } catch (error) {
       toast({
@@ -68,15 +68,15 @@ export default function AdminPricingPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t({ en: "Manage Service Pricing", ur: "سروس کی قیمتوں کا نظم کریں" })}</CardTitle>
-        <CardDescription>{t({ en: "Set the prices for all services and forms offered on the platform. To add or edit service details, go to the Content page.", ur: "پلیٹ فارم پر پیش کی جانے والی تمام خدمات اور فارموں کی قیمتیں مقرر کریں۔ سروس کی تفصیلات شامل کرنے یا ترمیم کرنے کے لیے، مواد کے صفحے پر جائیں۔" })}</CardDescription>
+        <CardTitle>{t({ en: "Manage Form & Service Pricing", ur: "فارم اور سروس کی قیمتوں کا نظم کریں" })}</CardTitle>
+        <CardDescription>{t({ en: "Set the prices for all services and forms offered on the platform. To add or edit other details, go to the Content page.", ur: "پلیٹ فارم پر پیش کی جانے والی تمام خدمات اور فارموں کی قیمتیں مقرر کریں۔ دیگر تفصیلات شامل کرنے یا ترمیم کرنے کے لیے، مواد کے صفحے پر جائیں۔" })}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)
           ) : services.length === 0 ? (
-            <p className="text-muted-foreground md:col-span-3">{t({ en: "No services found. Please add services from the 'Content' page.", ur: "کوئی خدمات نہیں ملیں۔ براہ کرم 'مواد' کے صفحے سے خدمات شامل کریں۔" })}</p>
+            <p className="text-muted-foreground md:col-span-3 text-center py-10">{t({ en: "No services found. Please add services from the 'Content' page.", ur: "کوئی خدمات نہیں ملیں۔ براہ کرم 'مواد' کے صفحے سے خدمات شامل کریں۔" })}</p>
           ) : (
             services.map(service => (
               <Card key={service.id} className="flex flex-col">
@@ -85,13 +85,14 @@ export default function AdminPricingPage() {
                 </CardHeader>
                 <CardContent className="flex-1">
                   <Label htmlFor={`price-${service.id}`}>{t({ en: "Price (PKR)", ur: "قیمت (PKR)" })}</Label>
-                   <div className="flex items-center gap-2">
-                     <DollarSign className="h-5 w-5 text-muted-foreground" />
+                   <div className="relative mt-1">
+                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id={`price-${service.id}`}
                       type="number"
-                      value={prices[service.id] || ''}
+                      value={prices[service.id] ?? ''}
                       onChange={(e) => handlePriceChange(service.id, e.target.value)}
+                      className="pl-10"
                     />
                    </div>
                 </CardContent>

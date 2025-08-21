@@ -80,13 +80,13 @@ function PersonalTaxFilingWizard() {
             });
              toast({
                 title: "Added to Cart",
-                description: "Personal Tax Filing service added to your cart.",
+                description: "Personal Tax Filing service added to your cart. Please complete the checkout process.",
             });
             router.push('/cart');
         } else {
              toast({
                 title: "Filing Submitted",
-                description: "Your tax filing has been submitted for review.",
+                description: "Your tax filing has been submitted for review. Service cost could not be determined.",
             });
             router.push('/dashboard');
         }

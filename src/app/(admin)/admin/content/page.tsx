@@ -126,13 +126,66 @@ export default function AdminContentPage() {
 
   return (
     <>
-      <Tabs defaultValue="blog">
+      <Tabs defaultValue="services">
         <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="services">{t({ en: "Services", ur: "خدمات" })}</TabsTrigger>
           <TabsTrigger value="blog">{t({ en: "Blog Posts", ur: "بلاگ پوسٹس" })}</TabsTrigger>
           <TabsTrigger value="video">{t({ en: "Videos", ur: "ویڈیوز" })}</TabsTrigger>
           <TabsTrigger value="faq">{t({ en: "FAQs", ur: "اکثر پوچھے گئے سوالات" })}</TabsTrigger>
-          <TabsTrigger value="services">{t({ en: "Services", ur: "خدمات" })}</TabsTrigger>
         </TabsList>
+         <TabsContent value="services">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>{t({ en: "Manage Services & Forms", ur: "خدمات اور فارم کا نظم کریں" })}</CardTitle>
+                    <CardDescription>{t({ en: "Add, edit, or delete service offerings. Prices can be managed on the Pricing page.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔ قیمتوں کا نظم پرائسنگ کے صفحے پر کیا جا سکتا ہے۔" })}</CardDescription>
+                </div>
+                <Button onClick={handleAddNewService}><PlusCircle className="mr-2" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+               {servicesLoading ? (
+                Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+              ) : (
+                services.map(service => (
+                  <Card key={service.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                            <h3 className="font-semibold">{t(service.title)}</h3>
+                             <div className="text-sm text-muted-foreground mt-1 flex items-center gap-4">
+                                <Badge variant="secondary">PKR {service.price.toLocaleString()}</Badge>
+                                <span>{t(service.completionTime)}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{t(service.details)}</p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                            <Button variant="outline" size="icon" onClick={() => handleEditService(service)}><Pencil className="h-4 w-4" /></Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete this service.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteService(service.id)}>Continue</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="blog">
           <Card>
             <CardHeader>
@@ -271,58 +324,6 @@ export default function AdminContentPage() {
                                     <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => handleDeleteFaq(faq.id)}>Continue</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-         <TabsContent value="services">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                    <CardTitle>{t({ en: "Manage Services", ur: "خدمات کا نظم کریں" })}</CardTitle>
-                    <CardDescription>{t({ en: "Add, edit, or delete service offerings.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔" })}</CardDescription>
-                </div>
-                <Button onClick={handleAddNewService}><PlusCircle className="mr-2" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-               {servicesLoading ? (
-                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
-              ) : (
-                services.map(service => (
-                  <Card key={service.id} className="p-4">
-                    <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                            <h3 className="font-semibold">{t(service.title)}</h3>
-                             <div className="text-sm text-muted-foreground mt-1 flex items-center gap-4">
-                                <Badge variant="secondary">PKR {service.price.toLocaleString()}</Badge>
-                                <span>{t(service.completionTime)}</span>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                            <Button variant="outline" size="icon" onClick={() => handleEditService(service)}><Pencil className="h-4 w-4" /></Button>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete this service.
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteService(service.id)}>Continue</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
@@ -666,7 +667,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     const { t } = useLanguage();
     const { toast } = useToast();
     const [title, setTitle] = useState('');
-    const [price, setPrice] = useState<number | string>('');
+    const [price, setPrice] = useState<number | string>(0);
     const [completionTime, setCompletionTime] = useState('');
     const [details, setDetails] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState('');
@@ -674,13 +675,13 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     useEffect(() => {
         if (service) {
             setTitle(t(service.title || {en: '', ur: ''}));
-            setPrice(service.price || '');
+            setPrice(service.price || 0);
             setCompletionTime(t(service.completionTime || {en: '', ur: ''}));
             setDetails(t(service.details || {en: '', ur: ''}));
             setWhatsappNumber(service.whatsappNumber || '');
         } else {
             setTitle('');
-            setPrice('');
+            setPrice(0);
             setCompletionTime('');
             setDetails('');
             setWhatsappNumber('');
@@ -689,8 +690,8 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !price || !completionTime || !details || !whatsappNumber) {
-            toast({ variant: 'destructive', title: 'All fields are required.' });
+        if (!title || !completionTime || !details || !whatsappNumber) {
+            toast({ variant: 'destructive', title: 'All fields except price are required.' });
             return;
         }
         try {
@@ -746,9 +747,9 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                             <Input id="service-whatsapp" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="e.g., 923001234567" required />
                         </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="service-details">{t({ en: "Details", ur: "تفصیلات" })}</Label>
-                        <Textarea id="service-details" value={details} onChange={(e) => setDetails(e.target.value)} required />
+                        <Textarea id="service-details" value={details} onChange={(e) => setDetails(e.target.value)} required rows={5}/>
                     </div>
                     <DialogFooter className="pt-8">
                          <DialogClose asChild>
@@ -761,5 +762,3 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
         </Dialog>
     );
 }
-
-    
