@@ -8,8 +8,7 @@ import { Skeleton } from './ui/skeleton';
 import { format } from 'date-fns';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import Link from 'next/link';
-import { Eye } from 'lucide-react';
+import { CardDescription } from './ui/card';
 
 export function PaymentHistoryTab() {
   const { t } = useLanguage();
@@ -18,16 +17,15 @@ export function PaymentHistoryTab() {
 
   return (
     <div className="p-6">
-      <h3 className="text-lg font-medium mb-4">{t({ en: "Your Payment History", ur: "آپ کی ادائیگی کی تاریخ" })}</h3>
-      <CardDescription className="mb-6">{t({en: 'Here is a list of all transactions and orders you have made.', ur: 'یہاں آپ کی تمام ٹرانزیکشنز اور آرڈرز کی فہرست ہے۔'})}</CardDescription>
+      <h3 className="text-lg font-medium mb-4">{t({ en: "Your Order History", ur: "آپ کی آرڈر کی تاریخ" })}</h3>
+      <CardDescription className="mb-6">{t({en: 'Here is a list of all services you have purchased.', ur: 'یہاں آپ کی خریدی گئی تمام خدمات کی فہرست ہے۔'})}</CardDescription>
       <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t({ en: "Order ID", ur: "آرڈر آئی ڈی" })}</TableHead>
               <TableHead>{t({ en: "Date", ur: "تاریخ" })}</TableHead>
               <TableHead>{t({ en: "Total", ur: "کل رقم" })}</TableHead>
-              <TableHead>{t({ en: "Status", ur: "حیثیت" })}</TableHead>
-              <TableHead className="text-right">{t({ en: "Actions", ur: "کاروائیاں" })}</TableHead>
+              <TableHead className="text-right">{t({ en: "Status", ur: "حیثیت" })}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -37,8 +35,7 @@ export function PaymentHistoryTab() {
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-10" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                 </TableRow>
               ))
             ) : orders.length > 0 ? (
@@ -47,25 +44,17 @@ export function PaymentHistoryTab() {
                   <TableCell className="font-mono text-xs">{order.id}</TableCell>
                   <TableCell>{format(order.createdAt.toDate(), 'PPP')}</TableCell>
                   <TableCell>PKR {order.total.toLocaleString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
                         {t({en: order.status, ur: order.status === 'pending' ? 'زیر التواء' : order.status === 'processing' ? 'پروسیسنگ' : 'مکمل'})}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                     {/* This link will eventually lead to a user-facing order details page */}
-                     <Button variant="outline" size="icon" asChild>
-                        <Link href="#">
-                            <Eye className="h-4 w-4" />
-                        </Link>
-                     </Button>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
-                  {t({ en: "No payment history found.", ur: "کوئی ادائیگی کی تاریخ نہیں ملی۔" })}
+                <TableCell colSpan={4} className="text-center h-24">
+                  {t({ en: "No order history found.", ur: "کوئی آرڈر کی تاریخ نہیں ملی۔" })}
                 </TableCell>
               </TableRow>
             )}

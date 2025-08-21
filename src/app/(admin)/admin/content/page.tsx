@@ -139,7 +139,7 @@ export default function AdminContentPage() {
               <div className="flex justify-between items-center">
                 <div>
                     <CardTitle>{t({ en: "Manage Services & Forms", ur: "خدمات اور فارم کا نظم کریں" })}</CardTitle>
-                    <CardDescription>{t({ en: "Add, edit, or delete service offerings. Prices can be managed on the Pricing page.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔ قیمتوں کا نظم پرائسنگ کے صفحے پر کیا جا سکتا ہے۔" })}</CardDescription>
+                    <CardDescription>{t({ en: "Add, edit, or delete service offerings. Price is fixed at PKR 3000.", ur: "خدمات کی پیشکشیں شامل کریں، ترمیم کریں یا حذف کریں۔ قیمت 3000 پاکستانی روپے مقرر ہے۔" })}</CardDescription>
                 </div>
                 <Button onClick={handleAddNewService}><PlusCircle className="mr-2" />{t({en: "Add New Service", ur: "نئی سروس شامل کریں"})}</Button>
               </div>
@@ -667,7 +667,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     const { t } = useLanguage();
     const { toast } = useToast();
     const [title, setTitle] = useState('');
-    const [price, setPrice] = useState<number | string>(0);
+    const [price, setPrice] = useState<number | string>(3000); // Standardized price
     const [completionTime, setCompletionTime] = useState('');
     const [details, setDetails] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState('');
@@ -675,13 +675,13 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     useEffect(() => {
         if (service) {
             setTitle(t(service.title || {en: '', ur: ''}));
-            setPrice(service.price || 0);
+            setPrice(service.price || 3000);
             setCompletionTime(t(service.completionTime || {en: '', ur: ''}));
             setDetails(t(service.details || {en: '', ur: ''}));
             setWhatsappNumber(service.whatsappNumber || '');
         } else {
             setTitle('');
-            setPrice(0);
+            setPrice(3000);
             setCompletionTime('');
             setDetails('');
             setWhatsappNumber('');
@@ -691,7 +691,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title || !completionTime || !details || !whatsappNumber) {
-            toast({ variant: 'destructive', title: 'All fields except price are required.' });
+            toast({ variant: 'destructive', title: 'All fields are required.' });
             return;
         }
         try {
@@ -736,7 +736,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="service-price">{t({ en: "Price (PKR)", ur: "قیمت (PKR)" })}</Label>
-                            <Input id="service-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                            <Input id="service-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required disabled />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="service-completion">{t({ en: "Completion Time", ur: "تکمیل کا وقت" })}</Label>
