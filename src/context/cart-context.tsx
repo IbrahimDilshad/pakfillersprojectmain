@@ -25,22 +25,25 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
     const { activeUser } = useAuth();
-    const cartId = `pakfiler-cart-${activeUser?.uid || 'guest'}`;
+    
+    const getCartId = () => `pakfiler-cart-${activeUser?.uid || 'guest'}`;
 
     useEffect(() => {
         if (typeof window !== 'undefined' && activeUser) {
+            const cartId = getCartId();
             const savedCart = localStorage.getItem(cartId);
             setItems(savedCart ? JSON.parse(savedCart) : []);
         } else {
             setItems([]);
         }
-    }, [activeUser, cartId]);
+    }, [activeUser]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && activeUser) {
+             const cartId = getCartId();
              localStorage.setItem(cartId, JSON.stringify(items));
         }
-    }, [items, activeUser, cartId]);
+    }, [items, activeUser]);
 
     const addItem = (service: { id: string, name: { [key in Language]: string }, price: number, serviceId: string }) => {
         if (!activeUser) return;

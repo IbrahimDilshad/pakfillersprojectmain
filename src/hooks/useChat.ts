@@ -13,14 +13,17 @@ import {
   getDocs,
   deleteDoc,
   serverTimestamp,
-  updateDoc
+  updateDoc,
+  setDoc,
+  getDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import type { Role } from '@/context/auth-context';
 
 export interface Message {
   id: string;
   text: string;
-  timestamp: any;
+  timestamp: Timestamp;
   senderId: string;
   from: 'user' | 'support';
 }
@@ -30,7 +33,7 @@ export interface ChatSession {
   userName: string;
   userEmail: string;
   lastMessage: string;
-  lastMessageTimestamp: any;
+  lastMessageTimestamp: Timestamp;
   isReadByAdmin: boolean;
 }
 
@@ -100,9 +103,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       });
       setMessages(prev => ({ ...prev, [sessionIdToFetch!]: sessionMessages }));
       
-      // If admin is viewing, mark as read
-      if (userRole === 'admin') {
-          const sessionRef = doc(db, 'chats', sessionIdToFetch!);
+      // If admin is viewing a chat, mark it as read
+      if (userRole === 'admin' && currentSessionId === sessionIdToFetch) {
+          const sessionRef = doc(db, 'chats', sessionIdToFetch);
           updateDoc(sessionRef, { isReadByAdmin: true }).catch(err => console.error("Could not mark as read", err));
       }
 
@@ -130,14 +133,19 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         from,
       });
 
+      // Check if session exists before setting data
+      const sessionSnap = await getDoc(sessionRef);
+
       const sessionDataToSet = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'support',
+        isReadByAdmin: from === 'support', // If support sends, admin has read it.
         userName: userName,
         userEmail: userEmail,
+        id: sessionId
       };
       
+      // Use set with merge true to create or update the session document
       batch.set(sessionRef, sessionDataToSet, { merge: true });
       
       await batch.commit();

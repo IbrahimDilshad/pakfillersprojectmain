@@ -24,7 +24,7 @@ export interface AuthUser extends User {
 }
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: AuthUser | null; // The logged-in user
   activeUser: AuthUser | null; // The currently selected profile
   subAccounts: AuthUser[];
   loading: boolean;
@@ -48,22 +48,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
 
+        let mainUser: AuthUser;
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const mainUser = {
+          mainUser = {
             ...firebaseUser,
             ...userData,
             role: userData.role || 'user',
-            displayName: firebaseUser.displayName,
+            displayName: firebaseUser.displayName || userData.displayName,
           } as AuthUser;
-          setUser(mainUser);
-          setActiveUser(mainUser); // Initially, the active user is the main user
         } else {
            const role: Role = firebaseUser.email === 'admin@example.com' ? 'admin' : 'user';
-           const mainUser = { ...firebaseUser, role } as AuthUser;
-           setUser(mainUser);
-           setActiveUser(mainUser);
+           mainUser = { ...firebaseUser, role, displayName: firebaseUser.displayName } as AuthUser;
         }
+        setUser(mainUser);
+        // Set active user only if it's not already set or if the main user changes
+        if (!activeUser || activeUser.uid !== mainUser.uid) {
+            setActiveUser(mainUser);
+        }
+
       } else {
         setUser(null);
         setActiveUser(null);
@@ -89,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       return () => unsubscribe();
+    } else {
+      setSubAccounts([]);
     }
   }, [user?.uid]);
 

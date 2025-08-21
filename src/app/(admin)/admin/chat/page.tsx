@@ -98,7 +98,7 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
                                 <div className={cn('max-w-[75%] p-3 rounded-lg', isSentByAdmin ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                                     <p className="text-sm">{msg.text}</p>
                                 </div>
-                                {isSentByAdmin && (
+                                {isSentByAdmin && user && (
                                 <Avatar className="w-8 h-8">
                                         <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
                                     </Avatar>
@@ -129,7 +129,7 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
 
 export default function AdminChatPage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user } = useAuth(); // The logged in user (who is an admin)
   const { sessions, loading, messages, sendMessage, deleteChat, setSessionIdForMessages, currentSessionId } = useChat(user?.uid, user?.role);
   
   const selectedSession = sessions.find(s => s.id === currentSessionId) || null;
@@ -158,6 +158,11 @@ export default function AdminChatPage() {
         setSessionIdForMessages(null);
     }
   };
+
+  const handleBack = () => {
+    setSessionIdForMessages(null);
+  };
+
 
   const ChatList = () => (
     <Card className="h-[calc(80vh)]">
@@ -191,9 +196,9 @@ export default function AdminChatPage() {
                 )}
               >
                  {!session.isReadByAdmin && (
-                    <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse" />
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse mr-2" />
                 )}
-                <Avatar className="flex-shrink-0 ml-2">
+                <Avatar className="flex-shrink-0">
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
@@ -222,7 +227,7 @@ export default function AdminChatPage() {
                         messages={currentMessages}
                         onSendMessage={handleSendMessage}
                         onDelete={handleDeleteChat}
-                        onBack={() => setSessionIdForMessages(null)}
+                        onBack={handleBack}
                     />
                  ) : (
                     <Card className="flex items-center justify-center h-[calc(80vh)]">

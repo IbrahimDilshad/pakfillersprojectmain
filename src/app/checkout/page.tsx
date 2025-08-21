@@ -23,7 +23,7 @@ export default function CheckoutPage() {
     const { t } = useLanguage();
     const { toast } = useToast();
     const { items, total, clearCart } = useCart();
-    const { user } = useAuth();
+    const { activeUser } = useAuth();
     const router = useRouter();
     const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!user) {
+        if (!activeUser) {
              toast({ variant: 'destructive', title: t({ en: "User not found", ur: "صارف نہیں ملا" }) });
             return;
         }
@@ -62,8 +62,8 @@ export default function CheckoutPage() {
             // For now, we'll just record the order in Firestore.
             
             const orderData = {
-                userId: user.uid,
-                userEmail: user.email,
+                userId: activeUser.uid,
+                userEmail: activeUser.email,
                 items: items.map(item => ({ name: item.name, price: item.price, serviceId: item.serviceId })),
                 total,
                 status: 'pending',
