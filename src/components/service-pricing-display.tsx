@@ -7,14 +7,14 @@ import { Skeleton } from "./ui/skeleton";
 import { DollarSign } from "lucide-react";
 
 interface ServicePricingDisplayProps {
-    serviceTitle: string;
+    serviceCode: string;
 }
 
-export function ServicePricingDisplay({ serviceTitle }: ServicePricingDisplayProps) {
+export function ServicePricingDisplay({ serviceCode }: ServicePricingDisplayProps) {
     const { t } = useLanguage();
     const { services, loading } = useServices();
 
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceTitle.toLowerCase()));
+    const service = services.find(s => s.serviceCode === serviceCode);
 
     if (loading) {
         return <Skeleton className="h-10 w-40" />;

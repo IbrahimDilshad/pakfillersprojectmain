@@ -27,10 +27,10 @@ export default function AddBusinessToNtnPage() {
   const [date, setDate] = useState<Date>();
   const { addItem } = useCart();
   const { services } = useServices();
-  const serviceName = 'add business to ntn';
+  const serviceCode = 'add_business_to_ntn';
 
   const handleContinue = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const service = services.find(s => s.serviceCode === serviceCode);
     if (service) {
         addItem({
             id: service.id,
@@ -127,7 +127,7 @@ export default function AddBusinessToNtnPage() {
           </CardContent>
         </Card>
          <div className="flex justify-between items-center mt-6">
-            <ServicePricingDisplay serviceTitle={serviceName} />
+            <ServicePricingDisplay serviceCode={serviceCode} />
         </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">

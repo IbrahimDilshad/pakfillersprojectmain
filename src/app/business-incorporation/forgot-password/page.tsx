@@ -21,10 +21,10 @@ export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { services } = useServices();
-  const serviceName = 'password recovery';
+  const serviceCode = 'password_recovery';
 
   const handleContinue = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const service = services.find(s => s.serviceCode === serviceCode);
     if (service) {
         addItem({
             id: service.id,
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
           </CardContent>
         </Card>
          <div className="flex justify-between items-center mt-6">
-            <ServicePricingDisplay serviceTitle={serviceName} />
+            <ServicePricingDisplay serviceCode={serviceCode} />
         </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">

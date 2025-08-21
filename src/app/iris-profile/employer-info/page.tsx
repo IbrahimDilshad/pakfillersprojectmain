@@ -19,10 +19,10 @@ export default function IrisEmployerInfoPage() {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { services } = useServices();
-  const serviceName = 'iris profile update';
+  const serviceCode = 'iris_profile_update';
 
   const handleSubmit = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const service = services.find(s => s.serviceCode === serviceCode);
     if (service) {
         addItem({
             id: service.id,
@@ -71,7 +71,7 @@ export default function IrisEmployerInfoPage() {
           </CardContent>
         </Card>
         <div className="flex justify-between items-center mt-6">
-            <ServicePricingDisplay serviceTitle={serviceName} />
+            <ServicePricingDisplay serviceCode={serviceCode} />
         </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">

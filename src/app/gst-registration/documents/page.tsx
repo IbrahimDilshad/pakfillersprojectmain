@@ -44,7 +44,7 @@ export default function GstDocumentsPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const { addItem } = useCart();
   const { services } = useServices();
-  const serviceName = 'gst registration';
+  const serviceCode = 'gst_registration';
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -83,7 +83,7 @@ export default function GstDocumentsPage() {
   };
 
   const handleSubmit = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const service = services.find(s => s.serviceCode === serviceCode);
     if (service) {
         addItem({
             id: service.id,
@@ -162,7 +162,7 @@ export default function GstDocumentsPage() {
           </CardContent>
         </Card>
         <div className="flex justify-between items-center mt-6">
-            <ServicePricingDisplay serviceTitle={serviceName} />
+            <ServicePricingDisplay serviceCode={serviceCode} />
         </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">

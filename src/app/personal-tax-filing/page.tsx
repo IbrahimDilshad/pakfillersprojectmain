@@ -57,8 +57,8 @@ function PersonalTaxFilingWizard() {
         return;
     }
 
-    const serviceName = 'personal tax filing';
-    const taxFilingService = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const serviceCode = 'personal_tax_filing';
+    const taxFilingService = services.find(s => s.serviceCode === serviceCode);
     
     if (taxFilingService) {
         addItem({

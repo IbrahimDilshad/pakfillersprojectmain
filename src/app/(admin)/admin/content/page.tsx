@@ -675,6 +675,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     const { t } = useLanguage();
     const { toast } = useToast();
     const [title, setTitle] = useState('');
+    const [serviceCode, setServiceCode] = useState('');
     const [price, setPrice] = useState<number | string>('');
     const [completionTime, setCompletionTime] = useState('');
     const [details, setDetails] = useState('');
@@ -683,12 +684,14 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
     useEffect(() => {
         if (service) {
             setTitle(t(service.title || {en: '', ur: ''}));
+            setServiceCode(service.serviceCode || '');
             setPrice(service.price || '');
             setCompletionTime(t(service.completionTime || {en: '', ur: ''}));
             setDetails(t(service.details || {en: '', ur: ''}));
             setWhatsappNumber(service.whatsappNumber || '');
         } else {
             setTitle('');
+            setServiceCode('');
             setPrice('');
             setCompletionTime('');
             setDetails('');
@@ -698,13 +701,14 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !price || !completionTime || !details || !whatsappNumber) {
+        if (!title || !price || !completionTime || !details || !whatsappNumber || !serviceCode) {
             toast({ variant: 'destructive', title: 'All fields are required.' });
             return;
         }
         try {
             const serviceData = {
                 title: { en: title, ur: title },
+                serviceCode: serviceCode.toLowerCase().replace(/\s+/g, '_'),
                 price: Number(price),
                 completionTime: { en: completionTime, ur: completionTime },
                 details: { en: details, ur: details },
@@ -742,6 +746,13 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                             <Label htmlFor="service-title">{t({ en: "Title", ur: "عنوان" })}</Label>
                             <Input id="service-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="service-code">
+                                {t({ en: "Service Code", ur: "سروس کوڈ" })}
+                                <span className="text-xs text-muted-foreground ml-2">(e.g., personal_tax_filing)</span>
+                            </Label>
+                            <Input id="service-code" value={serviceCode} onChange={(e) => setServiceCode(e.target.value)} required disabled={!!service?.id} />
+                        </div>
                          <div className="space-y-2">
                             <Label htmlFor="service-price">{t({ en: "Price (PKR)", ur: "قیمت (PKR)" })}</Label>
                             <Input id="service-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
@@ -750,7 +761,7 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
                             <Label htmlFor="service-completion">{t({ en: "Completion Time", ur: "تکمیل کا وقت" })}</Label>
                             <Input id="service-completion" value={completionTime} onChange={(e) => setCompletionTime(e.target.value)} placeholder="e.g., 1-2 weeks" required />
                         </div>
-                         <div className="space-y-2">
+                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="service-whatsapp">{t({ en: "WhatsApp Number", ur: "واٹس ایپ نمبر" })}</Label>
                             <Input id="service-whatsapp" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="e.g., 923001234567" required />
                         </div>

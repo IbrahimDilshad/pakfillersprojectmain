@@ -19,14 +19,14 @@ export default function NtnRecoveryPage() {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { services } = useServices();
-  const serviceName = 'ntn recovery';
+  const serviceCode = 'ntn_recovery';
   
   const handleBack = () => {
     router.back();
   };
 
   const handleSubmit = () => {
-    const service = services.find(s => t(s.title).toLowerCase().includes(serviceName));
+    const service = services.find(s => s.serviceCode === serviceCode);
     if (service) {
         addItem({
             id: service.id,
@@ -73,7 +73,7 @@ export default function NtnRecoveryPage() {
           </CardContent>
         </Card>
         <div className="flex justify-between items-center mt-6">
-            <ServicePricingDisplay serviceTitle={serviceName} />
+            <ServicePricingDisplay serviceCode={serviceCode} />
         </div>
         <div className="flex justify-between mt-6">
           <Button onClick={handleBack} variant="outline">

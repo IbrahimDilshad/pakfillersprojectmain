@@ -8,6 +8,7 @@ import type { Language } from '@/context/language-context';
 export interface Service {
   id: string;
   title: { [key in Language]: string };
+  serviceCode: string;
   price: number;
   completionTime: { [key in Language]: string };
   details: { [key in Language]: string };
