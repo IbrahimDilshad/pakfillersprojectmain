@@ -119,7 +119,7 @@ export default function AdminContentPage() {
       await deleteDoc(doc(db, 'services', serviceId));
       setServices(services.filter(s => s.id !== serviceId));
       // toast({ title: 'Success', description: 'Service deleted successfully.' });
-    } catch (error) => {
+    } catch (error) {
       // toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete service.' });
     }
   };
@@ -770,3 +770,5 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
         </Dialog>
     );
 }
+
+    
