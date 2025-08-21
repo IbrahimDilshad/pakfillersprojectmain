@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/language-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send, CheckCircle, Clock, Activity } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
