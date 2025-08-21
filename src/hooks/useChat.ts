@@ -55,10 +55,10 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
 
   // Effect for fetching chat data based on role
   useEffect(() => {
-    setLoading(true);
     let unsubscribe: () => void = () => {};
-
+    
     if (userRole === 'admin') {
+      setLoading(true);
       const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
       unsubscribe = onSnapshot(q, (querySnapshot) => {
         const sessionsData: ChatSession[] = [];
@@ -68,11 +68,11 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         setSessions(sessionsData);
         setLoading(false);
       }, (error) => {
-        console.error("Error fetching chat sessions:", error);
+        console.error("Error fetching chat sessions for admin:", error);
         setLoading(false);
       });
     } else if (userId) {
-      // User role: listen to their own chat session
+      setLoading(true);
       const sessionRef = doc(db, 'chats', userId);
       const messagesQuery = query(collection(sessionRef, 'messages'), orderBy('timestamp', 'asc'));
       
@@ -88,7 +88,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         setLoading(false);
       });
     } else {
-        setLoading(false);
+      setLoading(false);
     }
     
     return () => unsubscribe();
@@ -124,7 +124,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     try {
       const sessionRef = doc(db, 'chats', sessionId);
       const messagesColRef = collection(sessionRef, 'messages');
-      const docSnap = await getDoc(sessionRef);
+      
       const batch = writeBatch(db);
 
       const newMessageRef = doc(messagesColRef);
@@ -139,12 +139,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
         isReadByAdmin: from === 'support' ? true : false,
+        userName, // Always include user info
+        userEmail, // Always include user info
       };
-      
-      if (!docSnap.exists()) {
-        sessionUpdateData.userName = userName;
-        sessionUpdateData.userEmail = userEmail;
-      }
       
       batch.set(sessionRef, sessionUpdateData, { merge: true });
 
@@ -174,8 +171,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         return newMessages;
       });
       
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
-
     } catch (error) {
       console.error("Error deleting chat:", error);
     }

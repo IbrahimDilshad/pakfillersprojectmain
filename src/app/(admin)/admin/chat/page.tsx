@@ -148,8 +148,8 @@ export default function AdminChatPage() {
             text, 
             senderId: user.uid, 
             from: 'support',
-            userName: selectedSession.userName, // Use session's user name
-            userEmail: selectedSession.userEmail // Use session's user email
+            userName: selectedSession.userName,
+            userEmail: selectedSession.userEmail
         });
     }
   };
