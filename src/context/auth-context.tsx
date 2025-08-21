@@ -49,22 +49,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userDoc = await getDoc(userDocRef);
 
         let mainUser: AuthUser;
+        const isHardcodedAdmin = firebaseUser.email === 'admin@example.com';
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           mainUser = {
             ...firebaseUser,
             ...userData,
-            role: userData.role || 'user',
+            role: isHardcodedAdmin ? 'admin' : userData.role || 'user',
             displayName: firebaseUser.displayName || userData.displayName,
           } as AuthUser;
         } else {
-           // If user doc doesn't exist, they are a regular user.
-           // Admin role must be set manually in the database.
-           mainUser = { ...firebaseUser, role: 'user', displayName: firebaseUser.displayName } as AuthUser;
+           mainUser = { 
+               ...firebaseUser, 
+               role: isHardcodedAdmin ? 'admin' : 'user', 
+               displayName: firebaseUser.displayName 
+            } as AuthUser;
         }
+        
         setUser(mainUser);
-        // Set active user only if it's not already set or if the main user changes
+        
         if (!activeUser || activeUser.uid !== mainUser.uid) {
             setActiveUser(mainUser);
         }
