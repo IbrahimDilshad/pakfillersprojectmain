@@ -4,7 +4,7 @@ import Link from "next/link"
 import { AppLayout } from "@/components/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, CreditCard, User, FileSignature } from "lucide-react"
+import { FileText, ArrowRight, PlayCircle, BookOpen, Calculator, FileQuestion, Landmark, Users, Building, FileUp, Tv, Rss, CreditCard, User, FileSignature, RotateCw } from "lucide-react"
 import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 import { useVideos } from "@/hooks/useVideos";
@@ -16,6 +16,7 @@ const services = [
   { href: "/gst-registration", title: { en: "GST Registration", ur: "جی ایس ٹی رجسٹریشن" }, icon: Landmark },
   { href: "/family-tax-filing", title: { en: "Family Tax Filing", ur: "فیملی ٹیکس فائلنگ" }, icon: Users },
   { href: "/ntn-registration", title: { en: "NTN Registration", ur: "این ٹی این رجسٹریشن" }, icon: FileUp },
+  { href: "/ntn-recovery", title: { en: "NTN Recovery", ur: "این ٹی این کی بازیابی" }, icon: RotateCw },
   { href: "/iris-profile", title: { en: "IRIS Profile", ur: "IRIS پروفائل" }, icon: User },
   { href: "/business-incorporation", title: { en: "Business Incorporation", ur: "کاروبار کی شمولیت" }, icon: Building },
   { href: "/services", title: { en: "Service Charges", ur: "سروس چارجز" }, icon: CreditCard },
