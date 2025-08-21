@@ -81,11 +81,9 @@ export default function FamilyTaxFilingPage() {
           </div>
         </div>
         <Tabs defaultValue="manage-accounts" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 h-auto">
+            <TabsList className="grid w-full grid-cols-5 h-auto">
                 <TabsTrigger value="personal-info">{t({ en: "Personal Info", ur: "ذاتی معلومات" })}</TabsTrigger>
                 <TabsTrigger value="ntn-registration">{t({ en: "NTN Registration", ur: "NTN رجسٹریشن" })}</TabsTrigger>
-                <TabsTrigger value="change-password">{t({ en: "Change Password", ur: "پاس ورڈ تبدیل کریں" })}</TabsTrigger>
-                <TabsTrigger value="agent">{t({ en: "Agent", ur: "ایجنٹ" })}</TabsTrigger>
                 <TabsTrigger value="payment-history">{t({ en: "Payment History", ur: "ادائیگی کی تاریخ" })}</TabsTrigger>
                 <TabsTrigger value="manage-accounts">{t({ en: "Manage Accounts", ur: "اکاؤنٹس کا نظم کریں" })}</TabsTrigger>
                 <TabsTrigger value="accounts">{t({ en: "Accounts", ur: "اکاؤنٹس" })}</TabsTrigger>
@@ -97,12 +95,6 @@ export default function FamilyTaxFilingPage() {
                   </TabsContent>
                   <TabsContent value="ntn-registration">
                      <PlaceholderContent title="NTN Registration" description="This section is under construction." />
-                  </TabsContent>
-                   <TabsContent value="change-password">
-                     <PlaceholderContent title="Change Password" description="This section is under construction." />
-                  </TabsContent>
-                   <TabsContent value="agent">
-                     <PlaceholderContent title="Agent" description="This section is under construction." />
                   </TabsContent>
                    <TabsContent value="payment-history">
                      <PlaceholderContent title="Payment History" description="This section is under construction." />
