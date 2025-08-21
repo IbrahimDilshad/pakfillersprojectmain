@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from '@/context/auth-context';
 import { useChat, ChatSession, Message } from '@/hooks/useChat';
-import { Send, Trash2, ArrowLeft } from 'lucide-react';
+import { Send, Trash2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -34,9 +34,9 @@ function ChatView({ session, messages, onSendMessage, onDelete, onBack }: ChatVi
     if (scrollAreaRef.current) {
         setTimeout(() => {
             if(scrollAreaRef.current) {
-                const scrollableDiv = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-                if (scrollableDiv) {
-                    scrollableDiv.scrollTop = scrollableDiv.scrollHeight;
+                const scrollableViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+                if (scrollableViewport) {
+                    scrollableViewport.scrollTop = scrollableViewport.scrollHeight;
                 }
             }
         }, 100);
@@ -148,8 +148,8 @@ export default function AdminChatPage() {
             text, 
             senderId: user.uid, 
             from: 'support',
-            userName: user.displayName || 'Admin',
-            userEmail: user.email || 'admin@example.com'
+            userName: selectedSession.userName, // Use session's user name
+            userEmail: selectedSession.userEmail // Use session's user email
         });
     }
   };
@@ -163,13 +163,13 @@ export default function AdminChatPage() {
   };
 
   const ChatList = () => (
-    <Card>
+    <Card className="h-[calc(80vh)]">
       <CardHeader>
         <CardTitle>{t({ en: "User Chats", ur: "صارف کی چیٹس" })}</CardTitle>
         <CardDescription>{t({ en: "Select a chat to view and respond.", ur: "دیکھنے اور جواب دینے کے لیے ایک چیٹ منتخب کریں۔" })}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[70vh]">
+        <ScrollArea className="h-[calc(80vh_-_100px)]">
             {loading && (
                  <div className="p-4 space-y-4">
                     {Array.from({length: 5}).map((_, i) => (
@@ -194,9 +194,9 @@ export default function AdminChatPage() {
                 )}
               >
                  {!session.isReadByAdmin && (
-                    <div className="w-2.5 h-2.5 bg-primary rounded-full mr-2" />
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse" />
                 )}
-                <Avatar className="flex-shrink-0">
+                <Avatar className="flex-shrink-0 ml-2">
                   <AvatarFallback>{session.userName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
@@ -229,7 +229,8 @@ export default function AdminChatPage() {
                     />
                  ) : (
                     <Card className="flex items-center justify-center h-[calc(80vh)]">
-                        <div className="text-center text-muted-foreground">
+                        <div className="text-center text-muted-foreground flex flex-col items-center gap-4">
+                            <MessageSquare className="h-16 w-16" />
                             <p>{t({ en: "Select a chat to start messaging", ur: "پیغام رسانی شروع کرنے کے لیے ایک چیٹ منتخب کریں۔" })}</p>
                         </div>
                     </Card>
@@ -238,5 +239,3 @@ export default function AdminChatPage() {
         </div>
   );
 }
-
-    
