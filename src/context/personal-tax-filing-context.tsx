@@ -45,13 +45,31 @@ interface TaxCredit {
     tuitionFeeAmount?: number;
 }
 
-interface WealthStatement {
-    properties?: number;
-    bankAccounts?: number;
-    vehicles?: number;
-    cash?: number;
-    otherAssets?: number;
-    liabilities?: number;
+interface Deductions {
+    selectedCategories: Record<string, boolean>;
+    bank?: {
+        transactionType?: string;
+        bankName?: string;
+        accountNumber?: string;
+        taxDeducted?: number;
+    }[];
+    vehicle?: {
+        activity?: string;
+        vehicleType?: string;
+        registrationNumber?: string;
+        taxDeduction?: number;
+    }[];
+     utility?: {
+        utilityType?: string;
+        consumerNumber?: string;
+        taxDeduction?: number;
+    }[];
+    other?: {
+        propertyPurchase?: boolean;
+        propertySale?: boolean;
+        functionsGatherings?: boolean;
+        pensionWithdrawal?: boolean;
+    }
 }
 
 interface Documents {
@@ -66,7 +84,7 @@ interface PersonalTaxFilingData {
     personalInfo: PersonalInfo;
     incomes: Incomes;
     taxCredit: TaxCredit;
-    wealthStatement: WealthStatement;
+    deductions: Deductions;
     documents: Documents;
 }
 
@@ -81,7 +99,7 @@ const initialFormData: PersonalTaxFilingData = {
     personalInfo: {},
     incomes: {},
     taxCredit: {},
-    wealthStatement: {},
+    deductions: { selectedCategories: {} },
     documents: {},
 };
 

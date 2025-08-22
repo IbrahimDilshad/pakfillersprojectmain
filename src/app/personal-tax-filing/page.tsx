@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/app-layout';
 import { PersonalInfoStep } from '@/components/personal-tax-filing/personal-info-step';
 import { IncomeSourcesStep } from '@/components/personal-tax-filing/income-sources-step';
 import { TaxCreditStep } from '@/components/personal-tax-filing/tax-credit-step';
-import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
+import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step';
 import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { useLanguage } from '@/context/language-context';
@@ -28,7 +28,7 @@ const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
   { id: 'income-sources', name: { en: 'Income Sources', ur: 'آمدنی کے ذرائع' } },
   { id: 'tax-credit', name: { en: 'Tax Credit', ur: 'ٹیکس کریڈٹ' } },
-  { id: 'wealth-statement', name: { en: 'Wealth Statement', ur: 'دولت کا بیان' } },
+  { id: 'deductions', name: { en: 'Tax Deducted', ur: 'منہا ٹیکس' } },
   { id: 'documents', name: { en: 'Documents', ur: 'دستاویزات' } },
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
@@ -107,8 +107,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         return <IncomeSourcesStep />;
       case 'tax-credit':
         return <TaxCreditStep />;
-      case 'wealth-statement':
-        return <WealthStatementStep />;
+      case 'deductions':
+        return <DeductionsStep />;
       case 'documents':
         return <DocumentsStep />;
       case 'review':
