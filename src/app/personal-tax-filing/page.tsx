@@ -7,6 +7,7 @@ import { IncomeSourcesStep } from '@/components/personal-tax-filing/income-sourc
 import { TaxCreditStep } from '@/components/personal-tax-filing/tax-credit-step';
 import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step';
 import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
+import { ExpenseStep } from '@/components/personal-tax-filing/expense-step';
 import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { useLanguage } from '@/context/language-context';
@@ -31,6 +32,7 @@ const steps = [
   { id: 'tax-credit', name: { en: 'Tax Credit', ur: 'ٹیکس کریڈٹ' } },
   { id: 'deductions', name: { en: 'Tax Deducted', ur: 'منہا ٹیکس' } },
   { id: 'wealth-statement', name: { en: 'Wealth Statement', ur: 'گوشوارہ' } },
+  { id: 'expense', name: { en: 'Expense', ur: 'اخراجات' } },
   { id: 'documents', name: { en: 'Documents', ur: 'دستاویزات' } },
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
@@ -113,6 +115,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         return <DeductionsStep />;
       case 'wealth-statement':
         return <WealthStatementStep />;
+      case 'expense':
+        return <ExpenseStep />;
       case 'documents':
         return <DocumentsStep />;
       case 'review':
@@ -138,7 +142,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         </CardHeader>
         <CardContent>
           <Tabs value={steps[currentStep].id} onValueChange={(value) => setCurrentStep(steps.findIndex(s => s.id === value))} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 h-auto">
+            <TabsList className="grid w-full grid-cols-8 h-auto">
               {steps.map((step, index) => {
                  const isCompleted = index < currentStep;
                  const isActive = index === currentStep;

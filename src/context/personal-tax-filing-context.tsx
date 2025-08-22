@@ -76,6 +76,10 @@ interface WealthStatement {
     openingWealth?: number;
 }
 
+interface Expense {
+    totalHouseholdExpense?: number;
+}
+
 interface Documents {
     salaryCertificate?: File | null;
     taxChallan?: File | null;
@@ -90,6 +94,7 @@ interface PersonalTaxFilingData {
     taxCredit: TaxCredit;
     deductions: Deductions;
     wealthStatement: WealthStatement;
+    expense: Expense;
     documents: Documents;
 }
 
@@ -106,6 +111,7 @@ const initialFormData: PersonalTaxFilingData = {
     taxCredit: {},
     deductions: { selectedCategories: {} },
     wealthStatement: {},
+    expense: {},
     documents: {},
 };
 
