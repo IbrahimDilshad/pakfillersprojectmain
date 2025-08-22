@@ -16,8 +16,10 @@ import { PersonalTaxFilingProvider, usePersonalTaxFiling } from '@/context/perso
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { useCart } from '@/context/cart-context';
-import { useServices } from '@/hooks/useServices';
+import { useFormPrices } from '@/hooks/useFormPrices';
 import { useRouter } from 'next/navigation';
+import { db } from '@/lib/firebase';
+import { doc, setDoc } from "firebase/firestore";
 
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
@@ -34,7 +36,7 @@ function PersonalTaxFilingWizard() {
   const { toast } = useToast();
   const { activeUser } = useAuth();
   const { formData } = usePersonalTaxFiling();
-  const { services } = useServices();
+  const { formPrices } = useFormPrices();
   const { addItem } = useCart();
   const router = useRouter();
 
@@ -57,29 +59,29 @@ function PersonalTaxFilingWizard() {
         return;
     }
 
-    const serviceCode = 'personal_tax_filing';
-    const taxFilingService = services.find(s => s.serviceCode === serviceCode);
-    
-    if (taxFilingService) {
-        addItem({
-            id: taxFilingService.id,
-            name: taxFilingService.title,
-            price: taxFilingService.price,
-            serviceId: taxFilingService.id,
-            filingData: formData, // Attach the form data to the cart item
-        });
-        toast({
-            title: "Added to Cart",
-            description: "Personal Tax Filing service added to your cart. Please complete the checkout process.",
-        });
-        router.push('/cart');
-    } else {
-          toast({
-            variant: 'destructive',
-            title: "Service Not Found",
-            description: "The Personal Tax Filing service is currently unavailable.",
-        });
+    const formId = 'personal_tax_filing';
+    let formPriceInfo = formPrices.find(p => p.id === formId);
+
+    // If price is not in DB, create it with a default price
+    if (!formPriceInfo) {
+        const defaultPrice = 3000;
+        const name = { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" };
+        await setDoc(doc(db, "formPrices", formId), { name, price: defaultPrice });
+        formPriceInfo = { id: formId, name, price: defaultPrice };
     }
+    
+    addItem({
+        id: formPriceInfo.id,
+        name: formPriceInfo.name,
+        price: formPriceInfo.price,
+        serviceId: formPriceInfo.id, // Using formId as serviceId for consistency
+        filingData: formData, // Attach the form data to the cart item
+    });
+    toast({
+        title: "Added to Cart",
+        description: "Personal Tax Filing service added to your cart. Please complete the checkout process.",
+    });
+    router.push('/cart');
   }
 
   const renderStep = () => {

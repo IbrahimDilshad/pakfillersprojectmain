@@ -1,6 +1,6 @@
 
 'use client';
-import { useServices } from "@/hooks/useServices";
+import { useFormPrices } from "@/hooks/useFormPrices";
 import { useLanguage } from "@/context/language-context";
 import { Badge } from "./ui/badge";
 import { Skeleton } from "./ui/skeleton";
@@ -12,16 +12,16 @@ interface ServicePricingDisplayProps {
 
 export function ServicePricingDisplay({ serviceCode }: ServicePricingDisplayProps) {
     const { t } = useLanguage();
-    const { services, loading } = useServices();
+    const { formPrices, loading } = useFormPrices();
 
-    const service = services.find(s => s.serviceCode === serviceCode);
+    const formPriceInfo = formPrices.find(s => s.id === serviceCode);
 
     if (loading) {
         return <Skeleton className="h-10 w-40" />;
     }
 
-    if (!service) {
-        return <Badge variant="destructive">{t({ en: "Pricing not available", ur: "قیمت دستیاب نہیں" })}</Badge>;
+    if (!formPriceInfo) {
+        return <Badge variant="secondary">{t({ en: "Price on request", ur: "درخواست پر قیمت" })}</Badge>;
     }
 
     return (
@@ -29,7 +29,7 @@ export function ServicePricingDisplay({ serviceCode }: ServicePricingDisplayProp
              <p className="text-sm font-medium text-muted-foreground">{t({en: 'Service Cost', ur: 'سروس کی لاگت'})}</p>
             <Badge variant="secondary" className="text-lg font-bold py-2 px-4">
                 <DollarSign className="h-5 w-5 mr-2" />
-                PKR {service.price.toLocaleString()}
+                PKR {formPriceInfo.price.toLocaleString()}
             </Badge>
         </div>
     );
