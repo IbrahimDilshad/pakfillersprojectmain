@@ -17,9 +17,10 @@ import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import { useVideos, Video } from '@/hooks/useVideos';
 import { useFaqs, Faq } from '@/hooks/useFaqs';
 import { useServices, Service } from '@/hooks/useServices';
+import { useFormPrices, FormPrice } from '@/hooks/useFormPrices';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Pencil, PlusCircle } from 'lucide-react';
+import { Trash2, Pencil, PlusCircle, DollarSign } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -31,6 +32,8 @@ export default function AdminContentPage() {
   const { videos, loading: videosLoading, setVideos } = useVideos();
   const { faqs, loading: faqsLoading, setFaqs } = useFaqs();
   const { services, loading: servicesLoading, setServices } = useServices();
+  const { formPrices, loading: formPricesLoading, setFormPrices } = useFormPrices();
+
 
   const [isBlogDialogOpen, setBlogDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Partial<BlogPost> | null>(null);
@@ -43,6 +46,10 @@ export default function AdminContentPage() {
 
   const [isServiceDialogOpen, setServiceDialogOpen] = useState(false);
   const [currentService, setCurrentService] = useState<Partial<Service> | null>(null);
+
+  const [isFormPriceDialogOpen, setFormPriceDialogOpen] = useState(false);
+  const [currentFormPrice, setCurrentFormPrice] = useState<Partial<FormPrice> | null>(null);
+
 
   const handleEditPost = (post: BlogPost) => {
     setCurrentPost(post);
@@ -124,16 +131,57 @@ export default function AdminContentPage() {
     }
   };
 
+  const handleEditFormPrice = (formPrice: FormPrice) => {
+    setCurrentFormPrice(formPrice);
+    setFormPriceDialogOpen(true);
+  };
+
   return (
     <>
-      <Tabs defaultValue="services">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="form-pricing">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="form-pricing">{t({ en: "Form Pricing", ur: "فارم کی قیمتیں" })}</TabsTrigger>
           <TabsTrigger value="services">{t({ en: "Services", ur: "خدمات" })}</TabsTrigger>
           <TabsTrigger value="blog">{t({ en: "Blog Posts", ur: "بلاگ پوسٹس" })}</TabsTrigger>
           <TabsTrigger value="video">{t({ en: "Videos", ur: "ویڈیوز" })}</TabsTrigger>
           <TabsTrigger value="faq">{t({ en: "FAQs", ur: "اکثر پوچھے گئے سوالات" })}</TabsTrigger>
         </TabsList>
-         <TabsContent value="services">
+        <TabsContent value="form-pricing">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t({ en: "Manage Form Pricing", ur: "فارم کی قیمتوں کا نظم کریں" })}</CardTitle>
+              <CardDescription>{t({ en: "Set the prices for different forms available on the website.", ur: "ویب سائٹ پر دستیاب مختلف فارموں کی قیمتیں مقرر کریں۔" })}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {formPricesLoading ? (
+                Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+              ) : formPrices.length > 0 ? (
+                formPrices.map(formPrice => (
+                  <Card key={formPrice.id} className="p-4">
+                    <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-lg">{t(formPrice.name)}</h3>
+                            <p className="text-sm text-muted-foreground font-mono">{formPrice.id}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                             <Badge variant="secondary" className="text-base font-bold py-1 px-3">
+                               PKR {formPrice.price.toLocaleString()}
+                            </Badge>
+                            <Button variant="outline" size="icon" onClick={() => handleEditFormPrice(formPrice)}><Pencil className="h-4 w-4" /></Button>
+                        </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-10 text-muted-foreground">
+                  <p>{t({en: "No form prices configured.", ur: "کوئی فارم کی قیمتیں ترتیب نہیں دی گئی ہیں۔"})}</p>
+                  <p className="text-xs mt-2">{t({en: "Form prices are automatically added here when a form is submitted for the first time.", ur: "جب پہلی بار کوئی فارم جمع کرایا جاتا ہے تو فارم کی قیمتیں خود بخود یہاں شامل ہوجاتی ہیں۔"})}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="services">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -371,6 +419,13 @@ export default function AdminContentPage() {
         service={currentService}
         onSave={(updatedServices) => setServices(updatedServices)}
         allServices={services}
+      />
+       <FormPriceEditDialog
+        isOpen={isFormPriceDialogOpen}
+        setIsOpen={setFormPriceDialogOpen}
+        formPrice={currentFormPrice}
+        onSave={(updatedPrices) => setFormPrices(updatedPrices)}
+        allPrices={formPrices}
       />
     </>
   );
@@ -780,4 +835,67 @@ function ServiceEditDialog({ isOpen, setIsOpen, service, onSave, allServices }: 
             </DialogContent>
         </Dialog>
     );
+}
+
+// Form Price Dialog Component
+interface FormPriceEditDialogProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  formPrice: Partial<FormPrice> | null;
+  onSave: (prices: FormPrice[]) => void;
+  allPrices: FormPrice[];
+}
+
+function FormPriceEditDialog({ isOpen, setIsOpen, formPrice, onSave, allPrices }: FormPriceEditDialogProps) {
+  const { t } = useLanguage();
+  const { toast } = useToast();
+  const [price, setPrice] = useState<number | string>('');
+
+  useEffect(() => {
+    if (formPrice) {
+      setPrice(formPrice.price || '');
+    } else {
+      setPrice('');
+    }
+  }, [formPrice, isOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!price || !formPrice?.id) {
+      toast({ variant: 'destructive', title: 'Price is required.' });
+      return;
+    }
+    try {
+      const priceData = { price: Number(price) };
+      const priceRef = doc(db, 'formPrices', formPrice.id);
+      await updateDoc(priceRef, priceData);
+      onSave(allPrices.map(p => p.id === formPrice.id ? { ...p, ...priceData } : p));
+      toast({ title: "Success", description: "Form price updated." });
+      setIsOpen(false);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t({ en: "Edit Form Price for", ur: "کے لیے فارم کی قیمت میں ترمیم کریں" })}: {formPrice ? t(formPrice.name) : ''}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="form-price">{t({ en: "Price (PKR)", ur: "قیمت (PKR)" })}</Label>
+            <Input id="form-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button type="submit">Save Changes</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
