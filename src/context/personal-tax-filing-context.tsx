@@ -7,8 +7,14 @@ import { createContext, useContext, useState, ReactNode, Dispatch, SetStateActio
 interface PersonalInfo {
     fullName?: string;
     email?: string;
-    cnic?: string;
+    dateOfBirth?: Date;
+    passport?: string;
+    occupation?: string;
     phoneNumber?: string;
+    nationality?: 'pakistani' | 'foreigner';
+    residencyStatus?: 'resident' | 'non-resident';
+    foreignerEmploymentStay?: 'yes' | 'no';
+    foreignerThreeYearStay?: 'yes' | 'no';
 }
 
 interface SalaryIncome {
