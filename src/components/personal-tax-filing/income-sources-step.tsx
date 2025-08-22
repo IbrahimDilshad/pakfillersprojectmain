@@ -4,7 +4,7 @@ import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { 
-    Briefcase, Building2, User, Laptop, Tie, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle 
+    Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +13,7 @@ const incomeSources = [
   { id: 'hasBusiness', label: { en: 'Business', ur: 'کاروبار' }, icon: Building2 },
   { id: 'hasSelfEmployed', label: { en: 'Self Employed', ur: 'خود ملازم' }, icon: User },
   { id: 'hasFreelancer', label: { en: 'Freelancer', ur: 'فری لانسر' }, icon: Laptop },
-  { id: 'hasProfessional', label: { en: 'Professional', ur: 'پیشہ ور' }, icon: Tie },
+  { id: 'hasProfessional', label: { en: 'Professional', ur: 'پیشہ ور' }, icon: GraduationCap },
   { id: 'hasPension', label: { en: 'Pension', ur: 'پنشن' }, icon: Landmark },
   { id: 'hasAgriculture', label: { en: 'Agriculture', ur: 'زراعت' }, icon: Tractor },
   { id: 'hasCommission', label: { en: 'Commission', ur: 'کمیشن' }, icon: Percent },
