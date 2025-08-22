@@ -7,15 +7,23 @@ import { useAuth } from './auth-context';
 
 export interface CartItem {
     id: string; // Unique ID for the cart item instance
-    serviceId: string; // ID of the service from the DB
+    serviceId: string; // ID of the service/form from the DB
     name: { [key in Language]: string };
     price: number;
     filingData?: any; // To hold data from multi-step forms
 }
 
+interface AddToCartPayload {
+    serviceId: string;
+    name: { [key in Language]: string };
+    price: number;
+    filingData?: any;
+}
+
+
 interface CartContextType {
     items: CartItem[];
-    addItem: (service: Omit<CartItem, 'id'> & { id: string }) => void;
+    addItem: (service: AddToCartPayload) => void;
     removeItem: (itemId: string) => void;
     clearCart: () => void;
     total: number;
@@ -46,11 +54,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }, [items, activeUser]);
 
-    const addItem = (service: Omit<CartItem, 'id'> & { id: string }) => {
+    const addItem = (service: AddToCartPayload) => {
         if (!activeUser) return;
         const newItem: CartItem = {
             ...service,
-            id: `${service.id}-${Date.now()}`,
+            id: `${service.serviceId}-${Date.now()}`,
         };
         setItems(prevItems => [...prevItems, newItem]);
     };

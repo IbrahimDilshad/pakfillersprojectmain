@@ -33,7 +33,6 @@ export default function AddBusinessToNtnPage() {
     const service = formPrices.find(s => s.id === serviceCode);
     if (service) {
         addItem({
-            id: service.id,
             serviceId: service.id,
             name: service.name,
             price: service.price,

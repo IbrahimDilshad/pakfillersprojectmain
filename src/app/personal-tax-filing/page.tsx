@@ -59,22 +59,21 @@ function PersonalTaxFilingWizard() {
         return;
     }
 
-    const formId = 'personal_tax_filing';
-    let formPriceInfo = formPrices.find(p => p.id === formId);
+    const serviceCode = 'personal_tax_filing';
+    let formPriceInfo = formPrices.find(p => p.id === serviceCode);
 
     // If price is not in DB, create it with a default price
     if (!formPriceInfo) {
         const defaultPrice = 3000;
         const name = { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" };
-        await setDoc(doc(db, "formPrices", formId), { name, price: defaultPrice });
-        formPriceInfo = { id: formId, name, price: defaultPrice };
+        await setDoc(doc(db, "formPrices", serviceCode), { name, price: defaultPrice });
+        formPriceInfo = { id: serviceCode, name, price: defaultPrice };
     }
     
     addItem({
-        id: formPriceInfo.id,
+        serviceId: formPriceInfo.id,
         name: formPriceInfo.name,
         price: formPriceInfo.price,
-        serviceId: formPriceInfo.id, // Using formId as serviceId for consistency
         filingData: formData, // Attach the form data to the cart item
     });
     toast({
