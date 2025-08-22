@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { PersonalInfoStep } from '@/components/personal-tax-filing/personal-info-step';
 import { IncomeSourcesStep } from '@/components/personal-tax-filing/income-sources-step';
@@ -75,8 +75,14 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
     if (!formPriceInfo) {
         const defaultPrice = 3000;
         const name = { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" };
-        await setDoc(doc(db, "formPrices", serviceCode), { name, price: defaultPrice });
-        formPriceInfo = { id: serviceCode, name, price: defaultPrice };
+        try {
+            await setDoc(doc(db, "formPrices", serviceCode), { name, price: defaultPrice });
+            formPriceInfo = { id: serviceCode, name, price: defaultPrice };
+        } catch(e) {
+            console.error("Failed to create default price", e);
+            toast({ variant: 'destructive', title: "Error", description: "Could not set default price for service."});
+            return;
+        }
     }
     
     addItem({
