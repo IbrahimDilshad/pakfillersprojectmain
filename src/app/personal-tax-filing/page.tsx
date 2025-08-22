@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { PersonalInfoStep } from '@/components/personal-tax-filing/personal-info-step';
 import { IncomeSourcesStep } from '@/components/personal-tax-filing/income-sources-step';
-import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step';
+import { TaxCreditStep } from '@/components/personal-tax-filing/tax-credit-step';
 import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
 import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
   { id: 'income-sources', name: { en: 'Income Sources', ur: 'آمدنی کے ذرائع' } },
-  { id: 'deductions', name: { en: 'Deductions / Credits', ur: 'کٹوتی / کریڈٹ' } },
+  { id: 'tax-credit', name: { en: 'Tax Credit', ur: 'ٹیکس کریڈٹ' } },
   { id: 'wealth-statement', name: { en: 'Wealth Statement', ur: 'دولت کا بیان' } },
   { id: 'documents', name: { en: 'Documents', ur: 'دستاویزات' } },
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
@@ -105,8 +105,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         return <PersonalInfoStep />;
       case 'income-sources':
         return <IncomeSourcesStep />;
-      case 'deductions':
-        return <DeductionsStep />;
+      case 'tax-credit':
+        return <TaxCreditStep />;
       case 'wealth-statement':
         return <WealthStatementStep />;
       case 'documents':
@@ -153,7 +153,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         </CardContent>
       </Card>
         <div className="flex justify-between mt-6">
-            <Button onClick={handleBack} variant="outline" disabled={currentStep === 0 && true}>
+            <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}
             </Button>
             {currentStep < steps.length - 1 ? (

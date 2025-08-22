@@ -18,13 +18,7 @@ interface PersonalInfo {
     foreignerThreeYearStay?: 'yes' | 'no';
 }
 
-interface SalaryIncome {
-    annualSalary?: number;
-    taxDeducted?: number;
-}
-
 interface Incomes {
-    salary?: SalaryIncome;
     hasSalary?: boolean;
     hasBusiness?: boolean;
     hasSelfEmployed?: boolean;
@@ -42,12 +36,13 @@ interface Incomes {
     hasOther?: boolean;
 }
 
-interface Deductions {
-    zakat?: number;
-    donations?: number;
-    educationAllowance?: number;
-    pensionFund?: number;
-    hasTaxCredits?: boolean;
+interface TaxCredit {
+    qualifyForRebates?: 'yes' | 'no';
+    hasDonations?: boolean;
+    donationAmount?: number;
+    hasTuitionFee?: boolean;
+    numberOfChildren?: number;
+    tuitionFeeAmount?: number;
 }
 
 interface WealthStatement {
@@ -70,7 +65,7 @@ interface PersonalTaxFilingData {
     taxYear?: string;
     personalInfo: PersonalInfo;
     incomes: Incomes;
-    deductions: Deductions;
+    taxCredit: TaxCredit;
     wealthStatement: WealthStatement;
     documents: Documents;
 }
@@ -84,10 +79,8 @@ const PersonalTaxFilingContext = createContext<PersonalTaxFilingContextType | un
 
 const initialFormData: PersonalTaxFilingData = {
     personalInfo: {},
-    incomes: {
-      salary: {}
-    },
-    deductions: {},
+    incomes: {},
+    taxCredit: {},
     wealthStatement: {},
     documents: {},
 };
