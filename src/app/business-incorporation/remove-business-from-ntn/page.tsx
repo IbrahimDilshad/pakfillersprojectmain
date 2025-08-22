@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
-import { useServices } from '@/hooks/useServices';
+import { useFormPrices } from '@/hooks/useFormPrices';
 import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function RemoveBusinessFromNtnPage() {
@@ -26,16 +26,16 @@ export default function RemoveBusinessFromNtnPage() {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const { addItem } = useCart();
-  const { services } = useServices();
+  const { formPrices } = useFormPrices();
   const serviceCode = 'remove_business_from_ntn';
 
   const handleContinue = () => {
-    const service = services.find(s => s.serviceCode === serviceCode);
+    const service = formPrices.find(s => s.id === serviceCode);
     if (service) {
         addItem({
             id: service.id,
             serviceId: service.id,
-            name: service.title,
+            name: service.name,
             price: service.price,
         });
         toast({

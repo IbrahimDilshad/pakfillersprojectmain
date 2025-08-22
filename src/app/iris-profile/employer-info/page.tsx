@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
-import { useServices } from '@/hooks/useServices';
+import { useFormPrices } from '@/hooks/useFormPrices';
 import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function IrisEmployerInfoPage() {
@@ -18,16 +18,16 @@ export default function IrisEmployerInfoPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { addItem } = useCart();
-  const { services } = useServices();
+  const { formPrices } = useFormPrices();
   const serviceCode = 'iris_profile_update';
 
   const handleSubmit = () => {
-    const service = services.find(s => s.serviceCode === serviceCode);
+    const service = formPrices.find(s => s.id === serviceCode);
     if (service) {
         addItem({
             id: service.id,
             serviceId: service.id,
-            name: service.title,
+            name: service.name,
             price: service.price,
         });
         toast({

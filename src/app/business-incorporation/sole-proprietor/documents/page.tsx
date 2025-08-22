@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { Download, File as FileIcon, Trash2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/cart-context';
-import { useServices } from '@/hooks/useServices';
+import { useFormPrices } from '@/hooks/useFormPrices';
 import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 interface UploadedFile {
@@ -33,7 +33,7 @@ export default function SoleProprietorDocumentsPage() {
   const { toast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const { addItem } = useCart();
-  const { services } = useServices();
+  const { formPrices } = useFormPrices();
   const serviceCode = 'sole_proprietor';
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
@@ -73,12 +73,12 @@ export default function SoleProprietorDocumentsPage() {
   };
 
   const handleSubmit = () => {
-    const service = services.find(s => s.serviceCode === serviceCode);
+    const service = formPrices.find(s => s.id === serviceCode);
      if (service) {
         addItem({
             id: service.id,
             serviceId: service.id,
-            name: service.title,
+            name: service.name,
             price: service.price,
         });
         toast({

@@ -17,7 +17,7 @@ export function useFormPrices() {
 
   useEffect(() => {
     const pricesCollection = collection(db, 'formPrices');
-    const q = query(pricesCollection, orderBy('name.en'));
+    const q = query(pricesCollection);
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const pricesList = snapshot.docs.map(doc => ({

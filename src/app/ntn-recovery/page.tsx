@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/cart-context';
-import { useServices } from '@/hooks/useServices';
+import { useFormPrices } from '@/hooks/useFormPrices';
 import { ServicePricingDisplay } from '@/components/service-pricing-display';
 
 export default function NtnRecoveryPage() {
@@ -18,7 +18,7 @@ export default function NtnRecoveryPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { addItem } = useCart();
-  const { services } = useServices();
+  const { formPrices } = useFormPrices();
   const serviceCode = 'ntn_recovery';
   
   const handleBack = () => {
@@ -26,12 +26,12 @@ export default function NtnRecoveryPage() {
   };
 
   const handleSubmit = () => {
-    const service = services.find(s => s.serviceCode === serviceCode);
+    const service = formPrices.find(s => s.id === serviceCode);
     if (service) {
         addItem({
             id: service.id,
             serviceId: service.id,
-            name: service.title,
+            name: service.name,
             price: service.price,
         });
         toast({

@@ -12,7 +12,7 @@ import { useAuth } from "@/context/auth-context";
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import { useVideos, Video } from '@/hooks/useVideos';
 import { useFaqs, Faq } from '@/hooks/useFaqs';
@@ -23,6 +23,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Pencil, PlusCircle, DollarSign } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+
+const allForms = [
+    { id: 'personal_tax_filing', name: { en: 'Personal Tax Filing', ur: 'ذاتی ٹیکس فائلنگ' } },
+    { id: 'sole_proprietor', name: { en: 'Sole Proprietor Registration', ur: 'واحد ملکیت رجسٹریشن' } },
+    { id: 'aop_partnership', name: { en: 'AOP/Partnership Registration', ur: 'اے او پی/شراکت داری کی رجسٹریشن' } },
+    { id: 'add_business_to_ntn', name: { en: 'Add Business to NTN', ur: 'این ٹی این میں کاروبار شامل کریں' } },
+    { id: 'remove_business_from_ntn', name: { en: 'Remove Business from NTN', ur: 'این ٹی این سے کاروبار ہٹائیں' } },
+    { id: 'password_recovery', name: { en: 'Password Recovery Assistance', ur: 'پاس ورڈ کی بازیابی میں معاونت' } },
+    { id: 'gst_registration', name: { en: 'GST Registration', ur: 'جی ایس ٹی رجسٹریشن' } },
+    { id: 'iris_profile_update', name: { en: 'IRIS Profile Update', ur: 'آئرس پروفائل اپ ڈیٹ' } },
+    { id: 'ntn_registration', name: { en: 'NTN Registration', ur: 'این ٹی این رجسٹریشن' } },
+    { id: 'ntn_recovery', name: { en: 'NTN Recovery', ur: 'این ٹی این کی بازیابی' } },
+];
+
 
 export default function AdminContentPage() {
   const { t } = useLanguage();
@@ -131,8 +145,9 @@ export default function AdminContentPage() {
     }
   };
 
-  const handleEditFormPrice = (formPrice: FormPrice) => {
-    setCurrentFormPrice(formPrice);
+  const handleEditFormPrice = (formPrice: Partial<FormPrice>) => {
+    const existingPrice = formPrices.find(p => p.id === formPrice.id);
+    setCurrentFormPrice(existingPrice || formPrice);
     setFormPriceDialogOpen(true);
   };
 
@@ -155,28 +170,32 @@ export default function AdminContentPage() {
             <CardContent className="space-y-4">
               {formPricesLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
-              ) : formPrices.length > 0 ? (
-                formPrices.map(formPrice => (
-                  <Card key={formPrice.id} className="p-4">
-                    <div className="flex justify-between items-center">
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{t(formPrice.name)}</h3>
-                            <p className="text-sm text-muted-foreground font-mono">{formPrice.id}</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                             <Badge variant="secondary" className="text-base font-bold py-1 px-3">
-                               PKR {formPrice.price.toLocaleString()}
-                            </Badge>
-                            <Button variant="outline" size="icon" onClick={() => handleEditFormPrice(formPrice)}><Pencil className="h-4 w-4" /></Button>
-                        </div>
-                    </div>
-                  </Card>
-                ))
               ) : (
-                <div className="text-center py-10 text-muted-foreground">
-                  <p>{t({en: "No form prices configured.", ur: "کوئی فارم کی قیمتیں ترتیب نہیں دی گئی ہیں۔"})}</p>
-                  <p className="text-xs mt-2">{t({en: "Form prices are automatically added here when a form is submitted for the first time.", ur: "جب پہلی بار کوئی فارم جمع کرایا جاتا ہے تو فارم کی قیمتیں خود بخود یہاں شامل ہوجاتی ہیں۔"})}</p>
-                </div>
+                allForms.map(form => {
+                    const priceInfo = formPrices.find(p => p.id === form.id);
+                    return (
+                        <Card key={form.id} className="p-4">
+                            <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-lg">{t(form.name)}</h3>
+                                    <p className="text-sm text-muted-foreground font-mono">{form.id}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {priceInfo ? (
+                                        <Badge variant="secondary" className="text-base font-bold py-1 px-3">
+                                            PKR {priceInfo.price.toLocaleString()}
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="text-base font-bold py-1 px-3">
+                                            {t({ en: "Not Set", ur: "غیر مقرر" })}
+                                        </Badge>
+                                    )}
+                                    <Button variant="outline" size="icon" onClick={() => handleEditFormPrice(form)}><Pencil className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )
+                })
               )}
             </CardContent>
           </Card>
@@ -424,7 +443,10 @@ export default function AdminContentPage() {
         isOpen={isFormPriceDialogOpen}
         setIsOpen={setFormPriceDialogOpen}
         formPrice={currentFormPrice}
-        onSave={(updatedPrices) => setFormPrices(updatedPrices)}
+        onSave={(updatedPrices) => {
+            setFormPriceDialogOpen(false);
+            setFormPrices(updatedPrices);
+        }}
         allPrices={formPrices}
       />
     </>
@@ -861,15 +883,24 @@ function FormPriceEditDialog({ isOpen, setIsOpen, formPrice, onSave, allPrices }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!price || !formPrice?.id) {
+    if (!price || !formPrice?.id || !formPrice?.name) {
       toast({ variant: 'destructive', title: 'Price is required.' });
       return;
     }
     try {
-      const priceData = { price: Number(price) };
+      const priceData = { price: Number(price), name: formPrice.name };
       const priceRef = doc(db, 'formPrices', formPrice.id);
-      await updateDoc(priceRef, priceData);
-      onSave(allPrices.map(p => p.id === formPrice.id ? { ...p, ...priceData } : p));
+      await setDoc(priceRef, priceData, { merge: true });
+
+      const updatedPrices = [...allPrices];
+      const priceIndex = updatedPrices.findIndex(p => p.id === formPrice.id);
+      if (priceIndex > -1) {
+          updatedPrices[priceIndex] = { ...updatedPrices[priceIndex], ...priceData };
+      } else {
+          updatedPrices.push({ id: formPrice.id, ...priceData });
+      }
+
+      onSave(updatedPrices);
       toast({ title: "Success", description: "Form price updated." });
       setIsOpen(false);
     } catch (error) {
@@ -881,7 +912,7 @@ function FormPriceEditDialog({ isOpen, setIsOpen, formPrice, onSave, allPrices }
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t({ en: "Edit Form Price for", ur: "کے لیے فارم کی قیمت میں ترمیم کریں" })}: {formPrice ? t(formPrice.name) : ''}</DialogTitle>
+          <DialogTitle>{t({ en: "Edit Form Price for", ur: "کے لیے فارم کی قیمت میں ترمیم کریں" })}: {formPrice ? t(formPrice.name!) : ''}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
