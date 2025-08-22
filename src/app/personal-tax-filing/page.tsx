@@ -10,7 +10,7 @@ import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { PersonalTaxSidebar } from '@/components/personal-tax-filing/sidebar';
 import { useLanguage } from '@/context/language-context';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PersonalTaxFilingProvider, usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,8 @@ import { useFormPrices } from '@/hooks/useFormPrices';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from "firebase/firestore";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileSignature } from 'lucide-react';
 
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
@@ -30,15 +32,20 @@ const steps = [
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
 
-function PersonalTaxFilingWizard() {
+function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useLanguage();
   const { toast } = useToast();
   const { activeUser } = useAuth();
-  const { formData } = usePersonalTaxFiling();
+  const { formData, setFormData } = usePersonalTaxFiling();
   const { formPrices } = useFormPrices();
   const { addItem } = useCart();
   const router = useRouter();
+
+  useEffect(() => {
+    // Set the selected tax year in the form data
+    setFormData(prev => ({ ...prev, taxYear }));
+  }, [taxYear, setFormData]);
 
 
   const handleNext = () => {
@@ -50,6 +57,8 @@ function PersonalTaxFilingWizard() {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else {
+        onBack(); // Go back to year selection
     }
   };
   
@@ -112,12 +121,18 @@ function PersonalTaxFilingWizard() {
       <PersonalTaxSidebar steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
       <div className="flex-1">
         <Card>
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+                <span>{t({en: 'Tax Filing for Year', ur: 'سال کے لیے ٹیکس فائلنگ'})} {taxYear}</span>
+                 <Button variant="link" onClick={onBack}>{t({en: 'Change Year', ur: 'سال تبدیل کریں'})}</Button>
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-6 min-h-[50vh]">
             {renderStep()}
           </CardContent>
         </Card>
         <div className="flex justify-between mt-6">
-          <Button onClick={handleBack} disabled={currentStep === 0} variant="outline">
+          <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}
           </Button>
           {currentStep < steps.length - 1 ? (
@@ -135,13 +150,52 @@ function PersonalTaxFilingWizard() {
   );
 }
 
+function YearSelectionStep({ onProceed }: { onProceed: (year: string) => void }) {
+    const { t } = useLanguage();
+    const [selectedYear, setSelectedYear] = useState<string | null>(null);
+
+    const years = Array.from({ length: 10 }, (_, i) => 2025 - i); // 2025 down to 2016
+
+    return (
+        <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center">
+             <div className="bg-primary/10 text-primary p-4 rounded-full w-fit mb-6">
+                <FileSignature className="h-12 w-12" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{t({ en: "Tax Return Filing", ur: "ٹیکس ریٹرن فائلنگ" })}</h1>
+            <p className="mt-4 text-lg text-muted-foreground">{t({ en: "Select the tax year you want to proceed with", ur: "وہ ٹیکس سال منتخب کریں جس کے ساتھ آپ آگے بڑھنا چاہتے ہیں" })}</p>
+            <div className="mt-8 w-full max-w-xs space-y-4">
+                 <Select onValueChange={setSelectedYear}>
+                    <SelectTrigger className="h-12 text-lg">
+                        <SelectValue placeholder={t({ en: "Select a year", ur: "ایک سال منتخب کریں" })} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {years.map(year => (
+                             <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button size="lg" className="w-full" onClick={() => selectedYear && onProceed(selectedYear)} disabled={!selectedYear}>
+                    {t({ en: "Proceed", ur: "آگے بڑھیں" })}
+                </Button>
+            </div>
+        </div>
+    )
+}
+
+function PersonalTaxFilingFlow() {
+    const [taxYear, setTaxYear] = useState<string | null>(null);
+    return taxYear ? 
+        <PersonalTaxFilingWizard taxYear={taxYear} onBack={() => setTaxYear(null)} /> : 
+        <YearSelectionStep onProceed={setTaxYear} />;
+}
+
 
 export default function PersonalTaxFilingPage() {
     const { t } = useLanguage();
     return (
         <AppLayout pageTitle={t({ en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" })}>
             <PersonalTaxFilingProvider>
-                <PersonalTaxFilingWizard />
+                <PersonalTaxFilingFlow />
             </PersonalTaxFilingProvider>
         </AppLayout>
     )

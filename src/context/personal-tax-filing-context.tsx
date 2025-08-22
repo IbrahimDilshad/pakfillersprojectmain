@@ -46,6 +46,7 @@ interface Documents {
 
 // Main form data structure
 interface PersonalTaxFilingData {
+    taxYear?: string;
     personalInfo: PersonalInfo;
     incomes: Incomes;
     deductions: Deductions;
