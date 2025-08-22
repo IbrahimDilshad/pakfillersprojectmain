@@ -7,6 +7,7 @@ import { createContext, useContext, useState, ReactNode, Dispatch, SetStateActio
 interface PersonalInfo {
     fullName?: string;
     email?: string;
+    cnic?: string;
     dateOfBirth?: Date;
     passport?: string;
     occupation?: string;
@@ -24,7 +25,21 @@ interface SalaryIncome {
 
 interface Incomes {
     salary?: SalaryIncome;
-    // other income types like business, property, etc. can be added here
+    hasSalary?: boolean;
+    hasBusiness?: boolean;
+    hasSelfEmployed?: boolean;
+    hasFreelancer?: boolean;
+    hasProfessional?: boolean;
+    hasPension?: boolean;
+    hasAgriculture?: boolean;
+    hasCommission?: boolean;
+    hasServices?: boolean;
+    hasPartnership?: boolean;
+    hasRent?: boolean;
+    hasSavingsProfit?: boolean;
+    hasDividend?: boolean;
+    hasGain?: boolean;
+    hasOther?: boolean;
 }
 
 interface Deductions {

@@ -2,97 +2,71 @@
 'use client';
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
-import { useEffect } from 'react';
+import { 
+    Briefcase, Building2, User, Laptop, Tie, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const salarySchema = z.object({
-  annualSalary: z.coerce.number().optional(),
-  taxDeducted: z.coerce.number().optional(),
-});
-
-type SalaryFormData = z.infer<typeof salarySchema>;
-
-const incomeSourcesSchema = z.object({
-  salary: salarySchema.optional(),
-});
-
-type IncomeSourcesFormData = z.infer<typeof incomeSourcesSchema>;
+const incomeSources = [
+  { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
+  { id: 'hasBusiness', label: { en: 'Business', ur: 'کاروبار' }, icon: Building2 },
+  { id: 'hasSelfEmployed', label: { en: 'Self Employed', ur: 'خود ملازم' }, icon: User },
+  { id: 'hasFreelancer', label: { en: 'Freelancer', ur: 'فری لانسر' }, icon: Laptop },
+  { id: 'hasProfessional', label: { en: 'Professional', ur: 'پیشہ ور' }, icon: Tie },
+  { id: 'hasPension', label: { en: 'Pension', ur: 'پنشن' }, icon: Landmark },
+  { id: 'hasAgriculture', label: { en: 'Agriculture', ur: 'زراعت' }, icon: Tractor },
+  { id: 'hasCommission', label: { en: 'Commission', ur: 'کمیشن' }, icon: Percent },
+  { id: 'hasServices', label: { en: 'Services', ur: 'خدمات' }, icon: Cog },
+  { id: 'hasPartnership', label: { en: 'Partnership/AOP', ur: 'شراکت/اے او پی' }, icon: Users },
+  { id: 'hasRent', label: { en: 'Rent/Property Sale', ur: 'کرایہ/جائیداد فروخت' }, icon: Home },
+  { id: 'hasSavingsProfit', label: { en: 'Profit on Savings', ur: 'بچت پر منافع' }, icon: PiggyBank },
+  { id: 'hasDividend', label: { en: 'Dividend', ur: 'منافع' }, icon: AreaChart },
+  { id: 'hasGain', label: { en: 'Gain', ur: 'فائدہ' }, icon: TrendingUp },
+  { id: 'hasOther', label: { en: 'Other Income', ur: 'دیگر آمدنی' }, icon: PlusCircle },
+];
 
 export function IncomeSourcesStep() {
     const { t } = useLanguage();
     const { formData, setFormData } = usePersonalTaxFiling();
-    const form = useForm<IncomeSourcesFormData>({
-        resolver: zodResolver(incomeSourcesSchema),
-        defaultValues: formData.incomes,
-    });
 
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            setFormData(prev => ({...prev, incomes: value as IncomeSourcesFormData}));
-        });
-        return () => subscription.unsubscribe();
-    }, [form, setFormData]);
+    const toggleSource = (sourceId: keyof typeof formData.incomes) => {
+        setFormData(prev => ({
+            ...prev,
+            incomes: {
+                ...prev.incomes,
+                [sourceId]: !prev.incomes[sourceId],
+            },
+        }));
+    };
 
     return (
         <div>
             <div className="mb-6">
                 <CardTitle>{t({ en: "Income Sources", ur: "آمدنی کے ذرائع" })}</CardTitle>
-                <CardDescription>{t({ en: "Please provide details about your income from various sources.", ur: "براہ کرم مختلف ذرائع سے اپنی آمدنی کی تفصیلات فراہم کریں۔" })}</CardDescription>
+                <CardDescription>{t({ en: "Please select all applicable sources of your income for the tax year.", ur: "ٹیکس سال کے لیے براہ کرم اپنی آمدنی کے تمام قابل اطلاق ذرائع منتخب کریں۔" })}</CardDescription>
             </div>
-             <Form {...form}>
-                <form>
-                    <Accordion type="multiple" className="w-full">
-                        <AccordionItem value="salary">
-                            <AccordionTrigger className="text-lg font-medium">{t({ en: "Salary Income", ur: "تنخواہ سے آمدنی" })}</AccordionTrigger>
-                            <AccordionContent>
-                                <div className="grid md:grid-cols-2 gap-6 p-2">
-                                     <FormField
-                                        control={form.control}
-                                        name="salary.annualSalary"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>{t({ en: 'Annual Salary', ur: 'سالانہ تنخواہ' })}</FormLabel>
-                                            <FormControl>
-                                                <Input type="number" placeholder="PKR" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="salary.taxDeducted"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>{t({ en: 'Tax Deducted at Source', ur: 'ماخذ پر کٹوتی ٹیکس' })}</FormLabel>
-                                            <FormControl>
-                                                <Input type="number" placeholder="PKR" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                         <AccordionItem value="business">
-                            <AccordionTrigger className="text-lg font-medium">{t({ en: "Business Income", ur: "کاروباری آمدنی" })}</AccordionTrigger>
-                            <AccordionContent>
-                                <div className="text-center text-muted-foreground py-10">
-                                    <p>{t({ en: 'Business income form will be here. This feature is under construction.', ur: 'کاروباری آمدنی کا فارم یہاں ہوگا۔ یہ فیچر زیر تعمیر ہے۔' })}</p>
-                                </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                        {/* Other income sources can be added here as AccordionItems */}
-                    </Accordion>
-                </form>
-            </Form>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {incomeSources.map((source) => {
+                    const isSelected = formData.incomes[source.id as keyof typeof formData.incomes];
+                    return (
+                         <div
+                            key={source.id}
+                            onClick={() => toggleSource(source.id as keyof typeof formData.incomes)}
+                            className={cn(
+                                "relative flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all",
+                                isSelected ? "border-primary bg-primary/10" : "border-transparent bg-muted/50 hover:bg-muted"
+                            )}
+                        >
+                            <source.icon className={cn("h-10 w-10 mb-2", isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                            <span className={cn("text-sm font-medium text-center", isSelected ? 'text-primary' : 'text-foreground')}>{t(source.label)}</span>
+                             {isSelected && (
+                                <CheckCircle className="h-5 w-5 text-white bg-primary rounded-full absolute -top-2 -right-2" />
+                            )}
+                        </div>
+                    )
+                })}
+            </div>
         </div>
     );
 }
