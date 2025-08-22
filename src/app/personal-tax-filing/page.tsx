@@ -104,9 +104,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
       case 'personal-info':
         return <PersonalInfoStep />;
       case 'income-sources':
-        // Pass handleNext to the component so it can control its internal state
-        // and then trigger the main navigation.
-        return <IncomeSourcesStep onContinue={handleNext} />;
+        return <IncomeSourcesStep />;
       case 'deductions':
         return <DeductionsStep />;
       case 'wealth-statement':
@@ -125,10 +123,6 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
     }
   };
   
-  // For the income sources step, the component itself will handle its "Continue" button
-  // to switch between its internal stages. We hide the main nav buttons for that step.
-  const showMainNavigation = steps[currentStep].id !== 'income-sources';
-
   return (
     <div className="space-y-6">
       <Card>
@@ -158,7 +152,6 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
           </Tabs>
         </CardContent>
       </Card>
-      {showMainNavigation && (
         <div className="flex justify-between mt-6">
             <Button onClick={handleBack} variant="outline" disabled={currentStep === 0 && true}>
             {t({ en: 'Back', ur: 'پیچھے' })}
@@ -173,7 +166,6 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
             </Button>
             )}
         </div>
-      )}
     </div>
   );
 }
