@@ -84,7 +84,9 @@ const PersonalTaxFilingContext = createContext<PersonalTaxFilingContextType | un
 
 const initialFormData: PersonalTaxFilingData = {
     personalInfo: {},
-    incomes: {},
+    incomes: {
+      salary: {}
+    },
     deductions: {},
     wealthStatement: {},
     documents: {},

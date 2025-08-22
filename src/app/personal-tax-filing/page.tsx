@@ -104,7 +104,9 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
       case 'personal-info':
         return <PersonalInfoStep />;
       case 'income-sources':
-        return <IncomeSourcesStep />;
+        // Pass handleNext to the component so it can control its internal state
+        // and then trigger the main navigation.
+        return <IncomeSourcesStep onContinue={handleNext} />;
       case 'deductions':
         return <DeductionsStep />;
       case 'wealth-statement':
@@ -122,6 +124,10 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         );
     }
   };
+  
+  // For the income sources step, the component itself will handle its "Continue" button
+  // to switch between its internal stages. We hide the main nav buttons for that step.
+  const showMainNavigation = steps[currentStep].id !== 'income-sources';
 
   return (
     <div className="space-y-6">
@@ -152,20 +158,22 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
           </Tabs>
         </CardContent>
       </Card>
-      <div className="flex justify-between mt-6">
-        <Button onClick={handleBack} variant="outline" disabled={currentStep === 0 && true}>
-          {t({ en: 'Back', ur: 'پیچھے' })}
-        </Button>
-        {currentStep < steps.length - 1 ? (
-          <Button onClick={handleNext}>
-            {t({ en: 'Next', ur: 'اگلا' })}
-          </Button>
-        ) : (
-          <Button onClick={handleSubmit}>
-            {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
-          </Button>
-        )}
-      </div>
+      {showMainNavigation && (
+        <div className="flex justify-between mt-6">
+            <Button onClick={handleBack} variant="outline" disabled={currentStep === 0 && true}>
+            {t({ en: 'Back', ur: 'پیچھے' })}
+            </Button>
+            {currentStep < steps.length - 1 ? (
+            <Button onClick={handleNext}>
+                {t({ en: 'Next', ur: 'اگلا' })}
+            </Button>
+            ) : (
+            <Button onClick={handleSubmit}>
+                {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
+            </Button>
+            )}
+        </div>
+      )}
     </div>
   );
 }
