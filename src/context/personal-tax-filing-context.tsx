@@ -50,6 +50,10 @@ interface FreelancerSubForm extends BusinessSubForm {
     isPsebRegistered?: 'yes' | 'no';
 }
 
+interface ProfessionalSubForm extends BusinessSubForm {
+    professionType?: string;
+}
+
 interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
@@ -59,6 +63,7 @@ interface Incomes {
     hasFreelancer?: boolean;
     freelancer?: FreelancerSubForm;
     hasProfessional?: boolean;
+    professional?: ProfessionalSubForm;
     hasPension?: boolean;
     hasAgriculture?: boolean;
     hasCommission?: boolean;

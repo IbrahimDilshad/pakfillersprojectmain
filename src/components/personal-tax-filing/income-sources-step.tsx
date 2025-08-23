@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TraderShopForm } from './trader-shop-form';
 import { FreelancerForm } from './freelancer-form';
+import { ProfessionalForm } from './professional-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -65,6 +66,10 @@ const freelancerSubFormSchema = businessSubFormSchema.extend({
     isPsebRegistered: z.enum(['yes', 'no']).optional(),
 });
 
+const professionalSubFormSchema = businessSubFormSchema.extend({
+    professionType: z.string().optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -74,6 +79,8 @@ const incomesSchema = z.object({
   businessDetails: z.record(businessSubFormSchema).optional(), // To store the form data for each business type
   hasFreelancer: z.boolean().optional(),
   freelancer: freelancerSubFormSchema.optional(),
+  hasProfessional: z.boolean().optional(),
+  professional: professionalSubFormSchema.optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -205,6 +212,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                                     </Tabs>
                                   )}
                             </div>
+                        </TabsContent>
+                    )}
+                     {enabledSourceIds.includes('professional') && (
+                        <TabsContent value="professional">
+                             <ProfessionalForm form={form} />
                         </TabsContent>
                     )}
                      {/* Add other income source forms here as needed */}
