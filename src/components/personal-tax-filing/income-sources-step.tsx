@@ -122,17 +122,33 @@ const rentPropertySchema = z.object({
     flatDetails: rentPropertyDetailSchema.optional(),
 });
 
-const savingsProfitDetailSchema = z.object({
-  amount: z.coerce.number().optional(),
-  taxDeducted: z.coerce.number().optional(),
+const bankDepositDetailSchema = z.object({
+    bankName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    amount: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+});
+
+const govtSchemeDetailSchema = z.object({
+    schemeType: z.string().optional(),
+    amount: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+});
+
+const behboodDetailSchema = z.object({
+    amount: z.coerce.number().optional(),
+});
+
+const pensionerBenefitDetailSchema = z.object({
+    amount: z.coerce.number().optional(),
 });
 
 const savingsProfitSchema = z.object({
   selectedSources: z.record(z.boolean()).optional(),
-  bankDeposit: savingsProfitDetailSchema.optional(),
-  govtScheme: savingsProfitDetailSchema.optional(),
-  behbood: savingsProfitDetailSchema.optional(),
-  pensionerBenefit: savingsProfitDetailSchema.optional(),
+  bankDeposit: z.array(bankDepositDetailSchema).optional(),
+  govtScheme: govtSchemeDetailSchema.optional(),
+  behbood: behboodDetailSchema.optional(),
+  pensionerBenefit: pensionerBenefitDetailSchema.optional(),
 });
 
 

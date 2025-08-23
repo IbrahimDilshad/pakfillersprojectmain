@@ -1,14 +1,15 @@
 
 'use client';
 import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/context/language-context';
-import { PiggyBank, Landmark, ShieldCheck, UserCheck, CheckCircle } from 'lucide-react';
+import { PiggyBank, Landmark, ShieldCheck, UserCheck, CheckCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const savingsSources = [
   { id: 'bankDeposit', label: { en: 'Profit on Bank Deposit', ur: 'بینک ڈپازٹ پر منافع' }, icon: PiggyBank },
@@ -17,15 +18,56 @@ const savingsSources = [
   { id: 'pensionerBenefit', label: { en: 'Pensioner\'s Benefit', ur: 'پنشنر کا فائدہ' }, icon: UserCheck },
 ];
 
-const SavingsSourceForm = ({ source }: { source: string }) => {
+const BankDepositForm = () => {
     const { t } = useLanguage();
     const { control } = useFormContext();
-    const basePath = `savingsProfit.${source}`;
-    
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "savingsProfit.bankDeposit",
+    });
+
     return (
-        <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-md">
+        <div className="space-y-4">
+            {fields.map((item, index) => (
+                <div key={item.id} className="grid md:grid-cols-5 gap-4 p-4 border rounded-md items-end">
+                    <FormField control={control} name={`savingsProfit.bankDeposit.${index}.bankName`} render={({ field }) => (
+                        <FormItem><FormLabel>{t({en: 'Bank Name', ur: 'بینک کا نام'})}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={control} name={`savingsProfit.bankDeposit.${index}.accountNumber`} render={({ field }) => (
+                        <FormItem><FormLabel>{t({en: 'Account Number', ur: 'اکاؤنٹ نمبر'})}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={control} name={`savingsProfit.bankDeposit.${index}.amount`} render={({ field }) => (
+                        <FormItem><FormLabel>{t({en: 'Profit Amount', ur: 'منافع کی رقم'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={control} name={`savingsProfit.bankDeposit.${index}.taxDeducted`} render={({ field }) => (
+                        <FormItem><FormLabel>{t({en: 'Tax Deducted', ur: 'ٹیکس کٹوتی'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+            ))}
+             <Button type="button" variant="outline" size="sm" onClick={() => append({})}><PlusCircle className="mr-2 h-4 w-4" />{t({en: "Add New Bank", ur: "نیا بینک شامل کریں"})}</Button>
+        </div>
+    );
+};
+
+const GovtSchemeForm = () => {
+    const { t } = useLanguage();
+    const { control } = useFormContext();
+    const basePath = "savingsProfit.govtScheme";
+
+    return (
+        <div className="grid md:grid-cols-3 gap-4 p-4 border rounded-md">
+            <FormField control={control} name={`${basePath}.schemeType`} render={({ field }) => (
+                <FormItem><FormLabel>{t({en: 'Scheme Type', ur: 'اسکیم کی قسم'})}</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl><SelectContent>
+                    <SelectItem value="defence">{t({en: 'Defence Savings Certificate', ur: 'دفاعی بچت سرٹیفکیٹ'})}</SelectItem>
+                    <SelectItem value="regular">{t({en: 'Regular Income Certificate', ur: 'باقاعدہ آمدنی سرٹیفکیٹ'})}</SelectItem>
+                    <SelectItem value="special">{t({en: 'Special Saving Certificate', ur: 'خصوصی بچت سرٹیفکیٹ'})}</SelectItem>
+                    <SelectItem value="short_term">{t({en: 'Short Term Saving Certificate', ur: 'قلیل مدتی بچت سرٹیفکیٹ'})}</SelectItem>
+                    <SelectItem value="account">{t({en: 'Special Savings Account', ur: 'خصوصی بچت اکاؤنٹ'})}</SelectItem>
+                </SelectContent></Select><FormMessage /></FormItem>
+            )}/>
             <FormField control={control} name={`${basePath}.amount`} render={({ field }) => (
-                <FormItem><FormLabel>{t({en: 'Amount', ur: 'رقم'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>{t({en: 'Profit Amount', ur: 'منافع کی رقم'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <FormField control={control} name={`${basePath}.taxDeducted`} render={({ field }) => (
                 <FormItem><FormLabel>{t({en: 'Tax Deducted', ur: 'ٹیکس کٹوتی'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
@@ -34,6 +76,36 @@ const SavingsSourceForm = ({ source }: { source: string }) => {
     );
 };
 
+const BehboodForm = () => {
+    const { t } = useLanguage();
+    const { control } = useFormContext();
+    return (
+        <div className="p-4 border rounded-md">
+            <FormField control={control} name="savingsProfit.behbood.amount" render={({ field }) => (
+                <FormItem><FormLabel>{t({en: 'Enter Behbood Income', ur: 'بہبود آمدنی درج کریں'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+        </div>
+    );
+};
+
+const PensionerBenefitForm = () => {
+    const { t } = useLanguage();
+    const { control } = useFormContext();
+    return (
+        <div className="p-4 border rounded-md">
+            <FormField control={control} name="savingsProfit.pensionerBenefit.amount" render={({ field }) => (
+                <FormItem><FormLabel>{t({en: 'Enter Pensioner Benefit Amount', ur: 'پنشنر فائدہ کی رقم درج کریں'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+        </div>
+    );
+};
+
+const formComponents: { [key: string]: React.ComponentType } = {
+    bankDeposit: BankDepositForm,
+    govtScheme: GovtSchemeForm,
+    behbood: BehboodForm,
+    pensionerBenefit: PensionerBenefitForm,
+};
 
 export function ProfitOnSavingsForm({ form: passedForm }: { form: any }) {
     const { t } = useLanguage();
@@ -91,11 +163,14 @@ export function ProfitOnSavingsForm({ form: passedForm }: { form: any }) {
                         return <TabsTrigger key={id} value={id}>{t(sourceInfo!.label)}</TabsTrigger>
                     })}
                 </TabsList>
-                {enabledSources.map(sourceId => (
-                    <TabsContent key={sourceId} value={sourceId}>
-                        <SavingsSourceForm source={sourceId} />
-                    </TabsContent>
-                ))}
+                {enabledSources.map(sourceId => {
+                     const FormComponent = formComponents[sourceId];
+                     return (
+                        <TabsContent key={sourceId} value={sourceId}>
+                            {FormComponent && <FormComponent />}
+                        </TabsContent>
+                    )
+                })}
             </Tabs>
             <Button variant="link" onClick={() => setView('selection')}>{t({en: 'Back to selection', ur: 'انتخاب پر واپس'})}</Button>
         </div>

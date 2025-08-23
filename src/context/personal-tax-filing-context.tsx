@@ -103,17 +103,33 @@ interface RentPropertyIncome {
     flatDetails?: RentPropertyDetail;
 }
 
-interface SavingsProfitDetail {
+interface BankDepositDetail {
+    bankName?: string;
+    accountNumber?: string;
     amount?: number;
     taxDeducted?: number;
 }
 
+interface GovtSchemeDetail {
+    schemeType?: string;
+    amount?: number;
+    taxDeducted?: number;
+}
+
+interface BehboodDetail {
+    amount?: number;
+}
+
+interface PensionerBenefitDetail {
+    amount?: number;
+}
+
 interface SavingsProfitIncome {
     selectedSources?: Record<string, boolean>;
-    bankDeposit?: SavingsProfitDetail;
-    govtScheme?: SavingsProfitDetail;
-    behbood?: SavingsProfitDetail;
-    pensionerBenefit?: SavingsProfitDetail;
+    bankDeposit?: BankDepositDetail[];
+    govtScheme?: GovtSchemeDetail;
+    behbood?: BehboodDetail;
+    pensionerBenefit?: PensionerBenefitDetail;
 }
 
 
