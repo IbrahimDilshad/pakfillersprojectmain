@@ -111,7 +111,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
       case 'personal-info':
         return <PersonalInfoStep />;
       case 'income-sources':
-        return <IncomeSourcesStep />;
+        return <IncomeSourcesStep onNext={handleNext} onBack={handleBack} />;
       case 'tax-credit':
         return <TaxCreditStep />;
       case 'deductions':
@@ -136,6 +136,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
     }
   };
   
+  const showMainNavigation = steps[currentStep].id !== 'income-sources';
+
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
         <div className="space-y-6">
@@ -166,20 +168,22 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
             </Tabs>
             </CardContent>
         </Card>
-        <div className="flex justify-between mt-6">
-            <Button onClick={handleBack} variant="outline">
-            {t({ en: 'Back', ur: 'پیچھے' })}
-            </Button>
-            {currentStep < steps.length - 1 ? (
-            <Button onClick={handleNext}>
-                {t({ en: 'Next', ur: 'اگلا' })}
-            </Button>
-            ) : (
-            <Button onClick={handleSubmit}>
-                {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
-            </Button>
-            )}
-        </div>
+        {showMainNavigation && (
+            <div className="flex justify-between mt-6">
+                <Button onClick={handleBack} variant="outline">
+                {t({ en: 'Back', ur: 'پیچھے' })}
+                </Button>
+                {currentStep < steps.length - 1 ? (
+                <Button onClick={handleNext}>
+                    {t({ en: 'Next', ur: 'اگلا' })}
+                </Button>
+                ) : (
+                <Button onClick={handleSubmit}>
+                    {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
+                </Button>
+                )}
+            </div>
+        )}
         </div>
 
         <div className="sticky top-20">

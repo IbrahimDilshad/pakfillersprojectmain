@@ -1,11 +1,18 @@
 
 'use client';
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
-import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle } from 'lucide-react';
+import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle, Store, Car, Handshake, Factory, Ship, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -25,48 +32,156 @@ const incomeSourcesList = [
   { id: 'hasOther', label: { en: 'Other Income', ur: 'دیگر آمدنی' }, icon: PlusCircle },
 ];
 
+const businessTypesList = [
+    { id: 'trader', label: { en: 'Trader/Shop', ur: 'تاجر/دکان' }, icon: Store },
+    { id: 'dealers', label: { en: 'Dealers', ur: 'ڈیلرز' }, icon: Car },
+    { id: 'wholesale', label: { en: 'Wholesale/Supplier', ur: 'تھوک/سپلائر' }, icon: Handshake },
+    { id: 'manufacturer', label: { en: 'Manufacturer', ur: 'مینوفیکچرر' }, icon: Factory },
+    { id: 'imports', label: { en: 'Imports', ur: 'درآمدات' }, icon: Ship },
+    { id: 'exports', label: { en: 'Exports', ur: 'برآمدات' }, icon: Plane },
+];
 
-export function IncomeSourcesStep() {
+const salarySchema = z.object({
+  annualSalary: z.coerce.number().optional(),
+  taxDeducted: z.coerce.number().optional(),
+});
+
+const incomesSchema = z.object({
+  hasSalary: z.boolean().optional(),
+  salary: salarySchema.optional(),
+  hasBusiness: z.boolean().optional(),
+  business: z.record(z.boolean()).optional(), // To store selected business types
+});
+
+type IncomesFormData = z.infer<typeof incomesSchema>;
+
+export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBack: () => void }) {
     const { t } = useLanguage();
     const { formData, setFormData } = usePersonalTaxFiling();
+    const [view, setView] = useState<'selection' | 'forms'>('selection');
 
-    const toggleSource = (sourceId: keyof typeof formData.incomes) => {
-        setFormData(prev => ({
-            ...prev,
-            incomes: {
-                ...prev.incomes,
-                [sourceId]: !prev.incomes[sourceId],
-            },
-        }));
-    };
+    const form = useForm<IncomesFormData>({
+        resolver: zodResolver(incomesSchema),
+        defaultValues: formData.incomes || {},
+    });
+
+    const selectedSources = form.watch();
+    const enabledSources = Object.keys(selectedSources).filter(key => key.startsWith('has') && selectedSources[key as keyof typeof selectedSources]);
+    const enabledSourceIds = enabledSources.map(s => s.replace('has', '').toLowerCase());
     
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            setFormData(prev => ({ ...prev, incomes: value as IncomesFormData }));
+        });
+        return () => subscription.unsubscribe();
+    }, [form, setFormData]);
+
+    const toggleSource = (sourceId: keyof IncomesFormData) => {
+        const currentSelection = form.getValues(sourceId);
+        form.setValue(sourceId, !currentSelection);
+    };
+
+    const toggleBusinessType = (businessTypeId: string) => {
+        const currentSelection = form.getValues(`business.${businessTypeId}`);
+        form.setValue(`business.${businessTypeId}`, !currentSelection);
+    }
+
+    const handleContinue = () => {
+        if (enabledSources.length > 0) {
+            setView('forms');
+        } else {
+           onNext(); // Or show a toast, for now, just proceed
+        }
+    }
+    
+    const renderSourceSelection = () => (
+         <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {incomeSourcesList.map((source) => {
+                    const isSelected = selectedSources[source.id as keyof IncomesFormData];
+                    return (
+                        <div
+                            key={source.id}
+                            onClick={() => toggleSource(source.id as keyof IncomesFormData)}
+                            className={cn(
+                                "relative flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all h-32",
+                                isSelected ? "border-primary bg-primary/10" : "border-transparent bg-muted/50 hover:bg-muted"
+                            )}
+                        >
+                            <source.icon className={cn("h-10 w-10 mb-2", isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                            <span className={cn("text-sm font-medium text-center", isSelected ? 'text-primary' : 'text-foreground')}>{t(source.label)}</span>
+                            {isSelected && <CheckCircle className="h-5 w-5 text-white bg-primary rounded-full absolute -top-2 -right-2" />}
+                        </div>
+                    )
+                })}
+            </div>
+            <div className="flex justify-between mt-6">
+                <Button onClick={onBack} variant="outline">{t({ en: 'Back', ur: 'پیچھے' })}</Button>
+                <Button onClick={handleContinue}>{t({ en: 'Continue', ur: 'جاری رکھیں' })}</Button>
+            </div>
+        </div>
+    );
+    
+    const renderForms = () => (
+        <div className="space-y-6">
+             <Form {...form}>
+                <Tabs defaultValue={enabledSourceIds[0]} className="w-full">
+                    <TabsList>
+                        {enabledSourceIds.map(id => <TabsTrigger key={id} value={id}>{t({en: id.charAt(0).toUpperCase() + id.slice(1), ur: id})}</TabsTrigger>)}
+                    </TabsList>
+                    
+                    {enabledSourceIds.includes('salary') && (
+                        <TabsContent value="salary">
+                             <div className="p-4 border rounded-md">
+                                <h3 className="text-lg font-medium mb-4">{t({en: 'Salary Details', ur: 'تنخواہ کی تفصیلات'})}</h3>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                     <FormField control={form.control} name="salary.annualSalary" render={({ field }) => (
+                                        <FormItem><FormLabel>{t({en: 'Annual Salary', ur: 'سالانہ تنخواہ'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="salary.taxDeducted" render={({ field }) => (
+                                        <FormItem><FormLabel>{t({en: 'Tax Deducted by Employer', ur: 'آجر کی طرف سے کٹوتی شدہ ٹیکس'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                </div>
+                            </div>
+                        </TabsContent>
+                    )}
+                    {enabledSourceIds.includes('business') && (
+                        <TabsContent value="business">
+                            <div className="p-4 border rounded-md">
+                                <h3 className="text-lg font-medium mb-4">{t({en: 'Select Business Type(s)', ur: 'کاروبار کی قسم منتخب کریں'})}</h3>
+                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                     {businessTypesList.map((business) => {
+                                        const isSelected = selectedSources.business?.[business.id];
+                                        return (
+                                             <div key={business.id} onClick={() => toggleBusinessType(business.id)} className={cn( "relative flex flex-col items-center justify-center p-2 rounded-lg border-2 cursor-pointer transition-all h-28", isSelected ? "border-primary bg-primary/10" : "border-transparent bg-muted/50 hover:bg-muted" )}>
+                                                <business.icon className={cn("h-8 w-8 mb-2", isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                                                <span className={cn("text-xs font-medium text-center", isSelected ? 'text-primary' : 'text-foreground')}>{t(business.label)}</span>
+                                                {isSelected && <CheckCircle className="h-4 w-4 text-white bg-primary rounded-full absolute -top-1 -right-1" />}
+                                            </div>
+                                        )
+                                     })}
+                                 </div>
+                                  {/* Here you would render another level of tabs based on selected business types */}
+                            </div>
+                        </TabsContent>
+                    )}
+                     {/* Add other income source forms here as needed */}
+                </Tabs>
+             </Form>
+             <div className="flex justify-between mt-6">
+                <Button onClick={() => setView('selection')} variant="outline">{t({ en: 'Back to Selection', ur: 'انتخاب پر واپس' })}</Button>
+                <Button onClick={onNext}>{t({ en: 'Save & Next', ur: 'محفوظ کریں اور آگے بڑھیں' })}</Button>
+            </div>
+        </div>
+    );
+
     return (
         <div>
             <div className="mb-6">
                 <CardTitle>{t({ en: "Income Sources", ur: "آمدنی کے ذرائع" })}</CardTitle>
                 <CardDescription>{t({ en: "Please select all applicable sources of your income for the tax year.", ur: "ٹیکس سال کے لیے براہ کرم اپنی آمدنی کے تمام قابل اطلاق ذرائع منتخب کریں۔" })}</CardDescription>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {incomeSourcesList.map((source) => {
-                    const isSelected = formData.incomes[source.id as keyof typeof formData.incomes];
-                    return (
-                        <div
-                            key={source.id}
-                            onClick={() => toggleSource(source.id as keyof typeof formData.incomes)}
-                            className={cn(
-                                "relative flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all",
-                                isSelected ? "border-primary bg-primary/10" : "border-transparent bg-muted/50 hover:bg-muted"
-                            )}
-                        >
-                            <source.icon className={cn("h-10 w-10 mb-2", isSelected ? 'text-primary' : 'text-muted-foreground')} />
-                            <span className={cn("text-sm font-medium text-center", isSelected ? 'text-primary' : 'text-foreground')}>{t(source.label)}</span>
-                            {isSelected && (
-                                <CheckCircle className="h-5 w-5 text-white bg-primary rounded-full absolute -top-2 -right-2" />
-                            )}
-                        </div>
-                    )
-                })}
-            </div>
+            {view === 'selection' ? renderSourceSelection() : renderForms()}
         </div>
     );
 }

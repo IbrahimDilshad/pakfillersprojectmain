@@ -27,6 +27,7 @@ interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
     hasBusiness?: boolean;
+    business?: Record<string, boolean>; // For selected business types
     hasSelfEmployed?: boolean;
     hasFreelancer?: boolean;
     hasProfessional?: boolean;
