@@ -13,6 +13,7 @@ import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle, Store, Car, Handshake, Factory, Ship, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TraderShopForm } from './trader-shop-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -46,11 +47,25 @@ const salarySchema = z.object({
   taxDeducted: z.coerce.number().optional(),
 });
 
+const businessSubFormSchema = z.object({
+    withholdingOption: z.enum(['all', 'none', 'some']).optional(),
+    revenueWithTax: z.object({ revenueAmount: z.coerce.number().optional(), taxDeducted: z.coerce.number().optional(), taxRate: z.string().optional() }).optional(),
+    revenueWithoutTax: z.object({ revenueAmount: z.coerce.number().optional() }).optional(),
+    directExpense: z.coerce.number().optional(),
+    indirectExpense: z.coerce.number().optional(),
+    totalAssets: z.coerce.number().optional(),
+    totalLiabilities: z.coerce.number().optional(),
+    totalCapital: z.coerce.number().optional(),
+    hasOtherAdjustableTaxes: z.enum(['yes', 'no']).optional(),
+    otherAdjustableTaxes: z.array(z.object({ description: z.string().optional(), taxDeducted: z.coerce.number().optional() })).optional(),
+});
+
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
   salary: salarySchema.optional(),
   hasBusiness: z.boolean().optional(),
   business: z.record(z.boolean()).optional(), // To store selected business types
+  businessDetails: z.record(businessSubFormSchema).optional(), // To store the form data for each business type
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -69,6 +84,9 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
     const enabledSources = Object.keys(selectedSources).filter(key => key.startsWith('has') && selectedSources[key as keyof typeof selectedSources]);
     const enabledSourceIds = enabledSources.map(s => s.replace('has', '').toLowerCase());
     
+    const selectedBusinessTypes = selectedSources.business || {};
+    const enabledBusinessTypes = Object.keys(selectedBusinessTypes).filter(key => selectedBusinessTypes[key]);
+
     useEffect(() => {
         const subscription = form.watch((value) => {
             setFormData(prev => ({ ...prev, incomes: value as IncomesFormData }));
@@ -161,7 +179,23 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                                         )
                                      })}
                                  </div>
-                                  {/* Here you would render another level of tabs based on selected business types */}
+                                  {enabledBusinessTypes.length > 0 && (
+                                    <Tabs defaultValue={enabledBusinessTypes[0]} className="w-full mt-6">
+                                        <TabsList>
+                                            {enabledBusinessTypes.map(id => <TabsTrigger key={id} value={id}>{t({en: id.charAt(0).toUpperCase() + id.slice(1), ur: id})}</TabsTrigger>)}
+                                        </TabsList>
+                                        {enabledBusinessTypes.map(type => (
+                                            <TabsContent key={type} value={type}>
+                                                {/* Render specific form component based on type. For now, only trader is implemented */}
+                                                {type === 'trader' ? (
+                                                     <TraderShopForm form={form} businessType={type} />
+                                                ) : (
+                                                    <p className="p-4 text-muted-foreground">{t({en: `Form for ${type} is under construction.`, ur: `${type} کے لیے فارم زیر تعمیر ہے۔`})}</p>
+                                                )}
+                                            </TabsContent>
+                                        ))}
+                                    </Tabs>
+                                  )}
                             </div>
                         </TabsContent>
                     )}

@@ -23,11 +23,34 @@ interface SalaryIncome {
     taxDeducted?: number;
 }
 
+interface BusinessSubForm {
+    withholdingOption?: 'all' | 'none' | 'some';
+    revenueWithTax?: {
+        revenueAmount?: number;
+        taxDeducted?: number;
+        taxRate?: string;
+    };
+    revenueWithoutTax?: {
+        revenueAmount?: number;
+    };
+    directExpense?: number;
+    indirectExpense?: number;
+    totalAssets?: number;
+    totalLiabilities?: number;
+    totalCapital?: number;
+    hasOtherAdjustableTaxes?: 'yes' | 'no';
+    otherAdjustableTaxes?: {
+        description?: string;
+        taxDeducted?: number;
+    }[];
+}
+
 interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
     hasBusiness?: boolean;
     business?: Record<string, boolean>; // For selected business types
+    businessDetails?: Record<string, BusinessSubForm>; // For form data of each business type
     hasSelfEmployed?: boolean;
     hasFreelancer?: boolean;
     hasProfessional?: boolean;
