@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TraderShopForm } from './trader-shop-form';
 import { FreelancerForm } from './freelancer-form';
 import { ProfessionalForm } from './professional-form';
+import { CommissionForm } from './commission-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -78,6 +79,20 @@ const agricultureSchema = z.object({
     amount: z.coerce.number().optional(),
 });
 
+const commissionDetailSchema = z.object({
+    amount: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+    expense: z.coerce.number().optional(),
+});
+
+const commissionSchema = z.object({
+    lifeInsuranceAgent: commissionDetailSchema.optional(),
+    generalInsuranceAgent: commissionDetailSchema.optional(),
+    realEstateAgent: commissionDetailSchema.optional(),
+    servicesConsultancy: commissionDetailSchema.optional(),
+    otherCommissions: commissionDetailSchema.optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -93,6 +108,8 @@ const incomesSchema = z.object({
   pension: pensionSchema.optional(),
   hasAgriculture: z.boolean().optional(),
   agriculture: agricultureSchema.optional(),
+  hasCommission: z.boolean().optional(),
+  commission: commissionSchema.optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -259,6 +276,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                             </div>
                         </TabsContent>
                     )}
+                    {enabledSourceIds.includes('commission') && (
+                        <TabsContent value="commission">
+                            <CommissionForm form={form} />
+                        </TabsContent>
+                    )}
                 </Tabs>
              </Form>
              <div className="flex justify-between mt-6">
@@ -278,5 +300,3 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
         </div>
     );
 }
-
-    

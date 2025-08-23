@@ -62,6 +62,20 @@ interface AgricultureIncome {
     amount?: number;
 }
 
+interface CommissionDetail {
+    amount?: number;
+    taxDeducted?: number;
+    expense?: number;
+}
+
+interface CommissionIncome {
+    lifeInsuranceAgent?: CommissionDetail;
+    generalInsuranceAgent?: CommissionDetail;
+    realEstateAgent?: CommissionDetail;
+    servicesConsultancy?: CommissionDetail;
+    otherCommissions?: CommissionDetail;
+}
+
 
 interface Incomes {
     hasSalary?: boolean;
@@ -78,6 +92,7 @@ interface Incomes {
     hasAgriculture?: boolean;
     agriculture?: AgricultureIncome;
     hasCommission?: boolean;
+    commission?: CommissionIncome;
     hasServices?: boolean;
     hasPartnership?: boolean;
     hasRent?: boolean;
@@ -191,5 +206,3 @@ export function usePersonalTaxFiling() {
   }
   return context;
 }
-
-    
