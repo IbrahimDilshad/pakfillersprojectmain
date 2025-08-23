@@ -18,8 +18,14 @@ interface PersonalInfo {
     foreignerThreeYearStay?: 'yes' | 'no';
 }
 
+interface SalaryIncome {
+    annualSalary?: number;
+    taxDeducted?: number;
+}
+
 interface Incomes {
     hasSalary?: boolean;
+    salary?: SalaryIncome;
     hasBusiness?: boolean;
     hasSelfEmployed?: boolean;
     hasFreelancer?: boolean;
@@ -80,6 +86,10 @@ interface Expense {
     totalHouseholdExpense?: number;
 }
 
+interface WrapUp {
+    reconciliationChoice?: 'auto' | 'manual';
+}
+
 interface Documents {
     salaryCertificate?: File | null;
     taxChallan?: File | null;
@@ -95,6 +105,7 @@ interface PersonalTaxFilingData {
     deductions: Deductions;
     wealthStatement: WealthStatement;
     expense: Expense;
+    wrapUp: WrapUp;
     documents: Documents;
 }
 
@@ -107,11 +118,14 @@ const PersonalTaxFilingContext = createContext<PersonalTaxFilingContextType | un
 
 const initialFormData: PersonalTaxFilingData = {
     personalInfo: {},
-    incomes: {},
+    incomes: {
+        hasSalary: false,
+    },
     taxCredit: {},
     deductions: { selectedCategories: {} },
     wealthStatement: {},
     expense: {},
+    wrapUp: {},
     documents: {},
 };
 

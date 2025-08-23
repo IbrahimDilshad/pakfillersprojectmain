@@ -8,6 +8,7 @@ import { TaxCreditStep } from '@/components/personal-tax-filing/tax-credit-step'
 import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step';
 import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
 import { ExpenseStep } from '@/components/personal-tax-filing/expense-step';
+import { WrapUpStep } from '@/components/personal-tax-filing/wrap-up-step';
 import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { useLanguage } from '@/context/language-context';
@@ -34,6 +35,7 @@ const steps = [
   { id: 'deductions', name: { en: 'Tax Deducted', ur: 'منہا ٹیکس' } },
   { id: 'wealth-statement', name: { en: 'Wealth Statement', ur: 'گوشوارہ' } },
   { id: 'expense', name: { en: 'Expense', ur: 'اخراجات' } },
+  { id: 'wrap-up', name: { en: 'Wrap Up', ur: 'نتیجہ' } },
   { id: 'documents', name: { en: 'Documents', ur: 'دستاویزات' } },
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
@@ -118,6 +120,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         return <WealthStatementStep />;
       case 'expense':
         return <ExpenseStep />;
+      case 'wrap-up':
+        return <WrapUpStep />;
       case 'documents':
         return <DocumentsStep />;
       case 'review':
@@ -144,7 +148,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
             </CardHeader>
             <CardContent>
             <Tabs value={steps[currentStep].id} onValueChange={(value) => setCurrentStep(steps.findIndex(s => s.id === value))} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto">
                 {steps.map((step, index) => {
                     const isCompleted = index < currentStep;
                     const isActive = index === currentStep;
