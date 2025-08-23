@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileSignature, CheckCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { CalculationSidebar } from '@/components/personal-tax-filing/calculation-sidebar';
 
 const steps = [
   { id: 'personal-info', name: { en: 'Personal Information', ur: 'ذاتی معلومات' } },
@@ -132,34 +133,35 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
   };
   
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>{t({en: 'Tax Filing for Year', ur: 'سال کے لیے ٹیکس فائلنگ'})} {taxYear}</span>
-            <Button variant="link" onClick={onBack}>{t({en: 'Change Year', ur: 'سال تبدیل کریں'})}</Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={steps[currentStep].id} onValueChange={(value) => setCurrentStep(steps.findIndex(s => s.id === value))} className="w-full">
-            <TabsList className="grid w-full grid-cols-8 h-auto">
-              {steps.map((step, index) => {
-                 const isCompleted = index < currentStep;
-                 const isActive = index === currentStep;
-                return (
-                  <TabsTrigger key={step.id} value={step.id} className="relative flex flex-col items-center h-full p-2 gap-1">
-                     <span className={cn("text-xs md:text-sm text-center", isActive ? "font-bold" : "font-normal")}>{t(step.name)}</span>
-                     {isCompleted && <CheckCircle className="h-4 w-4 text-green-500 absolute top-1 right-1" />}
-                  </TabsTrigger>
-                )
-              })}
-            </TabsList>
-            <div className="p-6 min-h-[50vh] border-x border-b rounded-b-md">
-                {renderStep()}
-            </div>
-          </Tabs>
-        </CardContent>
-      </Card>
+    <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
+        <div className="space-y-6">
+        <Card>
+            <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+                <span>{t({en: 'Tax Filing for Year', ur: 'سال کے لیے ٹیکس فائلنگ'})} {taxYear}</span>
+                <Button variant="link" onClick={onBack}>{t({en: 'Change Year', ur: 'سال تبدیل کریں'})}</Button>
+            </CardTitle>
+            </CardHeader>
+            <CardContent>
+            <Tabs value={steps[currentStep].id} onValueChange={(value) => setCurrentStep(steps.findIndex(s => s.id === value))} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">
+                {steps.map((step, index) => {
+                    const isCompleted = index < currentStep;
+                    const isActive = index === currentStep;
+                    return (
+                    <TabsTrigger key={step.id} value={step.id} className="relative flex flex-col items-center h-full p-2 gap-1 text-xs">
+                        <span className={cn("text-center", isActive ? "font-bold" : "font-normal")}>{t(step.name)}</span>
+                        {isCompleted && <CheckCircle className="h-4 w-4 text-green-500 absolute top-1 right-1" />}
+                    </TabsTrigger>
+                    )
+                })}
+                </TabsList>
+                <div className="p-6 min-h-[50vh] border-x border-b rounded-b-md">
+                    {renderStep()}
+                </div>
+            </Tabs>
+            </CardContent>
+        </Card>
         <div className="flex justify-between mt-6">
             <Button onClick={handleBack} variant="outline">
             {t({ en: 'Back', ur: 'پیچھے' })}
@@ -173,6 +175,11 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
                 {t({ en: 'Add to Cart & Proceed', ur: 'کارٹ میں شامل کریں اور آگے بڑھیں' })}
             </Button>
             )}
+        </div>
+        </div>
+
+        <div className="sticky top-20">
+            <CalculationSidebar />
         </div>
     </div>
   );
