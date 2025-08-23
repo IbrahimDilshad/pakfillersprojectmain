@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
+import { cn } from '@/lib/utils';
 
 const SummaryItem = ({ label, value, urLabel, className }: { label: string; value: string | number; urLabel: string; className?: string }) => {
     const { t } = useLanguage();
