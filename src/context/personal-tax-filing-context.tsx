@@ -82,6 +82,26 @@ interface PartnershipIncome {
     capital?: number;
 }
 
+interface RentPropertyDetail {
+    purchaseCost?: number;
+    saleValue?: number;
+    location?: string;
+}
+
+interface RentPropertyIncome {
+    rentReceived?: number;
+    rentExpense?: string;
+    tenantTaxDeduction?: 'yes' | 'no';
+    taxDeductedAmount?: number;
+    hasGainOnSale?: 'yes' | 'no';
+    propertyType?: 'openPlot' | 'constructedPlot' | 'flat';
+    openPlotHoldingPeriod?: string;
+    openPlotDetails?: RentPropertyDetail;
+    constructedPlotHoldingPeriod?: string;
+    constructedPlotDetails?: RentPropertyDetail;
+    flatHoldingPeriod?: string;
+    flatDetails?: RentPropertyDetail;
+}
 
 interface Incomes {
     hasSalary?: boolean;
@@ -102,6 +122,7 @@ interface Incomes {
     hasPartnership?: boolean;
     partnership?: PartnershipIncome[];
     hasRent?: boolean;
+    rentAndProperty?: RentPropertyIncome;
     hasSavingsProfit?: boolean;
     hasDividend?: boolean;
     hasGain?: boolean;

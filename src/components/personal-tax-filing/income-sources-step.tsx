@@ -18,6 +18,7 @@ import { FreelancerForm } from './freelancer-form';
 import { ProfessionalForm } from './professional-form';
 import { CommissionForm } from './commission-form';
 import { Separator } from '../ui/separator';
+import { RentPropertyForm } from './rent-property-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -99,6 +100,27 @@ const partnershipSchema = z.object({
     capital: z.coerce.number().optional(),
 });
 
+const rentPropertyDetailSchema = z.object({
+    purchaseCost: z.coerce.number().optional(),
+    saleValue: z.coerce.number().optional(),
+    location: z.string().optional(),
+});
+
+const rentPropertySchema = z.object({
+    rentReceived: z.coerce.number().optional(),
+    rentExpense: z.string().optional(),
+    tenantTaxDeduction: z.enum(['yes', 'no']).optional(),
+    taxDeductedAmount: z.coerce.number().optional(),
+    hasGainOnSale: z.enum(['yes', 'no']).optional(),
+    propertyType: z.enum(['openPlot', 'constructedPlot', 'flat']).optional(),
+    openPlotHoldingPeriod: z.string().optional(),
+    openPlotDetails: rentPropertyDetailSchema.optional(),
+    constructedPlotHoldingPeriod: z.string().optional(),
+    constructedPlotDetails: rentPropertyDetailSchema.optional(),
+    flatHoldingPeriod: z.string().optional(),
+    flatDetails: rentPropertyDetailSchema.optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -119,6 +141,7 @@ const incomesSchema = z.object({
   hasPartnership: z.boolean().optional(),
   partnership: z.array(partnershipSchema).optional(),
   hasRent: z.boolean().optional(),
+  rentAndProperty: rentPropertySchema.optional(),
   hasSavingsProfit: z.boolean().optional(),
   hasDividend: z.boolean().optional(),
   hasGain: z.boolean().optional(),
@@ -321,6 +344,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                                 ))}
                                 <Button type="button" variant="outline" onClick={() => appendPartnership({ name: '', profit: 0, capital: 0 })}><PlusCircle className="mr-2 h-4 w-4" />{t({en: 'Add More', ur: 'مزید شامل کریں'})}</Button>
                              </div>
+                        </TabsContent>
+                    )}
+                    {enabledSourceIds.includes('rent') && (
+                        <TabsContent value="rent">
+                            <RentPropertyForm form={form} />
                         </TabsContent>
                     )}
                 </Tabs>
