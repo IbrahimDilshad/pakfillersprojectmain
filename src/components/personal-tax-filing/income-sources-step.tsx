@@ -19,6 +19,7 @@ import { ProfessionalForm } from './professional-form';
 import { CommissionForm } from './commission-form';
 import { Separator } from '../ui/separator';
 import { RentPropertyForm } from './rent-property-form';
+import { ProfitOnSavingsForm } from './profit-on-savings-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -121,6 +122,19 @@ const rentPropertySchema = z.object({
     flatDetails: rentPropertyDetailSchema.optional(),
 });
 
+const savingsProfitDetailSchema = z.object({
+  amount: z.coerce.number().optional(),
+  taxDeducted: z.coerce.number().optional(),
+});
+
+const savingsProfitSchema = z.object({
+  selectedSources: z.record(z.boolean()).optional(),
+  bankDeposit: savingsProfitDetailSchema.optional(),
+  govtScheme: savingsProfitDetailSchema.optional(),
+  behbood: savingsProfitDetailSchema.optional(),
+  pensionerBenefit: savingsProfitDetailSchema.optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -143,6 +157,7 @@ const incomesSchema = z.object({
   hasRent: z.boolean().optional(),
   rentAndProperty: rentPropertySchema.optional(),
   hasSavingsProfit: z.boolean().optional(),
+  savingsProfit: savingsProfitSchema.optional(),
   hasDividend: z.boolean().optional(),
   hasGain: z.boolean().optional(),
   hasOther: z.boolean().optional(),
@@ -349,6 +364,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                     {enabledSourceIds.includes('rent') && (
                         <TabsContent value="rent">
                             <RentPropertyForm form={form} />
+                        </TabsContent>
+                    )}
+                     {enabledSourceIds.includes('savingsprofit') && (
+                        <TabsContent value="savingsprofit">
+                            <ProfitOnSavingsForm form={form} />
                         </TabsContent>
                     )}
                 </Tabs>

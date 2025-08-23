@@ -103,6 +103,21 @@ interface RentPropertyIncome {
     flatDetails?: RentPropertyDetail;
 }
 
+interface SavingsProfitDetail {
+    amount?: number;
+    taxDeducted?: number;
+}
+
+interface SavingsProfitIncome {
+    selectedSources?: Record<string, boolean>;
+    bankDeposit?: SavingsProfitDetail;
+    govtScheme?: SavingsProfitDetail;
+    behbood?: SavingsProfitDetail;
+    pensionerBenefit?: SavingsProfitDetail;
+}
+
+
+// Main Incomes object
 interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
@@ -124,6 +139,7 @@ interface Incomes {
     hasRent?: boolean;
     rentAndProperty?: RentPropertyIncome;
     hasSavingsProfit?: boolean;
+    savingsProfit?: SavingsProfitIncome;
     hasDividend?: boolean;
     hasGain?: boolean;
     hasOther?: boolean;
