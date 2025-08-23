@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
-import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle, Store, Car, Handshake, Factory, Ship, Plane } from 'lucide-react';
+import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, Percent, Cog, Users, Home, PiggyBank, AreaChart, TrendingUp, PlusCircle, CheckCircle, Store, Car, Handshake, Factory, Ship, Plane, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TraderShopForm } from './trader-shop-form';
 import { FreelancerForm } from './freelancer-form';
 import { ProfessionalForm } from './professional-form';
 import { CommissionForm } from './commission-form';
+import { Separator } from '../ui/separator';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -26,7 +27,6 @@ const incomeSourcesList = [
   { id: 'hasPension', label: { en: 'Pension', ur: 'پنشن' }, icon: Landmark },
   { id: 'hasAgriculture', label: { en: 'Agriculture', ur: 'زراعت' }, icon: Tractor },
   { id: 'hasCommission', label: { en: 'Commission', ur: 'کمیشن' }, icon: Percent },
-  { id: 'hasServices', label: { en: 'Services', ur: 'خدمات' }, icon: Cog },
   { id: 'hasPartnership', label: { en: 'Partnership/AOP', ur: 'شراکت/اے او پی' }, icon: Users },
   { id: 'hasRent', label: { en: 'Rent/Property Sale', ur: 'کرایہ/جائیداد فروخت' }, icon: Home },
   { id: 'hasSavingsProfit', label: { en: 'Profit on Savings', ur: 'بچت پر منافع' }, icon: PiggyBank },
@@ -93,6 +93,12 @@ const commissionSchema = z.object({
     otherCommissions: commissionDetailSchema.optional(),
 });
 
+const partnershipSchema = z.object({
+    name: z.string().optional(),
+    profit: z.coerce.number().optional(),
+    capital: z.coerce.number().optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -110,6 +116,13 @@ const incomesSchema = z.object({
   agriculture: agricultureSchema.optional(),
   hasCommission: z.boolean().optional(),
   commission: commissionSchema.optional(),
+  hasPartnership: z.boolean().optional(),
+  partnership: z.array(partnershipSchema).optional(),
+  hasRent: z.boolean().optional(),
+  hasSavingsProfit: z.boolean().optional(),
+  hasDividend: z.boolean().optional(),
+  hasGain: z.boolean().optional(),
+  hasOther: z.boolean().optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -122,6 +135,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
     const form = useForm<IncomesFormData>({
         resolver: zodResolver(incomesSchema),
         defaultValues: formData.incomes || {},
+    });
+
+    const { fields: partnershipFields, append: appendPartnership, remove: removePartnership } = useFieldArray({
+        control: form.control,
+        name: "partnership"
     });
 
     const selectedSources = form.watch();
@@ -279,6 +297,30 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                     {enabledSourceIds.includes('commission') && (
                         <TabsContent value="commission">
                             <CommissionForm form={form} />
+                        </TabsContent>
+                    )}
+                     {enabledSourceIds.includes('partnership') && (
+                        <TabsContent value="partnership">
+                             <div className="p-4 border rounded-md space-y-4">
+                                <h3 className="text-lg font-medium">{t({en: 'Partnership / AOP Income', ur: 'شراکت / اے او پی آمدنی'})}</h3>
+                                {partnershipFields.map((field, index) => (
+                                    <div key={field.id} className="p-4 border rounded-md space-y-4">
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <FormField control={form.control} name={`partnership.${index}.name`} render={({ field }) => (
+                                                <FormItem><FormLabel>{t({en: 'Name of Partnership/AOP', ur: 'شراکت/اے او پی کا نام'})}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name={`partnership.${index}.profit`} render={({ field }) => (
+                                                <FormItem><FormLabel>{t({en: 'Profit from Partnership/AOP', ur: 'شراکت/اے او پی سے منافع'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name={`partnership.${index}.capital`} render={({ field }) => (
+                                                <FormItem><FormLabel>{t({en: 'Your business capital in Partnership / AOP', ur: 'شراکت / اے او پی میں آپ کا کاروباری سرمایہ'})}</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                            )}/>
+                                        </div>
+                                         <Button type="button" variant="destructive" size="sm" onClick={() => removePartnership(index)}><Trash2 className="mr-2 h-4 w-4" />{t({en: 'Remove', ur: 'ہٹائیں'})}</Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" onClick={() => appendPartnership({ name: '', profit: 0, capital: 0 })}><PlusCircle className="mr-2 h-4 w-4" />{t({en: 'Add More', ur: 'مزید شامل کریں'})}</Button>
+                             </div>
                         </TabsContent>
                     )}
                 </Tabs>

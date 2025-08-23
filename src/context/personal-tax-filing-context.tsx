@@ -76,6 +76,12 @@ interface CommissionIncome {
     otherCommissions?: CommissionDetail;
 }
 
+interface PartnershipIncome {
+    name?: string;
+    profit?: number;
+    capital?: number;
+}
+
 
 interface Incomes {
     hasSalary?: boolean;
@@ -93,8 +99,8 @@ interface Incomes {
     agriculture?: AgricultureIncome;
     hasCommission?: boolean;
     commission?: CommissionIncome;
-    hasServices?: boolean;
     hasPartnership?: boolean;
+    partnership?: PartnershipIncome[];
     hasRent?: boolean;
     hasSavingsProfit?: boolean;
     hasDividend?: boolean;
