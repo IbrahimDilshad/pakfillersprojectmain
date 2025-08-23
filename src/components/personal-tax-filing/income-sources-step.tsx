@@ -20,6 +20,7 @@ import { CommissionForm } from './commission-form';
 import { Separator } from '../ui/separator';
 import { RentPropertyForm } from './rent-property-form';
 import { ProfitOnSavingsForm } from './profit-on-savings-form';
+import { DividendGainForm } from './dividend-gain-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -32,8 +33,7 @@ const incomeSourcesList = [
   { id: 'hasPartnership', label: { en: 'Partnership/AOP', ur: 'شراکت/اے او پی' }, icon: Users },
   { id: 'hasRent', label: { en: 'Rent/Property Sale', ur: 'کرایہ/جائیداد فروخت' }, icon: Home },
   { id: 'hasSavingsProfit', label: { en: 'Profit on Savings', ur: 'بچت پر منافع' }, icon: PiggyBank },
-  { id: 'hasDividend', label: { en: 'Dividend', ur: 'منافع' }, icon: AreaChart },
-  { id: 'hasGain', label: { en: 'Gain', ur: 'فائدہ' }, icon: TrendingUp },
+  { id: 'hasDividendGain', label: { en: 'Dividend / Gain', ur: 'منافع / فائدہ' }, icon: TrendingUp },
   { id: 'hasOther', label: { en: 'Other Income', ur: 'دیگر آمدنی' }, icon: PlusCircle },
 ];
 
@@ -151,6 +151,31 @@ const savingsProfitSchema = z.object({
   pensionerBenefit: pensionerBenefitDetailSchema.optional(),
 });
 
+const dividendDetailSchema = z.object({
+    amount: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+});
+
+const capitalGainSchema = z.object({
+    netCapitalGain: z.coerce.number().optional(),
+    cgtLiability: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+    costOfShares: z.coerce.number().optional(),
+});
+
+const bonusSchema = z.object({
+    bonusValue: z.coerce.number().optional(),
+    taxDeducted: z.coerce.number().optional(),
+});
+
+
+const dividendGainSchema = z.object({
+    dividendFromPower: dividendDetailSchema.optional(),
+    dividendFromOther: dividendDetailSchema.optional(),
+    dividendFromNoTax: dividendDetailSchema.optional(),
+    capitalGain: capitalGainSchema.optional(),
+    bonus: bonusSchema.optional(),
+});
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -174,8 +199,8 @@ const incomesSchema = z.object({
   rentAndProperty: rentPropertySchema.optional(),
   hasSavingsProfit: z.boolean().optional(),
   savingsProfit: savingsProfitSchema.optional(),
-  hasDividend: z.boolean().optional(),
-  hasGain: z.boolean().optional(),
+  hasDividendGain: z.boolean().optional(),
+  dividendGain: dividendGainSchema.optional(),
   hasOther: z.boolean().optional(),
 });
 
@@ -230,7 +255,7 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
     
     const renderSourceSelection = () => (
          <div className="space-y-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {incomeSourcesList.map((source) => {
                     const isSelected = selectedSources[source.id as keyof IncomesFormData];
                     return (
@@ -385,6 +410,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                      {enabledSourceIds.includes('savingsprofit') && (
                         <TabsContent value="savingsprofit">
                             <ProfitOnSavingsForm form={form} />
+                        </TabsContent>
+                    )}
+                    {enabledSourceIds.includes('dividendgain') && (
+                        <TabsContent value="dividendgain">
+                            <DividendGainForm form={form} />
                         </TabsContent>
                     )}
                 </Tabs>

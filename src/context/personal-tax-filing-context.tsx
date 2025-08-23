@@ -132,6 +132,31 @@ interface SavingsProfitIncome {
     pensionerBenefit?: PensionerBenefitDetail;
 }
 
+interface DividendDetail {
+    amount?: number;
+    taxDeducted?: number;
+}
+
+interface CapitalGain {
+    netCapitalGain?: number;
+    cgtLiability?: number;
+    taxDeducted?: number;
+    costOfShares?: number;
+}
+
+interface Bonus {
+    bonusValue?: number;
+    taxDeducted?: number;
+}
+
+interface DividendGain {
+    dividendFromPower?: DividendDetail;
+    dividendFromOther?: DividendDetail;
+    dividendFromNoTax?: DividendDetail;
+    capitalGain?: CapitalGain;
+    bonus?: Bonus;
+}
+
 
 // Main Incomes object
 interface Incomes {
@@ -156,8 +181,8 @@ interface Incomes {
     rentAndProperty?: RentPropertyIncome;
     hasSavingsProfit?: boolean;
     savingsProfit?: SavingsProfitIncome;
-    hasDividend?: boolean;
-    hasGain?: boolean;
+    hasDividendGain?: boolean;
+    dividendGain?: DividendGain;
     hasOther?: boolean;
 }
 
