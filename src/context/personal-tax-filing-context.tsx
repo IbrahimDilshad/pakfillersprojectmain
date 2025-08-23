@@ -45,14 +45,19 @@ interface BusinessSubForm {
     }[];
 }
 
+interface FreelancerSubForm extends BusinessSubForm {
+    incomeFromAbroad?: 'yes' | 'no';
+    isPsebRegistered?: 'yes' | 'no';
+}
+
 interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
     hasBusiness?: boolean;
     business?: Record<string, boolean>; // For selected business types
     businessDetails?: Record<string, BusinessSubForm>; // For form data of each business type
-    hasSelfEmployed?: boolean;
     hasFreelancer?: boolean;
+    freelancer?: FreelancerSubForm;
     hasProfessional?: boolean;
     hasPension?: boolean;
     hasAgriculture?: boolean;

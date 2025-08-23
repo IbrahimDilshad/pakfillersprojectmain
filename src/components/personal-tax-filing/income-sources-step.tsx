@@ -14,11 +14,11 @@ import { Briefcase, Building2, User, Laptop, GraduationCap, Landmark, Tractor, P
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TraderShopForm } from './trader-shop-form';
+import { FreelancerForm } from './freelancer-form';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
   { id: 'hasBusiness', label: { en: 'Business', ur: 'کاروبار' }, icon: Building2 },
-  { id: 'hasSelfEmployed', label: { en: 'Self Employed', ur: 'خود ملازم' }, icon: User },
   { id: 'hasFreelancer', label: { en: 'Freelancer', ur: 'فری لانسر' }, icon: Laptop },
   { id: 'hasProfessional', label: { en: 'Professional', ur: 'پیشہ ور' }, icon: GraduationCap },
   { id: 'hasPension', label: { en: 'Pension', ur: 'پنشن' }, icon: Landmark },
@@ -60,12 +60,20 @@ const businessSubFormSchema = z.object({
     otherAdjustableTaxes: z.array(z.object({ description: z.string().optional(), taxDeducted: z.coerce.number().optional() })).optional(),
 });
 
+const freelancerSubFormSchema = businessSubFormSchema.extend({
+    incomeFromAbroad: z.enum(['yes', 'no']).optional(),
+    isPsebRegistered: z.enum(['yes', 'no']).optional(),
+});
+
+
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
   salary: salarySchema.optional(),
   hasBusiness: z.boolean().optional(),
   business: z.record(z.boolean()).optional(), // To store selected business types
   businessDetails: z.record(businessSubFormSchema).optional(), // To store the form data for each business type
+  hasFreelancer: z.boolean().optional(),
+  freelancer: freelancerSubFormSchema.optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -163,6 +171,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                             </div>
                         </TabsContent>
                     )}
+                     {enabledSourceIds.includes('freelancer') && (
+                        <TabsContent value="freelancer">
+                             <FreelancerForm form={form} />
+                        </TabsContent>
+                    )}
                     {enabledSourceIds.includes('business') && (
                         <TabsContent value="business">
                             <div className="p-4 border rounded-md">
@@ -186,12 +199,7 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                                         </TabsList>
                                         {enabledBusinessTypes.map(type => (
                                             <TabsContent key={type} value={type}>
-                                                {/* Render specific form component based on type. For now, only trader is implemented */}
-                                                {type === 'trader' ? (
-                                                     <TraderShopForm form={form} businessType={type} />
-                                                ) : (
-                                                    <p className="p-4 text-muted-foreground">{t({en: `Form for ${type} is under construction.`, ur: `${type} کے لیے فارم زیر تعمیر ہے۔`})}</p>
-                                                )}
+                                                <TraderShopForm form={form} businessType={type} />
                                             </TabsContent>
                                         ))}
                                     </Tabs>
