@@ -74,10 +74,19 @@ service cloud.firestore {
     
     // Rules for admin-sent notifications
     match /notifications/{notificationId} {
-        // Users can read notifications sent to them. Admins can read all.
-        allow read: if isOwner(resource.data.userId) || isAdmin();
-        // Only admins can create, update, or delete notifications.
-        allow create, update, delete: if isAdmin();
+      // Users can only read their own notifications.
+      // Admins can read all notifications
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Only admins can create notifications
+      allow create: if isAdmin();
+      
+      // Allow users to mark their own notifications as read.
+      // Admins can also update notifications.
+      allow update: if (isOwner(resource.data.userId) && request.resource.data.isRead == true) || isAdmin();
+      
+      // Only admins can delete notifications
+      allow delete: if isAdmin();
     }
 
     // Read-only for public content, write access for admins
