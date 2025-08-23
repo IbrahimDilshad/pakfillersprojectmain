@@ -190,7 +190,7 @@ interface Incomes {
     hasDividendGain?: boolean;
     dividendGain?: DividendGain;
     hasOther?: boolean;
-    other?: OtherIncome;
+    other?: OtherIncome[];
 }
 
 interface TaxCredit {

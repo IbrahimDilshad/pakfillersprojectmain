@@ -209,7 +209,7 @@ const incomesSchema = z.object({
   hasDividendGain: z.boolean().optional(),
   dividendGain: dividendGainSchema.optional(),
   hasOther: z.boolean().optional(),
-  other: otherIncomeSchema.optional(),
+  other: z.array(otherIncomeSchema).optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -227,6 +227,11 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
     const { fields: partnershipFields, append: appendPartnership, remove: removePartnership } = useFieldArray({
         control: form.control,
         name: "partnership"
+    });
+    
+    const { fields: otherFields, append: appendOther, remove: removeOther } = useFieldArray({
+        control: form.control,
+        name: "other"
     });
 
     const selectedSources = form.watch();
@@ -429,36 +434,44 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                         <TabsContent value="other">
                             <div className="p-4 border rounded-md">
                                 <h3 className="text-lg font-medium mb-4">{t({en: 'Other Income Details', ur: 'دیگر آمدنی کی تفصیلات'})}</h3>
-                                <div className="grid md:grid-cols-3 gap-6">
-                                    <FormField control={form.control} name="other.inflowType" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>{t({en: 'Inflow Type', ur: 'انفلو کی قسم'})}</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="inheritance">{t({en: 'Inheritance', ur: 'وراثت'})}</SelectItem>
-                                                    <SelectItem value="gift">{t({en: 'Gift', ur: 'تحفہ'})}</SelectItem>
-                                                    <SelectItem value="remittance">{t({en: 'Remittance', ur: 'ترسیلات'})}</SelectItem>
-                                                    <SelectItem value="gain_on_sale">{t({en: 'Gain on sale of asset', ur: 'اثاثہ کی فروخت پر فائدہ'})}</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name="other.amount" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>{t({en: 'Amount', ur: 'رقم'})}</FormLabel>
-                                            <FormControl><Input type="number" {...field} placeholder="PKR" /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name="other.description" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>{t({en: 'Description', ur: 'تفصیل'})}</FormLabel>
-                                            <FormControl><Input {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}/>
+                                <div className="space-y-4">
+                                {otherFields.map((field, index) => (
+                                    <div key={field.id} className="grid md:grid-cols-4 gap-4 items-end border p-4 rounded-md">
+                                        <div className="md:col-span-3 grid md:grid-cols-3 gap-4">
+                                            <FormField control={form.control} name={`other.${index}.inflowType`} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{t({en: 'Inflow Type', ur: 'انفلو کی قسم'})}</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="inheritance">{t({en: 'Inheritance', ur: 'وراثت'})}</SelectItem>
+                                                            <SelectItem value="gift">{t({en: 'Gift', ur: 'تحفہ'})}</SelectItem>
+                                                            <SelectItem value="remittance">{t({en: 'Remittance', ur: 'ترسیلات'})}</SelectItem>
+                                                            <SelectItem value="gain_on_sale">{t({en: 'Gain on sale of asset', ur: 'اثاثہ کی فروخت پر فائدہ'})}</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name={`other.${index}.amount`} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{t({en: 'Amount', ur: 'رقم'})}</FormLabel>
+                                                    <FormControl><Input type="number" {...field} placeholder="PKR" /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name={`other.${index}.description`} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{t({en: 'Description', ur: 'تفصیل'})}</FormLabel>
+                                                    <FormControl><Input {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+                                        </div>
+                                        <Button type="button" variant="destructive" onClick={() => removeOther(index)}><Trash2 className="mr-2" />{t({en: 'Remove', ur: 'ہٹائیں'})}</Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" onClick={() => appendOther({})}><PlusCircle className="mr-2 h-4 w-4" />{t({en: 'Add More Inflow', ur: 'مزید انفلو شامل کریں'})}</Button>
                                 </div>
                             </div>
                         </TabsContent>
