@@ -54,6 +54,15 @@ interface ProfessionalSubForm extends BusinessSubForm {
     professionType?: string;
 }
 
+interface PensionIncome {
+    amount?: number;
+}
+
+interface AgricultureIncome {
+    amount?: number;
+}
+
+
 interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
@@ -65,7 +74,9 @@ interface Incomes {
     hasProfessional?: boolean;
     professional?: ProfessionalSubForm;
     hasPension?: boolean;
+    pension?: PensionIncome;
     hasAgriculture?: boolean;
+    agriculture?: AgricultureIncome;
     hasCommission?: boolean;
     hasServices?: boolean;
     hasPartnership?: boolean;
@@ -180,3 +191,5 @@ export function usePersonalTaxFiling() {
   }
   return context;
 }
+
+    

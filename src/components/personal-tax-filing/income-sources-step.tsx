@@ -70,6 +70,14 @@ const professionalSubFormSchema = businessSubFormSchema.extend({
     professionType: z.string().optional(),
 });
 
+const pensionSchema = z.object({
+    amount: z.coerce.number().optional(),
+});
+
+const agricultureSchema = z.object({
+    amount: z.coerce.number().optional(),
+});
+
 
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
@@ -81,6 +89,10 @@ const incomesSchema = z.object({
   freelancer: freelancerSubFormSchema.optional(),
   hasProfessional: z.boolean().optional(),
   professional: professionalSubFormSchema.optional(),
+  hasPension: z.boolean().optional(),
+  pension: pensionSchema.optional(),
+  hasAgriculture: z.boolean().optional(),
+  agriculture: agricultureSchema.optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -219,7 +231,34 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                              <ProfessionalForm form={form} />
                         </TabsContent>
                     )}
-                     {/* Add other income source forms here as needed */}
+                     {enabledSourceIds.includes('pension') && (
+                        <TabsContent value="pension">
+                            <div className="p-4 border rounded-md">
+                                <h3 className="text-lg font-medium mb-4">{t({en: 'Pension Income', ur: 'پنشن کی آمدنی'})}</h3>
+                                <FormField control={form.control} name="pension.amount" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t({en: 'Enter Total Pension Received During The Year', ur: 'سال کے دوران موصول ہونے والی کل پنشن درج کریں'})}</FormLabel>
+                                        <FormControl><Input type="number" placeholder="PKR" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
+                        </TabsContent>
+                    )}
+                    {enabledSourceIds.includes('agriculture') && (
+                        <TabsContent value="agriculture">
+                            <div className="p-4 border rounded-md">
+                                <h3 className="text-lg font-medium mb-4">{t({en: 'Agriculture Income', ur: 'زرعی آمدنی'})}</h3>
+                                <FormField control={form.control} name="agriculture.amount" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t({en: 'Enter Total Agriculture Income During The Year', ur: 'سال کے دوران کل زرعی آمدنی درج کریں'})}</FormLabel>
+                                        <FormControl><Input type="number" placeholder="PKR" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
+                        </TabsContent>
+                    )}
                 </Tabs>
              </Form>
              <div className="flex justify-between mt-6">
@@ -239,3 +278,5 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
         </div>
     );
 }
+
+    
