@@ -21,6 +21,7 @@ import { Separator } from '../ui/separator';
 import { RentPropertyForm } from './rent-property-form';
 import { ProfitOnSavingsForm } from './profit-on-savings-form';
 import { DividendGainForm } from './dividend-gain-form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const incomeSourcesList = [
   { id: 'hasSalary', label: { en: 'Salary', ur: 'تنخواہ' }, icon: Briefcase },
@@ -177,6 +178,12 @@ const dividendGainSchema = z.object({
     bonus: bonusSchema.optional(),
 });
 
+const otherIncomeSchema = z.object({
+  inflowType: z.string().optional(),
+  amount: z.coerce.number().optional(),
+  description: z.string().optional(),
+});
+
 const incomesSchema = z.object({
   hasSalary: z.boolean().optional(),
   salary: salarySchema.optional(),
@@ -202,6 +209,7 @@ const incomesSchema = z.object({
   hasDividendGain: z.boolean().optional(),
   dividendGain: dividendGainSchema.optional(),
   hasOther: z.boolean().optional(),
+  other: otherIncomeSchema.optional(),
 });
 
 type IncomesFormData = z.infer<typeof incomesSchema>;
@@ -415,6 +423,44 @@ export function IncomeSourcesStep({ onNext, onBack }: { onNext: () => void, onBa
                     {enabledSourceIds.includes('dividendgain') && (
                         <TabsContent value="dividendgain">
                             <DividendGainForm form={form} />
+                        </TabsContent>
+                    )}
+                    {enabledSourceIds.includes('other') && (
+                        <TabsContent value="other">
+                            <div className="p-4 border rounded-md">
+                                <h3 className="text-lg font-medium mb-4">{t({en: 'Other Income Details', ur: 'دیگر آمدنی کی تفصیلات'})}</h3>
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    <FormField control={form.control} name="other.inflowType" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t({en: 'Inflow Type', ur: 'انفلو کی قسم'})}</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="inheritance">{t({en: 'Inheritance', ur: 'وراثت'})}</SelectItem>
+                                                    <SelectItem value="gift">{t({en: 'Gift', ur: 'تحفہ'})}</SelectItem>
+                                                    <SelectItem value="remittance">{t({en: 'Remittance', ur: 'ترسیلات'})}</SelectItem>
+                                                    <SelectItem value="gain_on_sale">{t({en: 'Gain on sale of asset', ur: 'اثاثہ کی فروخت پر فائدہ'})}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="other.amount" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t({en: 'Amount', ur: 'رقم'})}</FormLabel>
+                                            <FormControl><Input type="number" {...field} placeholder="PKR" /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="other.description" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t({en: 'Description', ur: 'تفصیل'})}</FormLabel>
+                                            <FormControl><Input {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                </div>
+                            </div>
                         </TabsContent>
                     )}
                 </Tabs>

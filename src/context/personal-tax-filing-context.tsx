@@ -157,6 +157,12 @@ interface DividendGain {
     bonus?: Bonus;
 }
 
+interface OtherIncome {
+    inflowType?: string;
+    amount?: number;
+    description?: string;
+}
+
 
 // Main Incomes object
 interface Incomes {
@@ -184,6 +190,7 @@ interface Incomes {
     hasDividendGain?: boolean;
     dividendGain?: DividendGain;
     hasOther?: boolean;
+    other?: OtherIncome;
 }
 
 interface TaxCredit {
