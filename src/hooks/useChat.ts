@@ -60,19 +60,13 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     };
 
     setLoading(true);
-    // Remove orderby to avoid composite index and sort client-side
-    const q = query(collection(db, 'chats'));
+    // Add orderBy to allow Firestore rules to secure this query
+    const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const sessionsData: ChatSession[] = [];
       querySnapshot.forEach((doc) => {
         sessionsData.push({ id: doc.id, ...doc.data() } as ChatSession);
-      });
-      // Sort client-side
-      sessionsData.sort((a, b) => {
-          const timeA = a.lastMessageTimestamp?.toDate()?.getTime() || 0;
-          const timeB = b.lastMessageTimestamp?.toDate()?.getTime() || 0;
-          return timeB - timeA;
       });
       setSessions(sessionsData);
       setLoading(false);
@@ -95,6 +89,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     }
 
     if (!sessionIdToFetch) {
+        setMessages({});
         return;
     }
 
@@ -113,7 +108,11 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
       // If admin is viewing a chat, mark it as read
       if (userRole === 'admin' && currentSessionId === sessionIdToFetch) {
           const sessionRef = doc(db, 'chats', sessionIdToFetch);
-          updateDoc(sessionRef, { isReadByAdmin: true }).catch(err => console.error("Could not mark as read", err));
+          getDoc(sessionRef).then(docSnap => {
+            if (docSnap.exists() && docSnap.data().isReadByAdmin === false) {
+                updateDoc(sessionRef, { isReadByAdmin: true }).catch(err => console.error("Could not mark as read", err));
+            }
+          })
       }
 
     }, (error) => {
@@ -139,10 +138,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         senderId,
         from,
       });
-
-      // Check if session exists before setting data
-      const sessionSnap = await getDoc(sessionRef);
-
+      
       const sessionDataToSet = {
         lastMessage: text,
         lastMessageTimestamp: serverTimestamp(),
