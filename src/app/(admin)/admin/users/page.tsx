@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { adminNavItems } from "../../layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 function ManagePermissionsDialog({ user, onPermissionsUpdate }: { user: UserProfile; onPermissionsUpdate: (userId: string, permissions: any) => void; }) {
     const { t } = useLanguage();
@@ -79,13 +81,16 @@ export default function AdminUsersPage() {
   const isSuperAdmin = currentUser?.email === 'admin@example.com';
 
   useEffect(() => {
-    if (!isSuperAdmin) {
-        router.push('/admin');
-    }
-  }, [isSuperAdmin, router]);
+    // This page should be accessible to all admins now to see the alert,
+    // but actions will be restricted.
+  }, []);
 
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
+    if (!isSuperAdmin) {
+        toast({ variant: "destructive", title: "Permission Denied", description: "Only the super admin can change roles." });
+        return;
+    }
     setIsUpdating(userId);
     try {
         const userDocRef = doc(db, 'users', userId);
@@ -95,7 +100,7 @@ export default function AdminUsersPage() {
             prevUsers.map(u => u.uid === userId ? { ...u, role: newRole } : u)
         );
 
-        toast({ title: "Success", description: "User role updated successfully."});
+        toast({ title: "Success", description: "User role updated. Note: Custom claims must be set via a backend process for new role to take full effect."});
     } catch (error) {
         console.error("Error updating user role:", error);
         toast({ variant: 'destructive', title: "Error", description: "Failed to update user role."});
@@ -105,6 +110,10 @@ export default function AdminUsersPage() {
   };
 
   const handlePermissionsUpdate = async (userId: string, permissions: any) => {
+     if (!isSuperAdmin) {
+        toast({ variant: "destructive", title: "Permission Denied", description: "Only the super admin can change permissions." });
+        return;
+    }
     try {
         const userDocRef = doc(db, 'users', userId);
         await updateDoc(userDocRef, { permissions });
@@ -119,10 +128,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!isSuperAdmin) {
-    return <p>Access Denied.</p>;
-  }
-
   return (
       <Card>
         <CardHeader>
@@ -130,6 +135,13 @@ export default function AdminUsersPage() {
           <CardDescription>{t({ en: "View and manage all registered users.", ur: "تمام رجسٹرڈ صارفین کو دیکھیں اور ان کا نظم کریں۔" })}</CardDescription>
         </CardHeader>
         <CardContent>
+            <Alert className="mb-6">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>{t({en: "Admin Role Management", ur: "ایڈمن رول مینجمنٹ"})}</AlertTitle>
+                <AlertDescription>
+                    {t({en: "To grant a user full administrative privileges (like listing all chats), you must set a custom claim on their account using a backend environment or the Firebase Admin SDK. This is a security measure to protect sensitive data.", ur: "کسی صارف کو مکمل انتظامی مراعات دینے کے لیے (جیسے تمام چیٹس کی فہرست بنانا)، آپ کو بیک اینڈ ماحول یا فائر بیس ایڈمن ایس ڈی کے کا استعمال کرتے ہوئے ان کے اکاؤنٹ پر ایک کسٹم کلیم سیٹ کرنا ہوگا۔ یہ حساس ڈیٹا کی حفاظت کے لیے ایک حفاظتی اقدام ہے۔"})}
+                </AlertDescription>
+            </Alert>
            <Table>
               <TableHeader>
                 <TableRow>
@@ -160,7 +172,7 @@ export default function AdminUsersPage() {
                         <Select 
                             value={user.role} 
                             onValueChange={(newRole: Role) => handleRoleChange(user.uid, newRole)}
-                            disabled={isUpdating === user.uid || user.email === 'admin@example.com'}
+                            disabled={isUpdating === user.uid || !isSuperAdmin}
                         >
                             <SelectTrigger className="w-[120px]">
                                 <SelectValue placeholder="Select role" />
@@ -173,7 +185,7 @@ export default function AdminUsersPage() {
                         </Select>
                     </TableCell>
                      <TableCell className="text-right">
-                        {user.role === 'admin' && user.email !== 'admin@example.com' && (
+                        {user.role === 'admin' && isSuperAdmin && user.email !== 'admin@example.com' && (
                            <ManagePermissionsDialog user={user} onPermissionsUpdate={handlePermissionsUpdate} />
                         )}
                      </TableCell>
@@ -185,3 +197,4 @@ export default function AdminUsersPage() {
       </Card>
   );
 }
+
