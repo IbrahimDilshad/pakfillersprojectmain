@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
     const { t } = useLanguage();
     const { toast } = useToast();
     const { items, total, clearCart } = useCart();
-    const { activeUser } = useAuth();
+    const { activeUser, loading: authLoading } = useAuth();
     const router = useRouter();
     const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,9 +111,21 @@ export default function CheckoutPage() {
         }
     };
 
-    if (items.length === 0 && typeof window !== 'undefined') {
-        router.replace('/dashboard');
-        return null;
+    useEffect(() => {
+        if (!authLoading && items.length === 0) {
+            router.replace('/dashboard');
+        }
+    }, [authLoading, items, router]);
+
+    if (authLoading || items.length === 0) {
+        return (
+             <AppLayout pageTitle={t({ en: "Checkout", ur: "چیک آؤٹ" })}>
+                 <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                    <div className="space-y-6"><Skeleton className="h-64 w-full" /></div>
+                    <div><Skeleton className="h-48 w-full" /></div>
+                 </div>
+             </AppLayout>
+        );
     }
 
     return (
