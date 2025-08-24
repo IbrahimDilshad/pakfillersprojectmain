@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 import { LanguageProvider } from '@/context/language-context';
 import { AuthProvider } from '@/context/auth-context';
 import { CartProvider } from '@/context/cart-context';
+import { QueryProvider } from '@/lib/query-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -22,16 +23,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
-          <LanguageProvider>
-            <CartProvider>
-                {children}
-                <Toaster />
-            </CartProvider>
-          </LanguageProvider>
+            <QueryProvider>
+              <LanguageProvider>
+                <CartProvider>
+                    {children}
+                    <Toaster />
+                </CartProvider>
+              </LanguageProvider>
+            </QueryProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
-
-    

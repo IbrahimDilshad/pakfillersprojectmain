@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, Timestamp, DocumentData } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { collection, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Language } from '@/context/language-context';
 
@@ -16,44 +16,35 @@ export interface Order {
     paymentScreenshot?: string;
 }
 
+async function fetchOrders(userId?: string): Promise<Order[]> {
+    let q;
+    const ordersCollection = collection(db, 'orders');
+    if (userId) {
+        q = query(
+          ordersCollection, 
+          where('userId', '==', userId), 
+          orderBy('createdAt', 'desc')
+        );
+    } else {
+        q = query(ordersCollection, orderBy('createdAt', 'desc'));
+    }
+    
+    const ordersSnapshot = await getDocs(q);
+    return ordersSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Order));
+}
+
 export function useOrders(userId?: string) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryKey = userId ? ['orders', userId] : ['orders'];
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        let q;
-        const ordersCollection = collection(db, 'orders');
-        if (userId) {
-            // Fetch orders for a specific user
-            q = query(
-              ordersCollection, 
-              where('userId', '==', userId), 
-              orderBy('createdAt', 'desc')
-            );
-        } else {
-            // Fetch all orders for admin
-            q = query(ordersCollection, orderBy('createdAt', 'desc'));
-        }
-        
-        const ordersSnapshot = await getDocs(q);
-        const ordersList = ordersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Order));
-        setOrders(ordersList);
-      } catch (error) {
-        console.error("Error fetching orders: ", error);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: orders = [], isLoading: loading, refetch } = useQuery<Order[]>({
+    queryKey: queryKey,
+    queryFn: () => fetchOrders(userId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true,
+  });
 
-    fetchOrders();
-  }, [userId]);
-
-  return { orders, loading };
+  return { orders, loading, refetchOrders: refetch };
 }

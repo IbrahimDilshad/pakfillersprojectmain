@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Language } from '@/context/language-context';
@@ -15,31 +15,22 @@ export interface BlogPost {
   createdAt: any;
 }
 
+async function fetchBlogPosts(): Promise<BlogPost[]> {
+    const postsCollection = collection(db, 'blogPosts');
+    const q = query(postsCollection, orderBy('createdAt', 'desc'));
+    const postsSnapshot = await getDocs(q);
+    return postsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as BlogPost));
+}
+
 export function useBlogPosts() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: posts = [], isLoading: loading, refetch } = useQuery<BlogPost[]>({
+    queryKey: ['blogPosts'],
+    queryFn: fetchBlogPosts,
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const postsCollection = collection(db, 'blogPosts');
-        const q = query(postsCollection, orderBy('createdAt', 'desc'));
-        const postsSnapshot = await getDocs(q);
-        const postsList = postsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as BlogPost));
-        setPosts(postsList);
-      } catch (error) {
-        console.error("Error fetching blog posts: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
-
-  return { posts, loading, setPosts };
+  return { posts, loading, refetchPosts: refetch };
 }

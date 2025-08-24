@@ -1,17 +1,16 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/context/language-context";
-import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Pencil, PlusCircle, BookOpen, Tv, FileQuestion, CreditCard, DollarSign } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -23,15 +22,15 @@ import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import { useVideos, Video } from '@/hooks/useVideos';
 import { useFaqs, Faq } from '@/hooks/useFaqs';
 import { format } from 'date-fns';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-type EditableContent = Service | BlogPost | Video | Faq | FormPrice;
 type ContentType = 'services' | 'blogPosts' | 'videos' | 'faqs' | 'formPrices';
 
 const contentConfig: Record<ContentType, {
     title: {en: string, ur: string};
     description: {en: string, ur: string};
     icon: React.ElementType;
-    useHook: () => { data: any[], loading: boolean, setData?: any };
+    useHook: () => { data: any[], isLoading: boolean };
     form: React.FC<{ item: any | null, onSave: () => void }>;
     columns: { header: {en: string, ur: string}; accessor: (item: any) => React.ReactNode }[];
 }> = {
@@ -39,7 +38,7 @@ const contentConfig: Record<ContentType, {
         title: { en: 'Manage Services', ur: 'خدمات کا نظم کریں' },
         description: { en: 'Add, edit, or delete service listings.', ur: 'سروس کی فہرستیں شامل کریں، ترمیم کریں یا حذف کریں۔' },
         icon: CreditCard,
-        useHook: () => ({ data: useServices().services, loading: useServices().loading, setData: useServices().setServices }),
+        useHook: useServices,
         form: ServiceForm,
         columns: [
             { header: { en: 'Title', ur: 'عنوان' }, accessor: (item: Service) => <T text={item.title} /> },
@@ -51,7 +50,7 @@ const contentConfig: Record<ContentType, {
         title: { en: 'Manage Form Prices', ur: 'فارم کی قیمتوں کا نظم کریں' },
         description: { en: 'Set or update the prices for different forms and services.', ur: 'مختلف فارموں اور خدمات کے لیے قیمتیں مقرر یا اپ ڈیٹ کریں۔' },
         icon: DollarSign,
-        useHook: () => ({ data: useFormPrices().formPrices, loading: useFormPrices().loading, setData: useFormPrices().setFormPrices }),
+        useHook: useFormPrices,
         form: FormPriceForm,
         columns: [
             { header: { en: 'Form/Service Name', ur: 'فارم/سروس کا نام' }, accessor: (item: FormPrice) => <T text={item.name} /> },
@@ -62,7 +61,7 @@ const contentConfig: Record<ContentType, {
         title: { en: 'Manage Blog Posts', ur: 'بلاگ پوسٹس کا نظم کریں' },
         description: { en: 'Create, edit, or delete blog posts.', ur: 'بلاگ پوسٹس بنائیں، ترمیم کریں یا حذف کریں۔' },
         icon: BookOpen,
-        useHook: () => ({ data: useBlogPosts().posts, loading: useBlogPosts().loading, setData: useBlogPosts().setPosts }),
+        useHook: useBlogPosts,
         form: BlogPostForm,
         columns: [
             { header: { en: 'Title', ur: 'عنوان' }, accessor: (item: BlogPost) => <T text={item.title} /> },
@@ -73,7 +72,7 @@ const contentConfig: Record<ContentType, {
         title: { en: 'Manage Videos', ur: 'ویڈیوز کا نظم کریں' },
         description: { en: 'Add, edit, or delete video tutorials.', ur: 'ویڈیو ٹیوٹوریل شامل کریں، ترمیم کریں یا حذف کریں۔' },
         icon: Tv,
-        useHook: () => ({ data: useVideos().videos, loading: useVideos().loading, setData: useVideos().setVideos }),
+        useHook: useVideos,
         form: VideoForm,
         columns: [
             { header: { en: 'Title', ur: 'عنوان' }, accessor: (item: Video) => <T text={item.title} /> },
@@ -84,7 +83,7 @@ const contentConfig: Record<ContentType, {
         title: { en: 'Manage FAQs', ur: 'اکثر پوچھے گئے سوالات کا نظم کریں' },
         description: { en: 'Add, edit, or delete frequently asked questions.', ur: 'اکثر پوچھے گئے سوالات شامل کریں، ترمیم کریں یا حذف کریں۔' },
         icon: FileQuestion,
-        useHook: () => ({ data: useFaqs().faqs, loading: useFaqs().loading, setData: useFaqs().setFaqs }),
+        useHook: useFaqs,
         form: FaqForm,
         columns: [
             { header: { en: 'Question', ur: 'سوال' }, accessor: (item: Faq) => <T text={item.question} /> },
@@ -100,12 +99,20 @@ const T = ({ text }: { text: { en: string, ur: string } }) => {
 
 export default function AdminContentPage() {
     const { t } = useLanguage();
+    const queryClient = useQueryClient();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState<any | null>(null);
     const [activeTab, setActiveTab] = useState<ContentType>('services');
     
     const config = contentConfig[activeTab];
-    const { data, loading, setData } = config.useHook();
+    const { data, isLoading } = config.useHook();
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => deleteDoc(doc(db, activeTab, id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [activeTab] });
+        },
+    });
 
     const handleAddNew = () => {
         setCurrentItem(null);
@@ -117,18 +124,6 @@ export default function AdminContentPage() {
         setDialogOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        try {
-            await deleteDoc(doc(db, activeTab, id));
-            // This is optimistic UI update
-            if(setData) {
-                setData((prev: any[]) => prev.filter(item => item.id !== id));
-            }
-        } catch (error) {
-            console.error("Error deleting item: ", error);
-        }
-    };
-    
     const FormComponent = config.form;
 
     return (
@@ -166,7 +161,7 @@ export default function AdminContentPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {loading ? (
+                                {isLoading ? (
                                     Array.from({ length: 3 }).map((_, i) => (
                                         <TableRow key={i}>
                                             {config.columns.map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}
@@ -176,7 +171,7 @@ export default function AdminContentPage() {
                                 ) : data.length === 0 ? (
                                     <TableRow><TableCell colSpan={config.columns.length + 1} className="text-center h-24">{t({ en: "No items found.", ur: "کوئی آئٹم نہیں ملا۔" })}</TableCell></TableRow>
                                 ) : (
-                                    data.map(item => (
+                                    data.map((item: any) => (
                                         <TableRow key={item.id}>
                                             {config.columns.map((col, i) => <TableCell key={i}>{col.accessor(item)}</TableCell>)}
                                             <TableCell className="text-right space-x-2">
@@ -190,7 +185,7 @@ export default function AdminContentPage() {
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(item.id)}>Delete</AlertDialogAction>
+                                                            <AlertDialogAction onClick={() => deleteMutation.mutate(item.id)}>Delete</AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
                                                 </AlertDialog>
@@ -217,12 +212,38 @@ export default function AdminContentPage() {
 }
 
 
+// Base mutation hook
+const useContentMutation = (collectionName: ContentType, onSave: () => void) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ item, data }: { item: any | null, data: any }) => {
+            if (item) {
+                return updateDoc(doc(db, collectionName, item.id), data);
+            } else {
+                if (collectionName === 'formPrices' && data.serviceId) {
+                    return setDoc(doc(db, collectionName, data.serviceId), data);
+                }
+                return addDoc(collection(db, collectionName), data);
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [collectionName] });
+            onSave();
+        },
+        onError: (error) => {
+            console.error(error);
+        }
+    });
+};
+
 function FormPriceForm({ item, onSave }: { item: FormPrice | null, onSave: () => void }) {
     const { t } = useLanguage();
     const [nameEn, setNameEn] = useState('');
     const [nameUr, setNameUr] = useState('');
     const [price, setPrice] = useState('');
     const [serviceId, setServiceId] = useState('');
+    
+    const mutation = useContentMutation('formPrices', onSave);
 
     useEffect(() => {
         if (item) {
@@ -235,24 +256,14 @@ function FormPriceForm({ item, onSave }: { item: FormPrice | null, onSave: () =>
         }
     }, [item]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const data = {
             name: { en: nameEn, ur: nameUr },
             price: Number(price),
+            serviceId: item ? undefined : serviceId
         };
-        try {
-            if (item) {
-                // Cannot update ID
-                await updateDoc(doc(db, 'formPrices', item.id), data);
-            } else {
-                // Use serviceId as the document ID
-                await setDoc(doc(db, 'formPrices', serviceId), data);
-            }
-            onSave();
-        } catch (error) {
-            console.error(error);
-        }
+        mutation.mutate({ item, data });
     };
 
     return (
@@ -275,13 +286,11 @@ function FormPriceForm({ item, onSave }: { item: FormPrice | null, onSave: () =>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={mutation.isPending}>Save</Button>
             </DialogFooter>
         </form>
     );
 }
-
-// Similar CRUD forms for other content types
 
 function ServiceForm({ item, onSave }: { item: Service | null, onSave: () => void }) {
     const { t } = useLanguage();
@@ -293,6 +302,7 @@ function ServiceForm({ item, onSave }: { item: Service | null, onSave: () => voi
     const [detailsEn, setDetailsEn] = useState('');
     const [detailsUr, setDetailsUr] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState('');
+    const mutation = useContentMutation('services', onSave);
 
     useEffect(() => {
         if (item) {
@@ -308,7 +318,7 @@ function ServiceForm({ item, onSave }: { item: Service | null, onSave: () => voi
         }
     }, [item]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const data = {
             title: { en: titleEn, ur: titleUr },
@@ -318,16 +328,7 @@ function ServiceForm({ item, onSave }: { item: Service | null, onSave: () => voi
             whatsappNumber,
             createdAt: item?.createdAt || serverTimestamp()
         };
-        try {
-            if (item) {
-                await updateDoc(doc(db, 'services', item.id), data);
-            } else {
-                await addDoc(collection(db, 'services'), data);
-            }
-            onSave();
-        } catch (error) {
-            console.error(error);
-        }
+        mutation.mutate({ item, data });
     };
     return (
          <form onSubmit={handleSubmit} className="space-y-4">
@@ -367,7 +368,7 @@ function ServiceForm({ item, onSave }: { item: Service | null, onSave: () => voi
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={mutation.isPending}>Save</Button>
             </DialogFooter>
         </form>
     )
@@ -381,6 +382,7 @@ function BlogPostForm({ item, onSave }: { item: BlogPost | null, onSave: () => v
     const [image, setImage] = useState('');
     const [hint, setHint] = useState('');
     const [href, setHref] = useState('');
+    const mutation = useContentMutation('blogPosts', onSave);
 
     useEffect(() => {
         if (item) {
@@ -395,7 +397,7 @@ function BlogPostForm({ item, onSave }: { item: BlogPost | null, onSave: () => v
         }
     }, [item]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const data = {
             title: { en: titleEn, ur: titleUr },
@@ -405,14 +407,7 @@ function BlogPostForm({ item, onSave }: { item: BlogPost | null, onSave: () => v
             href,
             createdAt: item?.createdAt || serverTimestamp()
         };
-        try {
-            if (item) {
-                await updateDoc(doc(db, 'blogPosts', item.id), data);
-            } else {
-                await addDoc(collection(db, 'blogPosts'), data);
-            }
-            onSave();
-        } catch (error) { console.error(error); }
+        mutation.mutate({ item, data });
     };
     
      return (
@@ -428,7 +423,7 @@ function BlogPostForm({ item, onSave }: { item: BlogPost | null, onSave: () => v
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={mutation.isPending}>Save</Button>
             </DialogFooter>
         </form>
     );
@@ -440,6 +435,7 @@ function VideoForm({ item, onSave }: { item: Video | null, onSave: () => void })
     const [descriptionEn, setDescriptionEn] = useState('');
     const [descriptionUr, setDescriptionUr] = useState('');
     const [src, setSrc] = useState('');
+    const mutation = useContentMutation('videos', onSave);
 
     useEffect(() => {
         if (item) {
@@ -451,7 +447,7 @@ function VideoForm({ item, onSave }: { item: Video | null, onSave: () => void })
         }
     }, [item]);
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const data = {
             title: { en: titleEn, ur: titleUr },
@@ -459,14 +455,7 @@ function VideoForm({ item, onSave }: { item: Video | null, onSave: () => void })
             src,
             createdAt: item?.createdAt || serverTimestamp()
         };
-        try {
-            if (item) {
-                await updateDoc(doc(db, 'videos', item.id), data);
-            } else {
-                await addDoc(collection(db, 'videos'), data);
-            }
-            onSave();
-        } catch (error) { console.error(error); }
+        mutation.mutate({ item, data });
     };
     
      return (
@@ -480,7 +469,7 @@ function VideoForm({ item, onSave }: { item: Video | null, onSave: () => void })
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={mutation.isPending}>Save</Button>
             </DialogFooter>
         </form>
     );
@@ -491,6 +480,7 @@ function FaqForm({ item, onSave }: { item: Faq | null, onSave: () => void }) {
     const [questionUr, setQuestionUr] = useState('');
     const [answerEn, setAnswerEn] = useState('');
     const [answerUr, setAnswerUr] = useState('');
+    const mutation = useContentMutation('faqs', onSave);
 
      useEffect(() => {
         if (item) {
@@ -501,21 +491,14 @@ function FaqForm({ item, onSave }: { item: Faq | null, onSave: () => void }) {
         }
     }, [item]);
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const data = {
             question: { en: questionEn, ur: questionUr },
             answer: { en: answerEn, ur: answerUr },
             createdAt: item?.createdAt || serverTimestamp()
         };
-        try {
-            if (item) {
-                await updateDoc(doc(db, 'faqs', item.id), data);
-            } else {
-                await addDoc(collection(db, 'faqs'), data);
-            }
-            onSave();
-        } catch (error) { console.error(error); }
+        mutation.mutate({ item, data });
     };
     
     return (
@@ -528,9 +511,8 @@ function FaqForm({ item, onSave }: { item: Faq | null, onSave: () => void }) {
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={mutation.isPending}>Save</Button>
             </DialogFooter>
         </form>
     );
 }
-

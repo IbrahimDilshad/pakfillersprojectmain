@@ -72,7 +72,7 @@ function ManagePermissionsDialog({ user, onPermissionsUpdate }: { user: UserProf
 
 export default function AdminUsersPage() {
   const { t } = useLanguage();
-  const { users, loading, setUsers } = useAllUsers();
+  const { users, loading, refetchUsers } = useAllUsers();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
@@ -96,9 +96,7 @@ export default function AdminUsersPage() {
         const userDocRef = doc(db, 'users', userId);
         await updateDoc(userDocRef, { role: newRole });
         
-        setUsers(prevUsers => 
-            prevUsers.map(u => u.uid === userId ? { ...u, role: newRole } : u)
-        );
+        refetchUsers();
 
         toast({ title: "Success", description: "User role updated. Note: Custom claims must be set via a backend process for new role to take full effect."});
     } catch (error) {
@@ -117,10 +115,7 @@ export default function AdminUsersPage() {
     try {
         const userDocRef = doc(db, 'users', userId);
         await updateDoc(userDocRef, { permissions });
-        
-        setUsers(prevUsers => 
-            prevUsers.map(u => u.uid === userId ? { ...u, permissions } : u)
-        );
+        refetchUsers();
         toast({ title: "Success", description: "Permissions updated successfully."});
     } catch (error) {
          console.error("Error updating permissions:", error);
@@ -197,4 +192,3 @@ export default function AdminUsersPage() {
       </Card>
   );
 }
-

@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Language } from '@/context/language-context';
@@ -16,31 +16,22 @@ export interface Service {
   createdAt: any;
 }
 
+async function fetchServices(): Promise<Service[]> {
+    const servicesCollection = collection(db, 'services');
+    const q = query(servicesCollection, orderBy('createdAt', 'desc'));
+    const servicesSnapshot = await getDocs(q);
+    return servicesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Service));
+}
+
 export function useServices() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: services = [], isLoading: loading, refetch } = useQuery<Service[]>({
+    queryKey: ['services'],
+    queryFn: fetchServices,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      setLoading(true);
-      try {
-        const servicesCollection = collection(db, 'services');
-        const q = query(servicesCollection, orderBy('createdAt', 'desc'));
-        const servicesSnapshot = await getDocs(q);
-        const servicesList = servicesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Service));
-        setServices(servicesList);
-      } catch (error) {
-        console.error("Error fetching services: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchServices();
-  }, []);
-
-  return { services, loading, setServices };
+  return { services, loading, refetchServices: refetch };
 }

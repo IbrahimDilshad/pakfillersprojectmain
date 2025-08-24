@@ -1,11 +1,10 @@
 
 'use client';
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "@/context/language-context";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, Timestamp, deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -14,56 +13,26 @@ import { Eye, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-
-interface Order {
-    id: string;
-    userId: string;
-    userEmail: string;
-    items: { name: { en: string, ur: string }; price: number }[];
-    total: number;
-    status: 'pending' | 'processing' | 'completed';
-    createdAt: Timestamp;
-}
+import { useOrders } from "@/hooks/useOrders";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function AdminOrdersPage() {
   const { t } = useLanguage();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loading } = useOrders();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const ordersCollection = collection(db, 'orders');
-      const q = query(ordersCollection, orderBy('createdAt', 'desc'));
-      const ordersSnapshot = await getDocs(q);
-      const ordersList = ordersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Order));
-      setOrders(ordersList);
-    } catch (error) {
-      console.error("Error fetching orders: ", error);
-      toast({ variant: 'destructive', title: 'Failed to fetch orders.' });
-    } finally {
-      setLoading(false);
+  const deleteMutation = useMutation({
+    mutationFn: (orderId: string) => deleteDoc(doc(db, 'orders', orderId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast({ title: 'Order Deleted', description: 'The order has been successfully deleted.' });
+    },
+    onError: (error) => {
+      console.error("Error deleting order: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete the order.' });
     }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const handleDeleteOrder = async (orderId: string) => {
-    try {
-        await deleteDoc(doc(db, 'orders', orderId));
-        setOrders(orders.filter(order => order.id !== orderId));
-        toast({ title: 'Order Deleted', description: 'The order has been successfully deleted.' });
-    } catch (error) {
-        console.error("Error deleting order: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete the order.' });
-    }
-  }
+  });
 
   return (
     <Card>
@@ -115,7 +84,7 @@ export default function AdminOrdersPage() {
                      </Link>
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="icon">
+                            <Button variant="destructive" size="icon" disabled={deleteMutation.isPending}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </AlertDialogTrigger>
@@ -128,7 +97,7 @@ export default function AdminOrdersPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                             <AlertDialogCancel>{t({en: "Cancel", ur: "منسوخ کریں"})}</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>{t({en: "Delete", ur: "حذف کریں"})}</AlertDialogAction>
+                            <AlertDialogAction onClick={() => deleteMutation.mutate(order.id)}>{t({en: "Delete", ur: "حذف کریں"})}</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                      </AlertDialog>

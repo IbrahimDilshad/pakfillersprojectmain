@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/context/language-context";
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs, query, orderBy } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Pencil, PlusCircle, ClipboardCopy } from 'lucide-react';
+import { Trash2, Pencil, PlusCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface PaymentMethod {
     id: string;
@@ -21,32 +22,35 @@ interface PaymentMethod {
     accountNumber: string;
 }
 
+async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
+    const q = query(collection(db, "paymentMethods"), orderBy("bankName"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentMethod));
+}
+
 export default function AdminPaymentsPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [methods, setMethods] = useState<PaymentMethod[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [currentMethod, setCurrentMethod] = useState<Partial<PaymentMethod> | null>(null);
 
-  const fetchMethods = async () => {
-    setLoading(true);
-    try {
-        const q = query(collection(db, "paymentMethods"), orderBy("bankName"));
-        const querySnapshot = await getDocs(q);
-        const methodsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentMethod));
-        setMethods(methodsList);
-    } catch (error) {
-        console.error("Error fetching payment methods: ", error);
-        toast({ variant: 'destructive', title: 'Failed to fetch payment methods.' });
-    } finally {
-        setLoading(false);
-    }
-  };
+  const { data: methods = [], isLoading: loading } = useQuery<PaymentMethod[]>({
+      queryKey: ['paymentMethods'],
+      queryFn: fetchPaymentMethods,
+      staleTime: 1000 * 60 * 60, // 1 hour
+  });
 
-  useEffect(() => {
-    fetchMethods();
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: (methodId: string) => deleteDoc(doc(db, 'paymentMethods', methodId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
+      toast({ title: 'Success', description: 'Payment method deleted successfully.' });
+    },
+    onError: () => {
+       toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete payment method.' });
+    }
+  });
 
   const handleAddNew = () => {
     setCurrentMethod(null);
@@ -56,16 +60,6 @@ export default function AdminPaymentsPage() {
   const handleEdit = (method: PaymentMethod) => {
     setCurrentMethod(method);
     setDialogOpen(true);
-  };
-
-  const handleDelete = async (methodId: string) => {
-    try {
-      await deleteDoc(doc(db, 'paymentMethods', methodId));
-      setMethods(methods.filter(m => m.id !== methodId));
-      toast({ title: 'Success', description: 'Payment method deleted successfully.' });
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete payment method.' });
-    }
   };
 
   return (
@@ -98,7 +92,7 @@ export default function AdminPaymentsPage() {
                     <Button variant="outline" size="icon" onClick={() => handleEdit(method)}><Pencil className="h-4 w-4" /></Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" disabled={deleteMutation.isPending}><Trash2 className="h-4 w-4" /></Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
@@ -109,7 +103,7 @@ export default function AdminPaymentsPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(method.id)}>Continue</AlertDialogAction>
+                          <AlertDialogAction onClick={() => deleteMutation.mutate(method.id)}>Continue</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -124,10 +118,7 @@ export default function AdminPaymentsPage() {
         isOpen={isDialogOpen} 
         setIsOpen={setDialogOpen} 
         method={currentMethod}
-        onSave={() => {
-            setDialogOpen(false);
-            fetchMethods(); // Re-fetch to get the latest data
-        }}
+        onSave={() => setDialogOpen(false)}
       />
     </>
   );
@@ -143,10 +134,30 @@ interface PaymentMethodDialogProps {
 function PaymentMethodDialog({ isOpen, setIsOpen, method, onSave }: PaymentMethodDialogProps) {
     const { t } = useLanguage();
     const { toast } = useToast();
+    const queryClient = useQueryClient();
     const [bankName, setBankName] = useState('');
     const [accountTitle, setAccountTitle] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
     
+    const mutation = useMutation({
+        mutationFn: async (methodData: Omit<PaymentMethod, 'id'>) => {
+            if (method?.id) {
+                const methodRef = doc(db, 'paymentMethods', method.id);
+                return updateDoc(methodRef, methodData);
+            } else {
+                return addDoc(collection(db, 'paymentMethods'), methodData);
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
+            toast({ title: "Success", description: "Payment method saved." });
+            onSave();
+        },
+        onError: (error) => {
+            toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
+        }
+    });
+
     useEffect(() => {
         if (method) {
             setBankName(method.bankName || '');
@@ -165,25 +176,7 @@ function PaymentMethodDialog({ isOpen, setIsOpen, method, onSave }: PaymentMetho
             toast({ variant: 'destructive', title: 'All fields are required.' });
             return;
         }
-        try {
-            const methodData = {
-                bankName,
-                accountTitle,
-                accountNumber
-            };
-
-            if (method?.id) { // Editing existing method
-                const methodRef = doc(db, 'paymentMethods', method.id);
-                await updateDoc(methodRef, methodData);
-                toast({ title: "Success", description: "Payment method updated." });
-            } else { // Adding new method
-                await addDoc(collection(db, 'paymentMethods'), methodData);
-                toast({ title: "Success", description: "Payment method added." });
-            }
-            onSave();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: (error as Error).message });
-        }
+        mutation.mutate({ bankName, accountTitle, accountNumber });
     };
 
     return (
@@ -209,7 +202,9 @@ function PaymentMethodDialog({ isOpen, setIsOpen, method, onSave }: PaymentMetho
                        <DialogClose asChild>
                             <Button type="button" variant="secondary">Cancel</Button>
                        </DialogClose>
-                        <Button type="submit">{method?.id ? t({en: "Save Changes", ur: "تبدیلیاں محفوظ کریں"}) : t({en: "Add Method", ur: "طریقہ شامل کریں"})}</Button>
+                        <Button type="submit" disabled={mutation.isPending}>
+                            {mutation.isPending ? 'Saving...' : (method?.id ? t({en: "Save Changes", ur: "تبدیلیاں محفوظ کریں"}) : t({en: "Add Method", ur: "طریقہ شامل کریں"}))}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

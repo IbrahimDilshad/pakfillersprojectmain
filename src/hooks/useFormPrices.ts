@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect } from 'react';
-import { collection, getDocs, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Language } from '@/context/language-context';
 
@@ -11,28 +11,22 @@ export interface FormPrice {
   price: number;
 }
 
-export function useFormPrices() {
-  const [formPrices, setFormPrices] = useState<FormPrice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+async function fetchFormPrices(): Promise<FormPrice[]> {
     const pricesCollection = collection(db, 'formPrices');
     const q = query(pricesCollection);
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const pricesList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as FormPrice));
-      setFormPrices(pricesList);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching form prices: ", error);
-      setLoading(false);
-    });
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as FormPrice));
+}
 
-    return () => unsubscribe();
-  }, []);
-
-  return { formPrices, loading, setFormPrices };
+export function useFormPrices() {
+  const { data: formPrices = [], isLoading: loading, refetch } = useQuery<FormPrice[]>({
+    queryKey: ['formPrices'],
+    queryFn: fetchFormPrices,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+  
+  return { formPrices, loading, refetchFormPrices: refetch };
 }
