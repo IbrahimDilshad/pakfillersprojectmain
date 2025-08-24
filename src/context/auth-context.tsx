@@ -79,10 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             
             setUser(mainUser);
-            
-            if (!activeUser || activeUser.uid === mainUser.uid) {
-                setActiveUser(mainUser);
-            }
         });
 
         setLoading(false);
@@ -97,7 +93,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [activeUser]);
+  }, []);
+
+  // Effect to update activeUser when main user changes
+  useEffect(() => {
+    if (user) {
+        // If there's no active user or the active user was the old main user, update it.
+        if (!activeUser || (activeUser.uid === user.uid && activeUser.isSubAccount !== true)) {
+            setActiveUser(user);
+        }
+    } else {
+        setActiveUser(null);
+    }
+  }, [user]);
+
 
   // Effect to listen for sub-account changes
   useEffect(() => {
