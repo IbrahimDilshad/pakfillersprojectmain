@@ -34,12 +34,9 @@ function AdminSidebar() {
     // This check is crucial. The user object is guaranteed to be non-null here
     // because of the checks in the main AdminLayout component.
     if (!user) return null;
-
-    const isSuperAdmin = user.email === 'admin@example.com';
     
     const visibleNavItems = adminNavItems.filter(item => {
-        if (isSuperAdmin) return true;
-        // The user.permissions object is guaranteed to exist for admins.
+        // Admins can see any page they have explicit permission for.
         return user.permissions?.[item.permissionKey as keyof typeof user.permissions];
     });
 
@@ -100,41 +97,39 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return; // Wait until loading is false
+    if (loading) return; // Wait until authentication check is complete
 
     if (!user) {
-      // If not logged in after loading, redirect to dashboard
-      router.push('/dashboard');
-      return;
-    }
-
-    if (user.role !== 'admin') {
-      // If not an admin, redirect
       router.push('/dashboard');
       return;
     }
     
-    // Only check for specific page permissions if the user is a regular admin
-    if (user.email !== 'admin@example.com' && user.permissions) {
-        const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href) && item.href !== '/admin');
-        if (currentRoute) {
-            const hasPermission = user.permissions[currentRoute.permissionKey as keyof typeof user.permissions];
-            if (!hasPermission) {
-                router.push('/admin'); 
-            }
-        }
+    if (user.role !== 'admin') {
+      router.push('/dashboard');
+      return;
     }
-
+    
+    // Once we know it's an admin, we still need to wait for their permissions to load.
+    if (user.permissions) {
+      const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href) && item.href !== '/admin');
+      
+      // If there's a specific route being accessed (not the main /admin dashboard)
+      // and the user does NOT have permission for it, redirect to the admin dashboard.
+      if (currentRoute && !user.permissions[currentRoute.permissionKey as keyof typeof user.permissions]) {
+          router.push('/admin'); 
+      }
+    }
+    
   }, [user, loading, router, pathname]);
   
-  // This is the critical change. We show a skeleton loader if authentication is in progress OR
-  // if the user object is available but their specific role/permissions haven't been loaded from Firestore yet.
-  if (loading || !user || !user.role) {
+  // Critical Check: Render a skeleton if authentication is loading, 
+  // OR if we have a user but their role/permissions haven't been loaded from Firestore yet.
+  if (loading || !user || !user.role || (user.role === 'admin' && !user.permissions)) {
     return <AdminLayoutSkeleton />;
   }
   
   // By this point, `user` and `user.role` are guaranteed to be available.
-  // We can also be reasonably sure `user.permissions` is loaded for admins.
+  // We can also be sure `user.permissions` is loaded for admins.
   if (user.role !== 'admin') {
       // This is a fallback, but the useEffect should have already redirected.
       return <AdminLayoutSkeleton />;

@@ -5,7 +5,7 @@ import { createContext, useContext, useState, ReactNode, useEffect, Dispatch, Se
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, DocumentData } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
 type AccountType = 'family' | 'business';
@@ -60,20 +60,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         const docSub = onSnapshot(userDocRef, (userDoc) => {
             let mainUser: AuthUser;
-            const isSuperAdmin = firebaseUser.email === 'admin@example.com';
             
             if (userDoc.exists()) {
               const userData = userDoc.data();
               mainUser = {
                 ...firebaseUser,
                 ...userData,
-                role: isSuperAdmin ? 'admin' : userData.role || 'user',
+                role: userData.role || 'user',
                 displayName: firebaseUser.displayName || userData.displayName,
               } as AuthUser;
             } else {
                mainUser = { 
                    ...firebaseUser, 
-                   role: isSuperAdmin ? 'admin' : 'user', 
+                   role: 'user', 
                    displayName: firebaseUser.displayName 
                 } as AuthUser;
             }
