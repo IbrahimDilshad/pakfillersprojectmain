@@ -238,7 +238,8 @@ interface Expense {
 }
 
 interface WrapUp {
-    reconciliationChoice?: 'auto' | 'manual';
+    reconciliationChoice?: 'yes' | 'no';
+    agreedToTerms?: boolean;
 }
 
 interface Documents {

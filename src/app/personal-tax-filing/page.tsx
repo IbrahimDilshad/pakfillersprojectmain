@@ -121,7 +121,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
       case 'expense':
         return <ExpenseStep />;
       case 'wrap-up':
-        return <WrapUpStep />;
+        return <WrapUpStep setCurrentStep={setCurrentStep} />;
       case 'documents':
         return <DocumentsStep />;
       case 'review':
