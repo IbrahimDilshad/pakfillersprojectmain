@@ -8,6 +8,7 @@ import { Label } from '../ui/label';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useMemo } from 'react';
 import { Badge } from '../ui/badge';
+import { useFormPrices } from '@/hooks/useFormPrices';
 
 const SummaryItem = ({ label, value, urLabel }: { label: string; value: string | number; urLabel: string; }) => {
     const { t } = useLanguage();
@@ -24,6 +25,12 @@ const SummaryItem = ({ label, value, urLabel }: { label: string; value: string |
 export function ReviewSubmitStep() {
     const { t } = useLanguage();
     const { formData } = usePersonalTaxFiling();
+    const { formPrices } = useFormPrices();
+
+    const servicePrice = useMemo(() => {
+        const service = formPrices.find(s => s.id === 'personal_tax_filing');
+        return service ? service.price : 3000; // Default price
+    }, [formPrices]);
 
     const formatCurrency = (amount?: number) => {
         if (amount === undefined || amount === null || isNaN(amount)) return 'PKR 0';
@@ -54,10 +61,10 @@ export function ReviewSubmitStep() {
             <div>
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Personal Information', ur: 'ذاتی معلومات' })}</h3>
                 <div className="rounded-md border p-4 space-y-2">
-                    <SummaryItem label="Full Name" urLabel="پورا نام" value={formData.personalInfo.fullName || '-'} />
-                    <SummaryItem label="Email" urLabel="ای میل" value={formData.personalInfo.email || '-'} />
-                    <SummaryItem label="Phone Number" urLabel="فون نمبر" value={formData.personalInfo.phoneNumber || '-'} />
-                    <SummaryItem label="Occupation" urLabel="پیشہ" value={formData.personalInfo.occupation || '-'} />
+                    <SummaryItem label="Full Name" urLabel="پورا نام" value={formData.personalInfo?.fullName || '-'} />
+                    <SummaryItem label="Email" urLabel="ای میل" value={formData.personalInfo?.email || '-'} />
+                    <SummaryItem label="Phone Number" urLabel="فون نمبر" value={formData.personalInfo?.phoneNumber || '-'} />
+                    <SummaryItem label="Occupation" urLabel="پیشہ" value={formData.personalInfo?.occupation || '-'} />
                 </div>
             </div>
 
@@ -80,7 +87,7 @@ export function ReviewSubmitStep() {
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Service Fee', ur: 'سروس فیس' })}</h3>
                 <div className="rounded-md border p-4 flex justify-between items-center">
                     <p className="text-muted-foreground">{t({en: 'Personal Tax Filing Service', ur: 'ذاتی ٹیکس فائلنگ سروس'})}</p>
-                    <Badge variant="secondary" className="text-lg font-bold">PKR 3,000</Badge>
+                    <Badge variant="secondary" className="text-lg font-bold">PKR {servicePrice.toLocaleString()}</Badge>
                 </div>
             </div>
 

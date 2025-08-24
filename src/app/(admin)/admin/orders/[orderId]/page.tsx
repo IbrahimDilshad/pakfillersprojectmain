@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/language-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send, CheckCircle, Clock, Activity } from 'lucide-react';
+import { ArrowLeft, User, ShoppingCart, MessageSquare, Paperclip, Send, CheckCircle, Clock, Activity, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +17,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { AuthUser } from '@/context/auth-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface OrderItem {
   name: { en: string, ur: string };
   price: number;
   serviceId: string;
-  filingData?: any; // To hold data from personal tax filing form etc.
+  filingData?: any; 
 }
 
 interface Order {
@@ -33,7 +34,57 @@ interface Order {
     total: number;
     status: 'pending' | 'processing' | 'completed';
     createdAt: any;
-    paymentScreenshot?: string; // Should be a URL
+    paymentScreenshot?: string;
+}
+
+const FilingDataDisplay = ({ data }: { data: any }) => {
+    const { t } = useLanguage();
+    if (!data) return null;
+
+    const sections: { title: string, data?: object }[] = [
+        { title: "Personal Info", data: data.personalInfo },
+        { title: "Income", data: { 
+            Salary: data.incomes?.salary?.annualSalary,
+            'Tax Deducted': data.incomes?.salary?.taxDeducted
+        }},
+        { title: "Wealth Statement", data: data.wealthStatement },
+        { title: "Expense", data: data.expense },
+        { title: "Tax Credit", data: data.taxCredit },
+        { title: "Deductions", data: data.deductions?.selectedCategories },
+        { title: "FBR", data: { registered: data.fbr?.isNtnRegistered } },
+    ];
+
+    return (
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+                <AccordionTrigger>
+                    <div className='flex items-center gap-2'>
+                        <FileText className="h-5 w-5" />
+                        {t({en: "View Submitted Tax Form Data", ur: "جمع کردہ ٹیکس فارم کا ڈیٹا دیکھیں"})}
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                        {sections.map(section => (
+                            section.data && Object.values(section.data).some(v => v !== undefined && v !== null && v !== '' && (typeof v !== 'object' || Object.keys(v).length > 0)) && (
+                                <div key={section.title}>
+                                    <h4 className="font-semibold mb-2 text-primary">{t({en: section.title, ur: section.title})}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm border p-3 rounded-md bg-background">
+                                        {Object.entries(section.data).filter(([_, value]) => value !== undefined && value !== null && value !== '').map(([key, value]) => (
+                                             <div key={key} className="flex justify-between border-b pb-1">
+                                                <span className="text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
+                                                <span className="font-medium text-right">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        ))}
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    );
 }
 
 export default function OrderDetailsPage() {
@@ -61,7 +112,6 @@ export default function OrderDetailsPage() {
                 setOrder(orderData);
                 setStatus(orderData.status);
 
-                // Fetch customer details
                 const userDocRef = doc(db, 'users', orderData.userId);
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
@@ -109,37 +159,6 @@ export default function OrderDetailsPage() {
         } catch (error) {
              toast({ variant: 'destructive', title: "Error", description: "Failed to update status."})
         }
-    }
-    
-    const FilingDataDisplay = ({ data }: { data: any }) => {
-        if (!data) return null;
-
-        const sections = [
-            { title: "Personal Info", data: data.personalInfo },
-            { title: "Income", data: data.incomes?.salary },
-            { title: "Wealth Statement", data: data.wealthStatement },
-            { title: "Deductions", data: data.deductions },
-        ];
-
-        return (
-            <div className="space-y-4">
-                {sections.map(section => (
-                    section.data && Object.keys(section.data).length > 0 && (
-                        <div key={section.title}>
-                            <h4 className="font-semibold mb-2">{t({en: section.title, ur: section.title})}</h4>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm border p-3 rounded-md">
-                                {Object.entries(section.data).map(([key, value]) => (
-                                     <div key={key} className="flex justify-between">
-                                        <span className="text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
-                                        <span className="font-medium">{String(value)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )
-                ))}
-            </div>
-        )
     }
 
     if (loading) {
@@ -196,7 +215,7 @@ export default function OrderDetailsPage() {
                              <div className="space-y-4">
                                 {order.items.map((item, index) => (
                                     <div key={index} className="space-y-3">
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-start">
                                             <span className="font-semibold">{t(item.name)}</span>
                                             <span className="font-medium">PKR {item.price.toLocaleString()}</span>
                                         </div>

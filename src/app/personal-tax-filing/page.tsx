@@ -45,14 +45,13 @@ function PersonalTaxFilingWizard({ onBackToDashboard }: { onBackToDashboard: () 
   const { t } = useLanguage();
   const { toast } = useToast();
   const { activeUser } = useAuth();
-  const { formData, setFormData } = usePersonalTaxFiling();
+  const { formData } = usePersonalTaxFiling();
   const { formPrices } = useFormPrices();
   const { addItem } = useCart();
   const router = useRouter();
 
   const taxYear = formData.taxYear;
   if (!taxYear) {
-      // This should ideally not happen if the flow is correct.
       return <p>Tax year not selected.</p>;
   }
 
@@ -126,7 +125,8 @@ function PersonalTaxFilingWizard({ onBackToDashboard }: { onBackToDashboard: () 
     }
   };
   
-  const showMainNavigation = steps[currentStep].id !== 'income-sources';
+  const showMainNavigation = steps[currentStep].id !== 'income-sources' && steps[currentStep].id !== 'wrap-up';
+
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
@@ -187,7 +187,6 @@ function FilingDashboard({ onNew, onResume }: { onNew: () => void, onResume: () 
     const { t } = useLanguage();
     const { formData } = usePersonalTaxFiling();
     
-    // Check if there's any data that indicates an in-progress filing
     const hasInProgressFiling = !!formData.taxYear;
 
     return (
@@ -267,10 +266,10 @@ function YearSelectionStep({ onProceed }: { onProceed: (year: string) => void })
 function PersonalTaxFilingFlow() {
     type View = 'dashboard' | 'year-selection' | 'wizard';
     const [view, setView] = useState<View>('dashboard');
-    const { formData, setFormData } = usePersonalTaxFiling();
+    const { formData, setFormData, clearFormData } = usePersonalTaxFiling();
 
     const handleNew = () => {
-        setFormData({}); // Clear old data
+        clearFormData();
         setView('year-selection');
     }
     

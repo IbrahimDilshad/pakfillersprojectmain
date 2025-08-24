@@ -169,8 +169,8 @@ interface Incomes {
     hasSalary?: boolean;
     salary?: SalaryIncome;
     hasBusiness?: boolean;
-    business?: Record<string, boolean>; // For selected business types
-    businessDetails?: Record<string, BusinessSubForm>; // For form data of each business type
+    business?: Record<string, boolean>; 
+    businessDetails?: Record<string, BusinessSubForm>; 
     hasFreelancer?: boolean;
     freelancer?: FreelancerSubForm;
     hasProfessional?: boolean;
@@ -252,28 +252,27 @@ interface FbrCredentials {
 // Main form data structure
 interface PersonalTaxFilingData {
     taxYear?: string;
-    personalInfo: PersonalInfo;
-    incomes: Incomes;
-    taxCredit: TaxCredit;
-    deductions: Deductions;
-    wealthStatement: WealthStatement;
-    expense: Expense;
-    wrapUp: WrapUp;
-    fbr: FbrCredentials;
+    personalInfo?: PersonalInfo;
+    incomes?: Incomes;
+    taxCredit?: TaxCredit;
+    deductions?: Deductions;
+    wealthStatement?: WealthStatement;
+    expense?: Expense;
+    wrapUp?: WrapUp;
+    fbr?: FbrCredentials;
 }
 
 interface PersonalTaxFilingContextType {
   formData: PersonalTaxFilingData;
   setFormData: Dispatch<SetStateAction<PersonalTaxFilingData>>;
+  clearFormData: () => void;
 }
 
 const PersonalTaxFilingContext = createContext<PersonalTaxFilingContextType | undefined>(undefined);
 
 const initialFormData: PersonalTaxFilingData = {
     personalInfo: {},
-    incomes: {
-        hasSalary: false,
-    },
+    incomes: {},
     taxCredit: {},
     deductions: { selectedCategories: {} },
     wealthStatement: {},
@@ -284,9 +283,13 @@ const initialFormData: PersonalTaxFilingData = {
 
 export function PersonalTaxFilingProvider({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState<PersonalTaxFilingData>(initialFormData);
+  
+  const clearFormData = () => {
+    setFormData(initialFormData);
+  }
 
   return (
-    <PersonalTaxFilingContext.Provider value={{ formData, setFormData }}>
+    <PersonalTaxFilingContext.Provider value={{ formData, setFormData, clearFormData }}>
       {children}
     </PersonalTaxFilingContext.Provider>
   );
