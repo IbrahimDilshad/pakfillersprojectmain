@@ -12,6 +12,16 @@ type AccountType = 'family' | 'business';
 type Relation = 'parent' | 'sibling' | 'child' | 'spouse' | 'other';
 type LegalStructure = 'company' | 'aop' | 'individual';
 
+export interface Permissions {
+    dashboard?: boolean;
+    orders?: boolean;
+    content?: boolean;
+    payments?: boolean;
+    chat?: boolean;
+    users?: boolean;
+    reports?: boolean;
+    config?: boolean;
+}
 
 export interface AuthUser extends User {
   role: Role;
@@ -21,6 +31,7 @@ export interface AuthUser extends User {
   relation?: Relation;
   legalStructure?: LegalStructure;
   isSubAccount?: boolean;
+  permissions?: Permissions;
 }
 
 interface AuthContextType {
@@ -46,43 +57,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        let mainUser: AuthUser;
-        const isHardcodedAdmin = firebaseUser.email === 'admin@example.com';
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          mainUser = {
-            ...firebaseUser,
-            ...userData,
-            role: isHardcodedAdmin ? 'admin' : userData.role || 'user',
-            displayName: firebaseUser.displayName || userData.displayName,
-          } as AuthUser;
-        } else {
-           mainUser = { 
-               ...firebaseUser, 
-               role: isHardcodedAdmin ? 'admin' : 'user', 
-               displayName: firebaseUser.displayName 
-            } as AuthUser;
-        }
         
-        setUser(mainUser);
-        
-        if (!activeUser || activeUser.uid !== mainUser.uid) {
-            setActiveUser(mainUser);
-        }
+        const docSub = onSnapshot(userDocRef, (userDoc) => {
+            let mainUser: AuthUser;
+            const isSuperAdmin = firebaseUser.email === 'admin@example.com';
+            
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              mainUser = {
+                ...firebaseUser,
+                ...userData,
+                role: isSuperAdmin ? 'admin' : userData.role || 'user',
+                displayName: firebaseUser.displayName || userData.displayName,
+              } as AuthUser;
+            } else {
+               mainUser = { 
+                   ...firebaseUser, 
+                   role: isSuperAdmin ? 'admin' : 'user', 
+                   displayName: firebaseUser.displayName 
+                } as AuthUser;
+            }
+            
+            setUser(mainUser);
+            
+            if (!activeUser || activeUser.uid === mainUser.uid) {
+                setActiveUser(mainUser);
+            }
+        });
+
+        setLoading(false);
+        return () => docSub();
 
       } else {
         setUser(null);
         setActiveUser(null);
         setSubAccounts([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [activeUser]);
 
   // Effect to listen for sub-account changes
   useEffect(() => {

@@ -14,20 +14,31 @@ import { LayoutDashboard, Users, BarChart, Settings, Bot, ArrowLeft, ShoppingCar
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from '@/components/ui/sidebar';
 
 
-const adminNavItems = [
-  { href: '/admin', label: { en: 'Dashboard', ur: 'ڈیش بورڈ' }, icon: LayoutDashboard },
-  { href: '/admin/orders', label: { en: 'Orders', ur: 'آرڈرز' }, icon: ShoppingCart },
-  { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: Newspaper },
-  { href: '/admin/payments', label: { en: 'Payments', ur: 'ادائیگیاں' }, icon: Wallet },
-  { href: '/admin/chat', label: { en: 'Support Chat', ur: 'سپورٹ چیٹ' }, icon: Bot },
-  { href: '/admin/users', label: { en: 'Users', ur: 'صارفین' }, icon: Users },
-  { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart },
-  { href: '/admin/config', label: { en: 'Configuration', ur: 'کنفیگریشن' }, icon: Settings },
+export const adminNavItems = [
+  { href: '/admin', label: { en: 'Dashboard', ur: 'ڈیش بورڈ' }, icon: LayoutDashboard, permissionKey: 'dashboard' },
+  { href: '/admin/orders', label: { en: 'Orders', ur: 'آرڈرز' }, icon: ShoppingCart, permissionKey: 'orders' },
+  { href: '/admin/content', label: { en: 'Content', ur: 'مواد' }, icon: Newspaper, permissionKey: 'content' },
+  { href: '/admin/payments', label: { en: 'Payments', ur: 'ادائیگیاں' }, icon: Wallet, permissionKey: 'payments' },
+  { href: '/admin/chat', label: { en: 'Support Chat', ur: 'سپورٹ چیٹ' }, icon: Bot, permissionKey: 'chat' },
+  { href: '/admin/users', label: { en: 'Users', ur: 'صارفین' }, icon: Users, permissionKey: 'users' },
+  { href: '/admin/reports', label: { en: 'Reports', ur: 'رپورٹس' }, icon: BarChart, permissionKey: 'reports' },
+  { href: '/admin/config', label: { en: 'Configuration', ur: 'کنفیگریشن' }, icon: Settings, permissionKey: 'config' },
 ];
 
 function AdminSidebar() {
     const pathname = usePathname();
     const { t } = useLanguage();
+    const { user } = useAuth();
+    const isSuperAdmin = user?.email === 'admin@example.com';
+    
+    const visibleNavItems = adminNavItems.filter(item => {
+        // Super admin sees everything
+        if (isSuperAdmin) return true;
+        // Other admins see based on permissions
+        // @ts-ignore
+        return user?.permissions?.[item.permissionKey];
+    });
+
 
     return (
         <Sidebar>
@@ -41,7 +52,7 @@ function AdminSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarMenu>
-                    {adminNavItems.map(item => (
+                    {visibleNavItems.map(item => (
                          <SidebarMenuItem key={item.href}>
                              <Link href={item.href} className="w-full">
                                 <SidebarMenuButton
@@ -70,12 +81,30 @@ function AdminSidebar() {
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    if (loading) return;
+
+    if (!user || user.role !== 'admin') {
       router.push('/dashboard');
+      return;
     }
-  }, [user, loading, router]);
+    
+    const isSuperAdmin = user.email === 'admin@example.com';
+    if(isSuperAdmin) return; // Super admin can access everything
+
+    const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href));
+    if (currentRoute) {
+        // @ts-ignore
+        const hasPermission = user.permissions?.[currentRoute.permissionKey];
+        if (!hasPermission) {
+            router.push('/admin'); // Redirect to admin dashboard if no permission
+        }
+    }
+
+
+  }, [user, loading, router, pathname]);
 
   if (loading || !user || user.role !== 'admin') {
     return (
