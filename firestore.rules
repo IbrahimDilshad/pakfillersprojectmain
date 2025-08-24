@@ -2,106 +2,79 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-    }
-
+    
+    // Helper function to check for admin role
     function isAdmin() {
-      return isSignedIn() && getRole() == 'admin';
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Default deny all
+    // By default, deny all access.
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // USERS
-    // - Users can read their own profile.
-    // - Users can update their own profile.
-    // - Admins can read any user profile.
-    // - Sub-accounts can be managed by their parent user or an admin.
+    // Users can read/update their own profile, admins can manage all profiles.
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId);
-      allow list: if isAdmin();
-
+      allow read, update: if request.auth.uid == userId || isAdmin();
+      allow create: if request.auth.uid == userId;
+      
+      // Rules for sub-accounts
       match /subAccounts/{subAccountId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, create, update, delete: if request.auth.uid == userId || isAdmin();
       }
     }
     
-    // CONTENT (Services, Blog, FAQs, Videos, Form Prices)
-    // - Anyone can read public content.
-    // - Only admins can create, update, or delete content.
-    match /services/{docId} {
-      allow get: if true;
-      allow list: if true;
+    // Public collections: read-only for authenticated users, full access for admins.
+    match /services/{serviceId} {
+      allow read: if request.auth != null;
       allow write: if isAdmin();
     }
-    match /blogPosts/{docId} {
-       allow get: if true;
-       allow list: if true;
-       allow write: if isAdmin();
-    }
-     match /faqs/{docId} {
-       allow get: if true;
-       allow list: if true;
-       allow write: if isAdmin();
-    }
-     match /videos/{docId} {
-       allow get: if true;
-       allow list: if true;
-       allow write: if isAdmin();
-    }
-     match /formPrices/{docId} {
-      allow get: if true;
-      allow list: if true;
+    match /faqs/{faqId} {
+      allow read: if request.auth != null;
       allow write: if isAdmin();
     }
-    match /paymentMethods/{docId} {
-      allow get, list: if isSignedIn();
+    match /blogPosts/{postId} {
+      allow read: if request.auth != null;
       allow write: if isAdmin();
     }
-
-    // ORDERS
-    // - Users can create their own orders.
-    // - Users can only read/list their own orders.
-    // - Admins can read/list/update/delete any order.
-    match /orders/{orderId} {
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get, list: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
-      allow update, delete: if isAdmin();
+    match /videos/{videoId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
     
-    // NOTIFICATIONS
-    // - Admins can create notifications for any user.
-    // - Users can only read/update their own notifications.
-    match /notifications/{notificationId} {
-      allow create: if isAdmin();
-      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+    // Form prices can be read by anyone, but only written by admins.
+    match /formPrices/{formId} {
+        allow read: if request.auth != null;
+        allow write: if isAdmin();
     }
 
-    // CHAT
-    // - A user can create/update their own chat session.
-    // - Admins can create/update any chat session.
-    // - Users can read/write messages in their own chat session.
-    // - Admins can read/write messages in any chat session.
+    // Orders: Users can create orders and only read their own. Admins can manage all orders.
+    match /orders/{orderId} {
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth.uid == resource.data.userId || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Notifications: Users can only read their own notifications.
+    match /notifications/{notificationId} {
+        allow read: if request.auth.uid == resource.data.userId;
+        allow update: if request.auth.uid == resource.data.userId; // For marking as read
+        // No create/delete access for clients. Created via backend logic/admin actions.
+    }
+
+    // Payment Methods: All authenticated users can read, only admins can write.
+    match /paymentMethods/{methodId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Chat: only participants (user or admin) can access chat sessions and messages.
     match /chats/{sessionId} {
-      allow read, write: if isOwner(sessionId) || isAdmin();
+      allow read, write: if request.auth.uid == sessionId || isAdmin();
 
       match /messages/{messageId} {
-        allow read, write: if isOwner(sessionId) || isAdmin();
+        allow read, create: if request.auth.uid == sessionId || isAdmin();
       }
     }
   }
