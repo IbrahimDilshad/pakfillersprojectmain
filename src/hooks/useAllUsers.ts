@@ -13,26 +13,28 @@ export function useAllUsers() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const usersCollection = collection(db, 'users');
-        const q = query(usersCollection, orderBy('displayName'));
-        const usersSnapshot = await getDocs(q);
-        const usersList = usersSnapshot.docs.map(doc => ({
-          ...doc.data()
-        } as UserProfile));
-        setUsers(usersList);
-      } catch (error) {
-        console.error("Error fetching users: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const usersCollection = collection(db, 'users');
+      const q = query(usersCollection, orderBy('displayName'));
+      const usersSnapshot = await getDocs(q);
+      const usersList = usersSnapshot.docs.map(doc => ({
+        uid: doc.id, // Ensure uid is set from doc.id
+        ...doc.data()
+      } as UserProfile));
+      setUsers(usersList);
+    } catch (error) {
+      console.error("Error fetching users: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  return { users, loading };
+  return { users, loading, setUsers };
 }

@@ -197,9 +197,9 @@ export default function OrderDetailsPage() {
                         <SelectValue placeholder="Change status" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="pending"><Clock className="mr-2" />{t({en: 'Pending', ur: 'زیر التواء'})}</SelectItem>
-                        <SelectItem value="processing"><Activity className="mr-2" />{t({en: 'Processing', ur: 'پروسیسنگ'})}</SelectItem>
-                        <SelectItem value="completed"><CheckCircle className="mr-2" />{t({en: 'Completed', ur: 'مکمل'})}</SelectItem>
+                        <SelectItem value="pending"><Clock className="mr-2 h-4 w-4" />{t({en: 'Pending', ur: 'زیر التواء'})}</SelectItem>
+                        <SelectItem value="processing"><Activity className="mr-2 h-4 w-4" />{t({en: 'Processing', ur: 'پروسیسنگ'})}</SelectItem>
+                        <SelectItem value="completed"><CheckCircle className="mr-2 h-4 w-4" />{t({en: 'Completed', ur: 'مکمل'})}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -252,7 +252,7 @@ export default function OrderDetailsPage() {
                         </CardContent>
                         <CardFooter>
                             <Button onClick={handleSendMessage} disabled={!message.trim()}>
-                                <Send className="mr-2"/>
+                                <Send className="mr-2 h-4 w-4"/>
                                 {t({en: "Send Message", ur: "پیغام بھیجیں"})}
                             </Button>
                         </CardFooter>
