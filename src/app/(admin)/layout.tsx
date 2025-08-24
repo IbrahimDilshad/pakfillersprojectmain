@@ -31,12 +31,13 @@ function AdminSidebar() {
     const { user } = useAuth();
     const isSuperAdmin = user?.email === 'admin@example.com';
     
+    // Important: Only filter nav items if the user object and permissions are fully loaded.
     const visibleNavItems = adminNavItems.filter(item => {
+        if (!user) return false;
         // Super admin sees everything
         if (isSuperAdmin) return true;
-        // Other admins see based on permissions
-        // @ts-ignore
-        return user?.permissions?.[item.permissionKey];
+        // For other admins, ensure permissions object exists before trying to access it.
+        return user.permissions && user.permissions[item.permissionKey as keyof typeof user.permissions];
     });
 
 
@@ -91,18 +92,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       return;
     }
     
-    const isSuperAdmin = user.email === 'admin@example.com';
-    if(isSuperAdmin) return; // Super admin can access everything
+    // Ensure user and permissions are loaded before checking permissions
+    if (user && user.permissions) {
+        const isSuperAdmin = user.email === 'admin@example.com';
+        if(isSuperAdmin) return; // Super admin can access everything
 
-    const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href));
-    if (currentRoute) {
-        // @ts-ignore
-        const hasPermission = user.permissions?.[currentRoute.permissionKey];
-        if (!hasPermission) {
-            router.push('/admin'); // Redirect to admin dashboard if no permission
+        const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href));
+        if (currentRoute) {
+            const hasPermission = user.permissions[currentRoute.permissionKey as keyof typeof user.permissions];
+            if (!hasPermission) {
+                router.push('/admin'); // Redirect to admin dashboard if no permission
+            }
         }
     }
-
 
   }, [user, loading, router, pathname]);
 
