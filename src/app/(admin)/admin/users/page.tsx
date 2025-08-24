@@ -12,10 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Role, AuthUser } from "@/context/auth-context";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { adminNavItems } from "../../layout";
@@ -87,7 +86,19 @@ export default function AdminUsersPage() {
     setIsUpdating(userId);
     try {
         const userDocRef = doc(db, 'users', userId);
-        await updateDoc(userDocRef, { role: newRole });
+        // When changing a role to 'admin', initialize their permissions object.
+        const permissions = newRole === 'admin' ? {
+            dashboard: true,
+            orders: false,
+            content: false,
+            payments: false,
+            chat: false,
+            users: false,
+            reports: false,
+            config: false,
+        } : {};
+        
+        await updateDoc(userDocRef, { role: newRole, permissions });
         
         refetchUsers();
 
