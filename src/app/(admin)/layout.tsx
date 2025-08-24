@@ -29,15 +29,28 @@ function AdminSidebar() {
     const pathname = usePathname();
     const { t } = useLanguage();
     const { user } = useAuth();
+
+    // Do not render anything if user or permissions are not loaded yet.
+    if (!user || !user.permissions) {
+        return (
+            <Sidebar>
+                <SidebarHeader>
+                    <div className="flex items-center gap-2 p-2">
+                        <Logo className="h-6 w-6" />
+                        <span className="text-lg font-semibold">PakFiler Admin</span>
+                    </div>
+                </SidebarHeader>
+            </Sidebar>
+        );
+    }
+    
     const isSuperAdmin = user?.email === 'admin@example.com';
     
-    // Important: Only filter nav items if the user object and permissions are fully loaded.
     const visibleNavItems = adminNavItems.filter(item => {
-        if (!user) return false;
         // Super admin sees everything
         if (isSuperAdmin) return true;
-        // For other admins, ensure permissions object exists before trying to access it.
-        return user.permissions && user.permissions[item.permissionKey as keyof typeof user.permissions];
+        // For other admins, check their permissions object.
+        return user.permissions![item.permissionKey as keyof typeof user.permissions];
     });
 
 
@@ -92,22 +105,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       return;
     }
     
-    // Ensure user and permissions are loaded before checking permissions
+    // Ensure user and permissions are loaded before checking permissions for navigation.
     if (user && user.permissions) {
         const isSuperAdmin = user.email === 'admin@example.com';
-        if(isSuperAdmin) return; // Super admin can access everything
+        if(isSuperAdmin) return; // Super admin can access everything, no need to check further.
 
-        const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href));
+        // Find the top-level route configuration based on the current path.
+        const currentRoute = adminNavItems.find(item => pathname.startsWith(item.href) && item.href !== '/admin');
+        
         if (currentRoute) {
             const hasPermission = user.permissions[currentRoute.permissionKey as keyof typeof user.permissions];
+            // If the user doesn't have permission for this route, redirect them to the admin dashboard.
             if (!hasPermission) {
-                router.push('/admin'); // Redirect to admin dashboard if no permission
+                router.push('/admin'); 
             }
         }
     }
 
   }, [user, loading, router, pathname]);
 
+  // This check now correctly handles the loading state before attempting to render the layout.
   if (loading || !user || user.role !== 'admin') {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">

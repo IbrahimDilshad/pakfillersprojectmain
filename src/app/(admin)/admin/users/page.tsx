@@ -76,15 +76,8 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
-  const router = useRouter();
 
   const isSuperAdmin = currentUser?.email === 'admin@example.com';
-
-  useEffect(() => {
-    // This page should be accessible to all admins now to see the alert,
-    // but actions will be restricted.
-  }, []);
-
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
     if (!isSuperAdmin) {
