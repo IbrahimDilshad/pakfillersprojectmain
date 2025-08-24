@@ -35,22 +35,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
     const { activeUser } = useAuth();
     
-    const getCartId = () => `pakfiler-cart-${activeUser?.uid || 'guest'}`;
-
+    // Effect to load cart from localStorage when the activeUser changes
     useEffect(() => {
-        if (typeof window !== 'undefined' && activeUser) {
-            const cartId = getCartId();
+        if (activeUser?.uid) {
+            const cartId = `pakfiler-cart-${activeUser.uid}`;
             const savedCart = localStorage.getItem(cartId);
-            setItems(savedCart ? JSON.parse(savedCart) : []);
+            if (savedCart) {
+                setItems(JSON.parse(savedCart));
+            } else {
+                setItems([]); // Clear cart for new user
+            }
         } else {
-            setItems([]);
+            setItems([]); // Clear cart if no user is logged in
         }
     }, [activeUser]);
 
+    // Effect to save cart to localStorage whenever items change
     useEffect(() => {
-        if (typeof window !== 'undefined' && activeUser) {
-             const cartId = getCartId();
+        if (activeUser?.uid && items.length > 0) {
+             const cartId = `pakfiler-cart-${activeUser.uid}`;
              localStorage.setItem(cartId, JSON.stringify(items));
+        } else if (activeUser?.uid && items.length === 0) {
+            // Also remove from local storage if cart becomes empty
+            const cartId = `pakfiler-cart-${activeUser.uid}`;
+            localStorage.removeItem(cartId);
         }
     }, [items, activeUser]);
 

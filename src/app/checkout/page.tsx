@@ -10,12 +10,26 @@ import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Upload, ClipboardCopy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFormPrices } from '@/hooks/useFormPrices';
+import { useQuery } from '@tanstack/react-query';
+
+interface PaymentMethod {
+    id: string;
+    bankName: string;
+    accountTitle: string;
+    accountNumber: string;
+}
+
+async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
+    const q = query(collection(db, "paymentMethods"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentMethod));
+}
+
 
 export default function CheckoutPage() {
     const { t } = useLanguage();
@@ -26,7 +40,12 @@ export default function CheckoutPage() {
     const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const { formPrices: paymentMethods, loading: loadingPaymentMethods } = useFormPrices();
+    const { data: paymentMethods = [], isLoading: loadingPaymentMethods } = useQuery<PaymentMethod[]>({
+      queryKey: ['paymentMethods'],
+      queryFn: fetchPaymentMethods,
+      staleTime: 1000 * 60 * 60, // 1 hour
+    });
+
 
     const handleFileCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -92,7 +111,7 @@ export default function CheckoutPage() {
         }
     };
 
-    if (items.length === 0) {
+    if (items.length === 0 && typeof window !== 'undefined') {
         router.replace('/dashboard');
         return null;
     }
@@ -110,8 +129,18 @@ export default function CheckoutPage() {
                             {loadingPaymentMethods ? (
                                 Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
                             ) : paymentMethods.length > 0 ? (
-                                // This seems to be misusing formPrices as payment methods, but we'll follow the pattern
-                                <p className="text-center text-muted-foreground py-4">{t({en: "Payment methods will be displayed here.", ur: "ادائیگی کے طریقے یہاں دکھائے جائیں گے۔"})}</p>
+                                paymentMethods.map(acc => (
+                                    <Card key={acc.id} className="p-4 bg-muted/50">
+                                        <p className="font-semibold">{acc.bankName}</p>
+                                        <p className="text-sm text-muted-foreground">{acc.accountTitle}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="font-mono text-sm">{acc.accountNumber}</p>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleFileCopy(acc.accountNumber)}>
+                                                <ClipboardCopy className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                ))
                             ) : (
                                 <p className="text-center text-muted-foreground py-4">{t({en: "No payment methods configured.", ur: "کوئی ادائیگی کا طریقہ ترتیب نہیں دیا گیا ہے۔"})}</p>
                             )}
