@@ -249,12 +249,6 @@ interface FbrCredentials {
     ntnImage?: File | null;
 }
 
-interface Documents {
-    salaryCertificate?: File | null;
-    taxChallan?: File | null;
-    otherDocuments?: File[] | null;
-}
-
 // Main form data structure
 interface PersonalTaxFilingData {
     taxYear?: string;
@@ -266,7 +260,6 @@ interface PersonalTaxFilingData {
     expense: Expense;
     wrapUp: WrapUp;
     fbr: FbrCredentials;
-    documents: Documents;
 }
 
 interface PersonalTaxFilingContextType {
@@ -287,7 +280,6 @@ const initialFormData: PersonalTaxFilingData = {
     expense: {},
     wrapUp: {},
     fbr: {},
-    documents: {},
 };
 
 export function PersonalTaxFilingProvider({ children }: { children: ReactNode }) {

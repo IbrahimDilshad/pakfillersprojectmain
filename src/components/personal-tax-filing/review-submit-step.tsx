@@ -3,15 +3,15 @@
 
 import { CardDescription, CardTitle } from '../ui/card';
 import { useLanguage } from '@/context/language-context';
-import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useMemo } from 'react';
+import { Badge } from '../ui/badge';
 
 const SummaryItem = ({ label, value, urLabel }: { label: string; value: string | number; urLabel: string; }) => {
     const { t } = useLanguage();
-    if (value === undefined || value === null || value === '') return null;
+    if (value === undefined || value === null || value === '' || (typeof value === 'number' && isNaN(value))) return null;
     return (
         <div className="flex justify-between items-center py-2">
             <p className="text-muted-foreground">{t({ en: label, ur: urLabel })}</p>
@@ -26,11 +26,12 @@ export function ReviewSubmitStep() {
     const { formData } = usePersonalTaxFiling();
 
     const formatCurrency = (amount?: number) => {
-        if (amount === undefined || amount === null) return 'PKR 0';
+        if (amount === undefined || amount === null || isNaN(amount)) return 'PKR 0';
         return `PKR ${amount.toLocaleString()}`;
     }
 
     const totalIncome = useMemo(() => {
+        // This should be expanded to include all income sources
         return (formData.incomes?.salary?.annualSalary || 0);
     }, [formData.incomes]);
 
@@ -72,6 +73,14 @@ export function ReviewSubmitStep() {
                 <h3 className="text-lg font-semibold mb-2">{t({ en: 'Deductions Summary', ur: 'کٹوتی کا خلاصہ' })}</h3>
                 <div className="rounded-md border p-4 space-y-2">
                     <SummaryItem label="Total Deductions Claimed" urLabel="کل دعوی شدہ کٹوتیاں" value={formatCurrency(totalDeductions)} />
+                </div>
+            </div>
+
+             <div>
+                <h3 className="text-lg font-semibold mb-2">{t({ en: 'Service Fee', ur: 'سروس فیس' })}</h3>
+                <div className="rounded-md border p-4 flex justify-between items-center">
+                    <p className="text-muted-foreground">{t({en: 'Personal Tax Filing Service', ur: 'ذاتی ٹیکس فائلنگ سروس'})}</p>
+                    <Badge variant="secondary" className="text-lg font-bold">PKR 3,000</Badge>
                 </div>
             </div>
 
