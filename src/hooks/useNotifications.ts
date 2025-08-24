@@ -34,10 +34,11 @@ export function useNotifications(userId?: string) {
     }
 
     setLoading(true);
+    // Note: Removed the orderBy clause to avoid needing a composite index.
+    // Sorting will be done on the client-side.
     const q = query(
         collection(db, 'notifications'), 
-        where('userId', '==', userId), 
-        orderBy('createdAt', 'desc')
+        where('userId', '==', userId)
     );
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -45,6 +46,8 @@ export function useNotifications(userId?: string) {
       querySnapshot.forEach((doc) => {
         notificationsData.push({ id: doc.id, ...doc.data() } as Notification);
       });
+      // Sort client-side
+      notificationsData.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
       setNotifications(notificationsData);
       setLoading(false);
     }, (error) => {
