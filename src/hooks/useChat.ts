@@ -69,7 +69,11 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         sessionsData.push({ id: doc.id, ...doc.data() } as ChatSession);
       });
       // Sort client-side
-      sessionsData.sort((a, b) => b.lastMessageTimestamp.toDate().getTime() - a.lastMessageTimestamp.toDate().getTime());
+      sessionsData.sort((a, b) => {
+          const timeA = a.lastMessageTimestamp?.toDate()?.getTime() || 0;
+          const timeB = b.lastMessageTimestamp?.toDate()?.getTime() || 0;
+          return timeB - timeA;
+      });
       setSessions(sessionsData);
       setLoading(false);
     }, (error) => {
