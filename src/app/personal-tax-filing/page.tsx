@@ -12,7 +12,7 @@ import { WrapUpStep } from '@/components/personal-tax-filing/wrap-up-step';
 import { FbrCredentialsStep } from '@/components/personal-tax-filing/fbr-credentials-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { useLanguage } from '@/context/language-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PersonalTaxFilingProvider, usePersonalTaxFiling } from '@/context/personal-tax-filing-context';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from "firebase/firestore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileSignature, CheckCircle } from 'lucide-react';
+import { FileSignature, CheckCircle, PlusCircle, ArrowRight } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { CalculationSidebar } from '@/components/personal-tax-filing/calculation-sidebar';
@@ -40,7 +40,7 @@ const steps = [
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
 
-function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack: () => void }) {
+function PersonalTaxFilingWizard({ onBackToDashboard }: { onBackToDashboard: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -50,11 +50,11 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
   const { addItem } = useCart();
   const router = useRouter();
 
-  useEffect(() => {
-    // Set the selected tax year in the form data
-    setFormData(prev => ({ ...prev, taxYear }));
-  }, [taxYear, setFormData]);
-
+  const taxYear = formData.taxYear;
+  if (!taxYear) {
+      // This should ideally not happen if the flow is correct.
+      return <p>Tax year not selected.</p>;
+  }
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -66,7 +66,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
-        onBack(); // Go back to year selection
+        onBackToDashboard();
     }
   };
   
@@ -79,7 +79,6 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
     const serviceCode = 'personal_tax_filing';
     let formPriceInfo = formPrices.find(p => p.id === serviceCode);
 
-    // If price is not in DB, create it with a default price
     if (!formPriceInfo) {
         const defaultPrice = 3000;
         const name = { en: "Personal Tax Filing", ur: "ذاتی ٹیکس فائلنگ" };
@@ -97,7 +96,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         serviceId: formPriceInfo.id,
         name: formPriceInfo.name,
         price: formPriceInfo.price,
-        filingData: formData, // Attach the form data to the cart item
+        filingData: formData,
     });
     toast({
         title: "Added to Cart",
@@ -108,24 +107,15 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
 
   const renderStep = () => {
     switch (steps[currentStep].id) {
-      case 'personal-info':
-        return <PersonalInfoStep />;
-      case 'income-sources':
-        return <IncomeSourcesStep onNext={handleNext} onBack={handleBack} />;
-      case 'tax-credit':
-        return <TaxCreditStep />;
-      case 'deductions':
-        return <DeductionsStep />;
-      case 'wealth-statement':
-        return <WealthStatementStep />;
-      case 'expense':
-        return <ExpenseStep />;
-      case 'wrap-up':
-        return <WrapUpStep setCurrentStep={setCurrentStep} />;
-       case 'fbr-credentials':
-        return <FbrCredentialsStep />;
-      case 'review':
-        return <ReviewSubmitStep />;
+      case 'personal-info': return <PersonalInfoStep />;
+      case 'income-sources': return <IncomeSourcesStep onNext={handleNext} onBack={handleBack} />;
+      case 'tax-credit': return <TaxCreditStep />;
+      case 'deductions': return <DeductionsStep />;
+      case 'wealth-statement': return <WealthStatementStep />;
+      case 'expense': return <ExpenseStep />;
+      case 'wrap-up': return <WrapUpStep setCurrentStep={setCurrentStep} />;
+      case 'fbr-credentials': return <FbrCredentialsStep />;
+      case 'review': return <ReviewSubmitStep />;
       default:
         return (
           <div className="text-center">
@@ -145,7 +135,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
             <CardHeader>
             <CardTitle className="flex justify-between items-center">
                 <span>{t({en: 'Tax Filing for Year', ur: 'سال کے لیے ٹیکس فائلنگ'})} {taxYear}</span>
-                <Button variant="link" onClick={onBack}>{t({en: 'Change Year', ur: 'سال تبدیل کریں'})}</Button>
+                <Button variant="link" onClick={onBackToDashboard}>{t({en: 'Back to Dashboard', ur: 'ڈیش بورڈ پر واپس'})}</Button>
             </CardTitle>
             </CardHeader>
             <CardContent>
@@ -193,11 +183,60 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
   );
 }
 
+function FilingDashboard({ onNew, onResume }: { onNew: () => void, onResume: () => void }) {
+    const { t } = useLanguage();
+    const { formData } = usePersonalTaxFiling();
+    
+    // Check if there's any data that indicates an in-progress filing
+    const hasInProgressFiling = !!formData.taxYear;
+
+    return (
+         <Card className="max-w-4xl mx-auto">
+            <CardHeader>
+                <CardTitle>{t({ en: "Your Tax Filings", ur: "آپ کی ٹیکس فائلنگز" })}</CardTitle>
+                <CardDescription>{t({ en: "Manage your existing tax filings or start a new one.", ur: "اپنی موجودہ ٹیکس فائلنگز کا نظم کریں یا نئی شروع کریں۔" })}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {hasInProgressFiling ? (
+                    <Card className="bg-muted/30">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className="text-lg">{t({en: 'In-Progress Filing for', ur: 'کے لیے جاری فائلنگ'})} {formData.taxYear}</CardTitle>
+                                <CardDescription>{t({en: 'Last updated: now', ur: 'آخری اپ ڈیٹ: ابھی'})}</CardDescription>
+                            </div>
+                            <Button onClick={onResume}>
+                                {t({ en: 'Resume Filing', ur: 'فائلنگ دوبارہ شروع کریں' })}
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </CardHeader>
+                    </Card>
+                ) : (
+                    <div className="text-center text-muted-foreground p-8">
+                        {t({en: 'You have no in-progress filings.', ur: 'آپ کی کوئی جاری فائلنگ نہیں ہے۔'})}
+                    </div>
+                )}
+
+                 <div className="flex items-center gap-4">
+                    <div className="flex-grow border-t"></div>
+                    <span className="text-muted-foreground text-sm">{t({en: 'OR', ur: 'یا'})}</span>
+                    <div className="flex-grow border-t"></div>
+                </div>
+                
+                 <Button variant="outline" className="w-full h-16" onClick={onNew}>
+                    <PlusCircle className="mr-4 h-6 w-6" />
+                    <span className="text-lg">{t({ en: "Start a New Tax Filing", ur: "نئی ٹیکس فائلنگ شروع کریں" })}</span>
+                </Button>
+            </CardContent>
+         </Card>
+    );
+}
+
+
 function YearSelectionStep({ onProceed }: { onProceed: (year: string) => void }) {
     const { t } = useLanguage();
     const [selectedYear, setSelectedYear] = useState<string | null>(null);
 
-    const years = Array.from({ length: 10 }, (_, i) => 2025 - i); // 2025 down to 2016
+    const years = Array.from({ length: 10 }, (_, i) => 2025 - i);
 
     return (
         <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center">
@@ -226,10 +265,38 @@ function YearSelectionStep({ onProceed }: { onProceed: (year: string) => void })
 }
 
 function PersonalTaxFilingFlow() {
-    const [taxYear, setTaxYear] = useState<string | null>(null);
-    return taxYear ? 
-        <PersonalTaxFilingWizard taxYear={taxYear} onBack={() => setTaxYear(null)} /> : 
-        <YearSelectionStep onProceed={setTaxYear} />;
+    type View = 'dashboard' | 'year-selection' | 'wizard';
+    const [view, setView] = useState<View>('dashboard');
+    const { formData, setFormData } = usePersonalTaxFiling();
+
+    const handleNew = () => {
+        setFormData({}); // Clear old data
+        setView('year-selection');
+    }
+    
+    const handleResume = () => {
+        setView('wizard');
+    }
+    
+    const handleYearSelected = (year: string) => {
+        setFormData(prev => ({...prev, taxYear: year}));
+        setView('wizard');
+    }
+
+    const handleBackToDashboard = () => {
+        setView('dashboard');
+    }
+
+    switch (view) {
+        case 'dashboard':
+            return <FilingDashboard onNew={handleNew} onResume={handleResume} />;
+        case 'year-selection':
+            return <YearSelectionStep onProceed={handleYearSelected} />;
+        case 'wizard':
+            return <PersonalTaxFilingWizard onBackToDashboard={handleBackToDashboard} />;
+        default:
+             return <FilingDashboard onNew={handleNew} onResume={handleResume} />;
+    }
 }
 
 
