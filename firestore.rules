@@ -1,45 +1,43 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Deny all reads and writes by default
+    // By default, deny all reads and writes.
     match /{document=**} {
       allow read, write: if false;
     }
-    
-    // This function checks for the 'admin' role in the user's Firestore document
+
+    // This function checks the user's auth token for a custom claim.
+    // This is the correct way to handle roles for collection-group queries.
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth.token.admin == true;
     }
-    
+
     // USERS collection
-    // Users can read/write their own document
-    // Admins can read/write any user document
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId || isAdmin();
+      // A user can create their own document.
       allow create: if request.auth.uid != null;
-      
-      // Sub-accounts can be managed by the parent user or an admin
+      // A user can read/update their own data, or an admin can.
+      allow read, update, delete: if request.auth.uid == userId || isAdmin();
+
+      // Sub-accounts are controlled by the parent user or an admin.
       match /subAccounts/{subAccountId} {
           allow read, write: if request.auth.uid == userId || isAdmin();
       }
     }
-    
+
     // ORDERS collection
-    // Users can create orders for themselves
-    // Users can only read their own orders
-    // Admins can read/write any order
     match /orders/{orderId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read, update: if request.auth.uid == resource.data.userId || isAdmin();
-      allow write: if isAdmin(); // Admins can write to any order
+      allow write: if isAdmin();
     }
 
     // CHATS collection
-    // Admins can list all chats for the dashboard view
-    // Users can read/write to their own chat session
-    // Admins can read/write to any chat session for support
+    // Admins can list all chats for their dashboard.
+    // An individual user can only access their own chat session.
     match /chats/{sessionId} {
       allow list: if isAdmin();
       allow read, write: if request.auth.uid == sessionId || isAdmin();
@@ -48,42 +46,34 @@ service cloud.firestore {
         allow read, write: if request.auth.uid == sessionId || isAdmin();
       }
     }
-    
-    // Public Content Collections
-    // Allow anyone to read, but only admins to write
-    match /blogPosts/{postId} {
+
+    // Publicly readable content that is only writable by admins.
+    match /blogPosts/{doc=**} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
-    match /services/{serviceId} {
+    match /services/{doc=**} {
         allow read: if true;
         allow write: if isAdmin();
     }
-    
-    match /faqs/{faqId} {
+    match /faqs/{doc=**} {
         allow read: if true;
         allow write: if isAdmin();
     }
-    
-    match /videos/{videoId} {
+    match /videos/{doc=**} {
         allow read: if true;
         allow write: if isAdmin();
     }
-
-    match /formPrices/{formId} {
+    match /formPrices/{doc=**} {
         allow read: if true;
         allow write: if isAdmin();
     }
-    
-    match /paymentMethods/{methodId} {
+    match /paymentMethods/{doc=**} {
         allow read: if true;
         allow write: if isAdmin();
     }
 
     // NOTIFICATIONS collection
-    // Users can only read their own notifications
-    // Admins can read/write any notification
     match /notifications/{notificationId} {
         allow read: if request.auth.uid == resource.data.userId || isAdmin();
         allow write: if isAdmin();

@@ -60,13 +60,16 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     };
 
     setLoading(true);
-    const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
+    // Remove orderby to avoid composite index and sort client-side
+    const q = query(collection(db, 'chats'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const sessionsData: ChatSession[] = [];
       querySnapshot.forEach((doc) => {
         sessionsData.push({ id: doc.id, ...doc.data() } as ChatSession);
       });
+      // Sort client-side
+      sessionsData.sort((a, b) => b.lastMessageTimestamp.toDate().getTime() - a.lastMessageTimestamp.toDate().getTime());
       setSessions(sessionsData);
       setLoading(false);
     }, (error) => {
