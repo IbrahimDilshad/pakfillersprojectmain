@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -52,13 +51,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // Effect to save cart to localStorage whenever items change
     useEffect(() => {
-        if (activeUser?.uid && items.length > 0) {
-             const cartId = `pakfiler-cart-${activeUser.uid}`;
-             localStorage.setItem(cartId, JSON.stringify(items));
-        } else if (activeUser?.uid && items.length === 0) {
-            // Also remove from local storage if cart becomes empty
+        if (activeUser?.uid) {
             const cartId = `pakfiler-cart-${activeUser.uid}`;
-            localStorage.removeItem(cartId);
+            localStorage.setItem(cartId, JSON.stringify(items));
         }
     }, [items, activeUser]);
 
@@ -79,6 +74,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const clearCart = () => {
          if (!activeUser) return;
         setItems([]);
+         const cartId = `pakfiler-cart-${activeUser.uid}`;
+        localStorage.removeItem(cartId);
     };
     
     const total = items.reduce((sum, item) => sum + item.price, 0);
