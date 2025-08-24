@@ -242,6 +242,13 @@ interface WrapUp {
     agreedToTerms?: boolean;
 }
 
+interface FbrCredentials {
+    isNtnRegistered?: 'yes' | 'no';
+    fbrPassword?: string;
+    fbrPin?: string;
+    ntnImage?: File | null;
+}
+
 interface Documents {
     salaryCertificate?: File | null;
     taxChallan?: File | null;
@@ -258,6 +265,7 @@ interface PersonalTaxFilingData {
     wealthStatement: WealthStatement;
     expense: Expense;
     wrapUp: WrapUp;
+    fbr: FbrCredentials;
     documents: Documents;
 }
 
@@ -278,6 +286,7 @@ const initialFormData: PersonalTaxFilingData = {
     wealthStatement: {},
     expense: {},
     wrapUp: {},
+    fbr: {},
     documents: {},
 };
 

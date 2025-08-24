@@ -9,6 +9,7 @@ import { DeductionsStep } from '@/components/personal-tax-filing/deductions-step
 import { WealthStatementStep } from '@/components/personal-tax-filing/wealth-statement-step';
 import { ExpenseStep } from '@/components/personal-tax-filing/expense-step';
 import { WrapUpStep } from '@/components/personal-tax-filing/wrap-up-step';
+import { FbrCredentialsStep } from '@/components/personal-tax-filing/fbr-credentials-step';
 import { DocumentsStep } from '@/components/personal-tax-filing/documents-step';
 import { ReviewSubmitStep } from '@/components/personal-tax-filing/review-submit-step';
 import { useLanguage } from '@/context/language-context';
@@ -36,6 +37,7 @@ const steps = [
   { id: 'wealth-statement', name: { en: 'Wealth Statement', ur: 'گوشوارہ' } },
   { id: 'expense', name: { en: 'Expense', ur: 'اخراجات' } },
   { id: 'wrap-up', name: { en: 'Wrap Up', ur: 'نتیجہ' } },
+  { id: 'fbr-credentials', name: { en: 'FBR Credentials', ur: 'ایف بی آر کی اسناد' } },
   { id: 'documents', name: { en: 'Documents', ur: 'دستاویزات' } },
   { id: 'review', name: { en: 'Review & Submit', ur: 'جائزہ لیں اور جمع کرائیں' } },
 ];
@@ -122,6 +124,8 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
         return <ExpenseStep />;
       case 'wrap-up':
         return <WrapUpStep setCurrentStep={setCurrentStep} />;
+       case 'fbr-credentials':
+        return <FbrCredentialsStep />;
       case 'documents':
         return <DocumentsStep />;
       case 'review':
@@ -150,7 +154,7 @@ function PersonalTaxFilingWizard({ taxYear, onBack }: { taxYear: string, onBack:
             </CardHeader>
             <CardContent>
             <Tabs value={steps[currentStep].id} onValueChange={(value) => setCurrentStep(steps.findIndex(s => s.id === value))} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 h-auto">
                 {steps.map((step, index) => {
                     const isCompleted = index < currentStep;
                     const isActive = index === currentStep;
