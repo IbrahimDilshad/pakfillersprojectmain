@@ -8,36 +8,44 @@ service cloud.firestore {
       allow read, write: if false;
     }
     
+    // This function checks for the 'admin' role in the user's Firestore document
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
     // USERS collection
     // Users can read/write their own document
     // Admins can read/write any user document
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId;
+      allow read, update, delete: if request.auth.uid == userId || isAdmin();
       allow create: if request.auth.uid != null;
       
-      // Sub-accounts can be managed by the parent user
+      // Sub-accounts can be managed by the parent user or an admin
       match /subAccounts/{subAccountId} {
-          allow read, write: if request.auth.uid == userId;
+          allow read, write: if request.auth.uid == userId || isAdmin();
       }
     }
     
     // ORDERS collection
     // Users can create orders for themselves
     // Users can only read their own orders
-    // Admins can read any order
+    // Admins can read/write any order
     match /orders/{orderId} {
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow read, update: if request.auth.uid == resource.data.userId;
+      allow read, update: if request.auth.uid == resource.data.userId || isAdmin();
+      allow write: if isAdmin(); // Admins can write to any order
     }
 
     // CHATS collection
+    // Admins can list all chats for the dashboard view
     // Users can read/write to their own chat session
     // Admins can read/write to any chat session for support
     match /chats/{sessionId} {
-      allow read, write: if request.auth.uid == sessionId;
+      allow list: if isAdmin();
+      allow read, write: if request.auth.uid == sessionId || isAdmin();
 
       match /messages/{messageId} {
-        allow read, write: if request.auth.uid == sessionId;
+        allow read, write: if request.auth.uid == sessionId || isAdmin();
       }
     }
     
@@ -45,72 +53,40 @@ service cloud.firestore {
     // Allow anyone to read, but only admins to write
     match /blogPosts/{postId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     
     match /services/{serviceId} {
         allow read: if true;
+        allow write: if isAdmin();
     }
     
     match /faqs/{faqId} {
         allow read: if true;
+        allow write: if isAdmin();
     }
     
     match /videos/{videoId} {
         allow read: if true;
+        allow write: if isAdmin();
     }
 
     match /formPrices/{formId} {
         allow read: if true;
+        allow write: if isAdmin();
     }
     
     match /paymentMethods/{methodId} {
         allow read: if true;
+        allow write: if isAdmin();
     }
 
-    // Notifications
+    // NOTIFICATIONS collection
     // Users can only read their own notifications
+    // Admins can read/write any notification
     match /notifications/{notificationId} {
-        allow read: if request.auth.uid == resource.data.userId;
-    }
-    
-    // ADMIN-ONLY full access rules
-    // This function checks for the 'admin' role in the user's custom claims or Firestore document
-    function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    match /users/{userId} {
-        allow read, write: if isAdmin();
-    }
-    match /orders/{orderId} {
-      allow read, write: if isAdmin();
-    }
-
-    // Allow admins to list chats, and read/write any message within them.
-    match /chats/{document=**} {
-      allow read, write: if isAdmin();
-    }
-
-    match /blogPosts/{postId} {
-      allow write: if isAdmin();
-    }
-     match /services/{serviceId} {
-      allow write: if isAdmin();
-    }
-     match /faqs/{faqId} {
-      allow write: if isAdmin();
-    }
-     match /videos/{videoId} {
-      allow write: if isAdmin();
-    }
-     match /formPrices/{formId} {
-      allow write: if isAdmin();
-    }
-     match /paymentMethods/{methodId} {
-      allow write: if isAdmin();
-    }
-     match /notifications/{notificationId} {
-        allow read, write: if isAdmin();
+        allow read: if request.auth.uid == resource.data.userId || isAdmin();
+        allow write: if isAdmin();
     }
   }
 }
