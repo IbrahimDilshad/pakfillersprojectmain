@@ -76,9 +76,6 @@ service cloud.firestore {
     // ADMIN-ONLY full access rules
     // This function checks for the 'admin' role in the user's custom claims or Firestore document
     function isAdmin() {
-      // Check for custom claim first for efficiency
-      // return request.auth.token.admin == true; 
-      // Fallback to checking Firestore user document
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
@@ -88,9 +85,12 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow read, write: if isAdmin();
     }
-    match /chats/{sessionId}/{document=**} {
+
+    // Allow admins to list chats, and read/write any message within them.
+    match /chats/{document=**} {
       allow read, write: if isAdmin();
     }
+
     match /blogPosts/{postId} {
       allow write: if isAdmin();
     }
