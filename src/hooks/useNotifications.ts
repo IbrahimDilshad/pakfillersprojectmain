@@ -36,8 +36,7 @@ export function useNotifications(userId?: string) {
     setLoading(true);
     const q = query(
         collection(db, 'notifications'), 
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
+        where('userId', '==', userId)
     );
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -45,6 +44,8 @@ export function useNotifications(userId?: string) {
       querySnapshot.forEach((doc) => {
         notificationsData.push({ id: doc.id, ...doc.data() } as Notification);
       });
+      // Sort by createdAt timestamp in descending order
+      notificationsData.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
       setNotifications(notificationsData);
       setLoading(false);
     }, (error) => {
