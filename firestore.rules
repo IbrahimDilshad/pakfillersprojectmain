@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -45,9 +46,8 @@ service cloud.firestore {
 
     // CHATS collection rules
     match /chats/{sessionId} {
-      // Admins can list all chat sessions for their dashboard view, ordered by timestamp.
-      allow list: if isAdmin();
-      // A user can read/write to their own chat session. Admins can access any chat.
+      // Admins can read any chat session.
+      // Users can read/write to their own chat session.
       allow read, write: if isOwner(sessionId) || isAdmin();
 
       // MESSAGES sub-collection rules

@@ -60,7 +60,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     };
 
     setLoading(true);
-    // Add orderBy to allow Firestore rules to secure this query
+    // Admins can read the entire 'chats' collection.
     const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
