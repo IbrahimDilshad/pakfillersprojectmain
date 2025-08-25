@@ -76,26 +76,26 @@ export default function AdminUsersPage() {
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
 
-  const canManageUsers = currentUser?.role === 'admin';
+  const isSuperAdmin = currentUser?.email === 'admin@example.com';
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
-    if (!canManageUsers || currentUser?.uid === userId) {
-        toast({ variant: "destructive", title: "Permission Denied", description: "Admins cannot change their own role." });
+    if (!isSuperAdmin) {
+        toast({ variant: "destructive", title: "Permission Denied", description: "Only the super admin can change roles." });
         return;
     }
     setIsUpdating(userId);
     try {
         const userDocRef = doc(db, 'users', userId);
-        
+        // When changing a role to 'admin', initialize their permissions object.
         const permissions = newRole === 'admin' ? {
             dashboard: true,
-            orders: true,
-            content: true,
-            payments: true,
-            chat: true,
-            users: true,
-            reports: true,
-            config: true,
+            orders: false,
+            content: false,
+            payments: false,
+            chat: false,
+            users: false,
+            reports: false,
+            config: false,
         } : {};
         
         await updateDoc(userDocRef, { role: newRole, permissions });
@@ -112,8 +112,8 @@ export default function AdminUsersPage() {
   };
 
   const handlePermissionsUpdate = async (userId: string, permissions: any) => {
-     if (!canManageUsers) {
-        toast({ variant: "destructive", title: "Permission Denied" });
+     if (!isSuperAdmin) {
+        toast({ variant: "destructive", title: "Permission Denied", description: "Only the super admin can change permissions." });
         return;
     }
     try {
@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
                         <Select 
                             value={user.role} 
                             onValueChange={(newRole: Role) => handleRoleChange(user.uid, newRole)}
-                            disabled={isUpdating === user.uid || !canManageUsers || currentUser?.uid === user.uid}
+                            disabled={isUpdating === user.uid || !isSuperAdmin || user.email === 'admin@example.com'}
                         >
                             <SelectTrigger className="w-[120px]">
                                 <SelectValue placeholder="Select role" />
@@ -184,7 +184,7 @@ export default function AdminUsersPage() {
                         </Select>
                     </TableCell>
                      <TableCell className="text-right">
-                        {user.role === 'admin' && canManageUsers && currentUser?.uid !== user.uid && (
+                        {user.role === 'admin' && isSuperAdmin && user.email !== 'admin@example.com' && (
                            <ManagePermissionsDialog user={user} onPermissionsUpdate={handlePermissionsUpdate} />
                         )}
                      </TableCell>
