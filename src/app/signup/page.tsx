@@ -42,22 +42,10 @@ export default function SignupPage() {
         return;
     }
     try {
-      // Check if this is the first user
-      const usersCollectionRef = collection(db, "users");
-      const q = query(usersCollectionRef, limit(1));
-      const querySnapshot = await getDocs(q);
-      const isFirstUser = querySnapshot.empty;
-
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const isSuperAdmin = email === 'admin@example.com';
+      const role = isSuperAdmin ? 'admin' : 'user';
       
-      await updateProfile(user, {
-        displayName: fullName,
-      });
-
-      const role = isFirstUser ? 'admin' : 'user';
-      
-      const permissions = isFirstUser ? {
+      const permissions = isSuperAdmin ? {
           dashboard: true,
           orders: true,
           content: true,
@@ -67,12 +55,19 @@ export default function SignupPage() {
           reports: true,
           config: true,
       } : {};
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+      
+      await updateProfile(newUser, {
+        displayName: fullName,
+      });
 
       // Save additional user info to Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
+      await setDoc(doc(db, "users", newUser.uid), {
+        uid: newUser.uid,
         displayName: fullName,
-        email: user.email,
+        email: newUser.email,
         mobileNumber: mobileNumber,
         cnic: cnic,
         role: role,
@@ -83,7 +78,7 @@ export default function SignupPage() {
 
       toast({
         title: "Account Created",
-        description: `Your account has been successfully created with the role: ${role}. Please log in.`,
+        description: `Your account has been successfully created. Please log in.`,
       });
       router.push('/login');
     } catch (error: any) {

@@ -63,16 +63,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             if (userDoc.exists()) {
               const userData = userDoc.data();
+              const isSuperAdmin = firebaseUser.email === 'admin@example.com';
               mainUser = {
                 ...firebaseUser,
                 ...userData,
-                role: userData.role || 'user',
+                role: isSuperAdmin ? 'admin' : (userData.role || 'user'),
                 displayName: firebaseUser.displayName || userData.displayName,
               } as AuthUser;
             } else {
                mainUser = { 
                    ...firebaseUser, 
-                   role: 'user', 
+                   role: firebaseUser.email === 'admin@example.com' ? 'admin' : 'user', 
                    displayName: firebaseUser.displayName 
                 } as AuthUser;
             }
