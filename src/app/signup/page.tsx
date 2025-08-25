@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { useLanguage } from "@/context/language-context";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, getDocs, query, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/context/auth-context";
@@ -42,12 +42,31 @@ export default function SignupPage() {
         return;
     }
     try {
+      // Check if this is the first user
+      const usersCollectionRef = collection(db, "users");
+      const q = query(usersCollectionRef, limit(1));
+      const querySnapshot = await getDocs(q);
+      const isFirstUser = querySnapshot.empty;
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       await updateProfile(user, {
         displayName: fullName,
       });
+
+      const role = isFirstUser ? 'admin' : 'user';
+      
+      const permissions = isFirstUser ? {
+          dashboard: true,
+          orders: true,
+          content: true,
+          payments: true,
+          chat: true,
+          users: true,
+          reports: true,
+          config: true,
+      } : {};
 
       // Save additional user info to Firestore
       await setDoc(doc(db, "users", user.uid), {
@@ -56,14 +75,15 @@ export default function SignupPage() {
         email: user.email,
         mobileNumber: mobileNumber,
         cnic: cnic,
-        role: 'user', // Default role
+        role: role,
+        permissions: permissions,
         createdAt: serverTimestamp(),
       });
 
 
       toast({
         title: "Account Created",
-        description: "Your account has been successfully created. Please log in.",
+        description: `Your account has been successfully created with the role: ${role}. Please log in.`,
       });
       router.push('/login');
     } catch (error: any) {
