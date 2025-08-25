@@ -110,7 +110,7 @@ export function Header({ title }: HeaderProps) {
         </DropdownMenu>
 
         {user?.role === 'admin' && (
-             <Link href="/admin/content">
+             <Link href="/admin">
                 <Button variant="ghost" size="icon">
                     <Shield className="h-5 w-5" />
                     <span className="sr-only">Admin</span>

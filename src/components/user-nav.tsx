@@ -52,14 +52,6 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-           {user?.role === 'admin' && (
-            <DropdownMenuItem>
-              <Link href="/admin" className="flex items-center w-full">
-                <Shield className="mr-2 h-4 w-4" />
-                <span>{t({ en: "Admin Panel", ur: "ایڈمن پینل" })}</span>
-              </Link>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem>
             <Link href="/family-tax-filing" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
