@@ -47,7 +47,7 @@ function SessionList({ sessions, activeSessionId, onSelectSession, loading }: { 
                                         {!session.isReadByAdmin && <div className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0" />}
                                     </div>
                                     <p className="text-sm text-muted-foreground truncate">{session.lastMessage}</p>
-                                     <p className="text-xs text-muted-foreground">{formatDistanceToNow(session.lastMessageTimestamp.toDate(), { addSuffix: true })}</p>
+                                     <p className="text-xs text-muted-foreground">{session.lastMessageTimestamp?.toDate ? formatDistanceToNow(session.lastMessageTimestamp.toDate(), { addSuffix: true }) : '...'}</p>
                                 </div>
                             </div>
                         ))

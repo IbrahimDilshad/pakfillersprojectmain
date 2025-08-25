@@ -50,7 +50,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<{ [key: string]: Message[] }>({});
   const [loading, setLoading] = useState(true);
-  const [currentSessionId, setSessionIdForMessages] = useState<string | null>(null);
+  const [currentSessionId, _setCurrentSessionId] = useState<string | null>(null);
 
   // Effect for fetching ALL chat sessions for an admin
   useEffect(() => {
@@ -60,7 +60,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     };
 
     setLoading(true);
-    // Admins can read the entire 'chats' collection.
     const q = query(collection(db, 'chats'), orderBy('lastMessageTimestamp', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -78,7 +77,7 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     return () => unsubscribe();
   }, [userRole]);
 
-  // Effect for fetching messages for a SPECIFIC session (either for a user, or when admin selects one)
+  // Effect for fetching messages for a SPECIFIC session
   useEffect(() => {
     let sessionIdToFetch: string | null = null;
     
@@ -89,7 +88,9 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     }
 
     if (!sessionIdToFetch) {
-        setMessages({});
+        if (userRole !== 'admin') {
+            setMessages({});
+        }
         return;
     }
 
@@ -104,17 +105,6 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
         sessionMessages.push({ id: doc.id, ...doc.data() } as Message);
       });
       setMessages(prev => ({ ...prev, [sessionIdToFetch!]: sessionMessages }));
-      
-      // If admin is viewing a chat, mark it as read
-      if (userRole === 'admin' && currentSessionId === sessionIdToFetch) {
-          const sessionRef = doc(db, 'chats', sessionIdToFetch);
-          getDoc(sessionRef).then(docSnap => {
-            if (docSnap.exists() && docSnap.data().isReadByAdmin === false) {
-                updateDoc(sessionRef, { isReadByAdmin: true }).catch(err => console.error("Could not mark as read", err));
-            }
-          })
-      }
-
     }, (error) => {
        console.error(`Error fetching messages for session ${sessionIdToFetch}:`, error);
     });
@@ -122,36 +112,58 @@ export function useChat(userId: string | undefined, userRole: Role | undefined) 
     return () => unsubscribe();
   }, [userId, userRole, currentSessionId]);
 
+  const setSessionIdForMessages = useCallback(async (sessionId: string) => {
+    _setCurrentSessionId(sessionId);
+    // Mark as read when admin selects a chat
+    if (userRole === 'admin' && sessionId) {
+        try {
+            const sessionRef = doc(db, 'chats', sessionId);
+            await updateDoc(sessionRef, { isReadByAdmin: true });
+        } catch(e) {
+            console.error("Error marking chat as read:", e);
+        }
+    }
+  }, [userRole]);
+
+
   const sendMessage = useCallback(async (payload: SendMessagePayload) => {
     const { sessionId, text, senderId, from, userName, userEmail } = payload;
     if (!text.trim() || !senderId) return;
 
     try {
-      const sessionRef = doc(db, 'chats', sessionId);
-      const messagesColRef = collection(sessionRef, 'messages');
-      const batch = writeBatch(db);
+        const sessionRef = doc(db, 'chats', sessionId);
+        const messagesColRef = collection(sessionRef, 'messages');
+        const batch = writeBatch(db);
 
-      const newMessageRef = doc(messagesColRef);
-      batch.set(newMessageRef, {
-        text,
-        timestamp: serverTimestamp(),
-        senderId,
-        from,
-      });
-      
-      const sessionDataToSet = {
-        lastMessage: text,
-        lastMessageTimestamp: serverTimestamp(),
-        isReadByAdmin: from === 'support', // If support sends, admin has read it.
-        userName: userName,
-        userEmail: userEmail,
-        id: sessionId
-      };
-      
-      // Use set with merge true to create or update the session document
-      batch.set(sessionRef, sessionDataToSet, { merge: true });
-      
-      await batch.commit();
+        const newMessageRef = doc(messagesColRef); // Auto-generate ID for new message
+        batch.set(newMessageRef, {
+            text,
+            timestamp: serverTimestamp(),
+            senderId,
+            from,
+        });
+
+        const sessionDoc = await getDoc(sessionRef);
+
+        const sessionUpdateData = {
+            lastMessage: text,
+            lastMessageTimestamp: serverTimestamp(),
+            isReadByAdmin: from === 'support',
+            userName,
+            userEmail,
+        };
+
+        if (sessionDoc.exists()) {
+            batch.update(sessionRef, sessionUpdateData);
+        } else {
+            batch.set(sessionRef, {
+                ...sessionUpdateData,
+                id: sessionId,
+            });
+        }
+        
+        await batch.commit();
+
     } catch (error) {
       console.error("Error sending message:", error);
     }
