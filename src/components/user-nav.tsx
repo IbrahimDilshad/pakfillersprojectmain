@@ -17,7 +17,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
-import { CreditCard, LogOut, Settings, User, Check, Users } from "lucide-react"
+import { CreditCard, LogOut, Settings, User, Check, Users, Shield } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { useAuth } from "@/context/auth-context"
 
@@ -52,6 +52,14 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+           {user?.role === 'admin' && (
+            <DropdownMenuItem>
+              <Link href="/admin" className="flex items-center w-full">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>{t({ en: "Admin Panel", ur: "ایڈمن پینل" })}</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem>
             <Link href="/family-tax-filing" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
