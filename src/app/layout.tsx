@@ -2,10 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Inter } from 'next/font/google'
-import { LanguageProvider } from '@/context/language-context';
-import { AuthProvider } from '@/context/auth-context';
-import { CartProvider } from '@/context/cart-context';
-import { QueryProvider } from '@/lib/query-provider';
+import { Providers } from '@/components/providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -22,16 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>
-            <QueryProvider>
-              <LanguageProvider>
-                <CartProvider>
-                    {children}
-                    <Toaster />
-                </CartProvider>
-              </LanguageProvider>
-            </QueryProvider>
-        </AuthProvider>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
