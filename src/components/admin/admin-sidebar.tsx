@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingCart, Users, Settings, BarChart, MessageSquare, Newspaper, Video, HelpCircle, CreditCard } from "lucide-react";
+import { Home, ShoppingCart, Users, Settings, BarChart, MessageSquare, Newspaper, Video, HelpCircle, CreditCard, Files } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { Logo } from "../logo";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const navItems = [
     { href: "/admin/users", label: { en: "Users", ur: "صارفین" }, icon: Users },
     { href: "/admin/chat", label: { en: "Chat", ur: "چیٹ" }, icon: MessageSquare },
     { type: 'divider', label: { en: 'Content', ur: 'مواد' } },
+    { href: "/admin/documents", label: { en: "Documents", ur: "دستاویزات" }, icon: Files },
     { href: "/admin/content/blogs", label: { en: "Blogs", ur: "بلاگز" }, icon: Newspaper },
     { href: "/admin/content/videos", label: { en: "Videos", ur: "ویڈیوز" }, icon: Video },
     { href: "/admin/content/faqs", label: { en: "FAQs", ur: "اکثر پوچھے گئے سوالات" }, icon: HelpCircle },

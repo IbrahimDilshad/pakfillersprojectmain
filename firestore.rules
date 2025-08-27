@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -42,11 +43,32 @@ service cloud.firestore {
       // Only an admin can update or delete an order.
       allow update, delete: if isAdmin();
     }
+    
+    // DOCUMENTS collection rules
+    match /documents/{docId} {
+      // Users can read their own documents, Admins and Accountants can read any document
+      allow read: if isOwner(resource.data.userId) || request.auth.uid != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant');
+      // Admins and Accountants can list all documents
+      allow list: if request.auth.uid != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant');
+      // Users can create their own documents
+      allow create: if isOwner(request.resource.data.userId);
+      // Admins and Accountants can update any document status. Users cannot update.
+      allow update: if request.auth.uid != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant');
+      // Only Admins can delete documents
+      allow delete: if isAdmin();
+    }
+    
+    // TAX FILINGS collection rules
+    match /taxFilings/{filingId} {
+        allow read, list: if request.auth.uid != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'accountant');
+        allow create, update: if isAdmin();
+    }
+
 
     // CHATS collection rules
     match /chats/{sessionId} {
-      // Admins can list all chat sessions for their dashboard view, ordered by timestamp.
-      allow list: if isAdmin();
+      // Admins can list all chat sessions for their dashboard view.
+      allow list: if isAdmin() && request.query.orderBy.path.string() == "lastMessageTimestamp";
       // A user can read/write to their own chat session. Admins can access any chat.
       allow read, write: if isOwner(sessionId) || isAdmin();
 
