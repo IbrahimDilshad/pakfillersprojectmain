@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, collection, onSnapshot, DocumentData } from 'firebase/firestore';
 
 type Role = 'user' | 'admin' | 'accountant';
+type Status = 'active' | 'suspended';
 type AccountType = 'family' | 'business';
 type Relation = 'parent' | 'sibling' | 'child' | 'spouse' | 'other';
 type LegalStructure = 'company' | 'aop' | 'individual';
@@ -25,6 +26,7 @@ export interface Permissions {
 
 export interface AuthUser extends User {
   role: Role;
+  status: Status;
   mobileNumber?: string;
   cnic?: string;
   accountType?: AccountType;
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ...firebaseUser,
                 ...userData,
                 role: role,
+                status: userData.status || 'active',
                 displayName: firebaseUser.displayName || userData.displayName,
               } as AuthUser;
             } else {
@@ -93,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                mainUser = { 
                    ...firebaseUser, 
                    role: role, 
+                   status: 'active',
                    displayName: firebaseUser.displayName 
                 } as AuthUser;
             }
