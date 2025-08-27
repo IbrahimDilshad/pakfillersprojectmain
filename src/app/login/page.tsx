@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLanguage } from "@/context/language-context"
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/context/auth-context";
@@ -24,15 +25,38 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+        if(user.role === 'admin') {
+            router.push('/admin');
+        } else if (user.role === 'accountant') {
+            router.push('/accountant');
+        }
+        else {
+            router.push('/dashboard');
+        }
     }
   }, [user, loading, router]);
 
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const loggedInUser = userCredential.user;
+
+      // Determine redirection based on email
+      if (email === 'accountant@gmail.com') {
+          router.push('/accountant');
+          return;
+      }
+
+      // Default redirection logic for other users
+      const userDocRef = doc(db, "users", loggedInUser.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists() && userDoc.data().role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -112,5 +136,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
-    

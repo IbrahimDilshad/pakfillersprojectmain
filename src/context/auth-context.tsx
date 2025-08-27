@@ -64,16 +64,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (userDoc.exists()) {
               const userData = userDoc.data();
               const isSuperAdmin = firebaseUser.email === 'admin@example.com';
+              const isAccountant = firebaseUser.email === 'accountant@gmail.com';
+              
+              let role: Role = 'user';
+              if (isSuperAdmin) {
+                role = 'admin';
+              } else if (isAccountant) {
+                role = 'accountant';
+              } else {
+                role = userData.role || 'user';
+              }
+              
               mainUser = {
                 ...firebaseUser,
                 ...userData,
-                role: isSuperAdmin ? 'admin' : (userData.role || 'user'),
+                role: role,
                 displayName: firebaseUser.displayName || userData.displayName,
               } as AuthUser;
             } else {
+               const isSuperAdmin = firebaseUser.email === 'admin@example.com';
+               const isAccountant = firebaseUser.email === 'accountant@gmail.com';
+               let role: Role = 'user';
+                if (isSuperAdmin) {
+                    role = 'admin';
+                } else if (isAccountant) {
+                    role = 'accountant';
+                }
                mainUser = { 
                    ...firebaseUser, 
-                   role: firebaseUser.email === 'admin@example.com' ? 'admin' : 'user', 
+                   role: role, 
                    displayName: firebaseUser.displayName 
                 } as AuthUser;
             }
