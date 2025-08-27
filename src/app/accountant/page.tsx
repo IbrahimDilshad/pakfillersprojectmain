@@ -8,6 +8,10 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useOrders } from "@/hooks/useOrders";
+import { useAllDocuments } from "@/hooks/useAllDocuments";
+import { useTaxFilings } from "@/hooks/useTaxFilings";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const data = [
   { name: 'Jan', total: 12 },
@@ -41,6 +45,12 @@ const featureCards = [
 
 export default function AccountantDashboardPage() {
     const { t } = useLanguage();
+    const { orders, loading: ordersLoading } = useOrders();
+    const { documents, loading: documentsLoading } = useAllDocuments();
+    const { filings, loading: filingsLoading } = useTaxFilings();
+
+    const totalRevenue = orders.reduce((acc, order) => acc + order.total, 0);
+    const loading = ordersLoading || documentsLoading || filingsLoading;
 
     return (
         <div className="space-y-6">
@@ -52,8 +62,7 @@ export default function AccountantDashboardPage() {
                         <FileCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,254</div>
-                         <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                        {loading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{documents.length}</div>}
                     </CardContent>
                 </Card>
                 <Card>
@@ -62,8 +71,7 @@ export default function AccountantDashboardPage() {
                         <FileSignature className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">342</div>
-                         <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+                       {loading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{filings.length}</div>}
                     </CardContent>
                 </Card>
                 <Card>
@@ -72,8 +80,7 @@ export default function AccountantDashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">PKR 1,235,600</div>
-                         <p className="text-xs text-muted-foreground">+19% from last month</p>
+                       {loading ? <Skeleton className="h-8 w-32" /> : <div className="text-2xl font-bold">PKR {totalRevenue.toLocaleString()}</div>}
                     </CardContent>
                 </Card>
             </div>
